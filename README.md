@@ -1,4 +1,4 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 2.0.0
+# Sistem Administrasi Dayah Babussa'adah — Versi 2.0.1
 
 ©SRISP 2026
 
@@ -9,8 +9,8 @@ HTML + JavaScript terpisah, di-hosting di **GitHub Pages** (`dayahbabussaadah.we
 
 | Alamat | Untuk | Isi |
 |---|---|---|
-| `/` (index.html) | **Semua pengunjung, tanpa login** | Jadwal mengajar per hari, kitab & materi, jadwal per teungku, jam sesi |
-| `login.html` | Pengguna | Login: pilih nama dari dropdown + kata sandi |
+| `/` (index.html) | **Semua pengunjung** | Kiri: identitas dayah + **login** (pilih nama + kata sandi). Kanan: **daftar jadwal mengajar**, kitab & materi, per teungku |
+| `login.html` | — | Hanya meneruskan ke halaman depan (untuk tautan lama) |
 | `setup.html` | Sekali saja | Membuat Super Admin pertama |
 | `dashboard.html` | Staf | Ringkasan |
 | `jadwal-mengajar.html` | Teungku, Admin, Super Admin | Memilih sesi Pagi/Malam per hari + kitab, materi, kelas |
@@ -40,10 +40,13 @@ Config Firebase web memang terlihat di browser; ia hanya pengenal proyek. Data d
 
 ## 3. Deploy ke GitHub Pages
 
-1. Unggah semua isi folder ke repo (folder `.github` harus ikut).
-2. **Settings → Secrets and variables → Actions** → secret `FIREBASE_CONFIG` berisi config sebagai satu baris JSON.
-3. **Settings → Pages → Source: GitHub Actions**; *Custom domain*: `dayahbabussaadah.web.id`, centang *Enforce HTTPS*.
-4. Setiap perubahan otomatis dideploy. Kode build tampil di kaki halaman: `Versi 2.0.0 (abcd1234) · ©SRISP 2026`, dan browser otomatis memakai file terbaru.
+**Cara sederhana (Deploy from a branch)** — yang dipakai saat ini:
+1. Unggah **semua** isi folder ke repo, **termasuk `js/firebase-config.js`**. Tanpa file ini semua halaman gagal dimuat.
+2. **Settings → Pages → Source: Deploy from a branch → main / (root)**; *Custom domain* `dayahbabussaadah.web.id`.
+3. Batasi API key (bagian 2), lalu tutup peringatan GitHub *Secret scanning* dengan **Close alert → Won't fix**.
+4. Setiap rilis, angka versi ada di setiap tautan file (`?v=2.0.1`), jadi HP otomatis mengunduh file baru.
+
+**Cara lanjutan (GitHub Actions)**, opsional: folder **`.github/workflows`** (ejaan persis `.github`) membuat `firebase-config.js` dari Secret `FIREBASE_CONFIG` sehingga key tidak perlu disimpan di repo. Aktifkan dengan **Settings → Pages → Source: GitHub Actions**. Kalau tidak dipakai, folder ini boleh dihapus.
 
 ## 4. Peran
 

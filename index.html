@@ -6,52 +6,102 @@
   <meta name="theme-color" content="#0f5132">
   <meta name="description" content="Jadwal mengajar, materi, dan kitab yang diajarkan di Dayah Babussa'adah">
   <title>Dayah Babussa'adah — Jadwal Mengajar & Kitab</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2.0.1">
 </head>
-<body class="publik">
-  <!-- Halaman publik: bisa dilihat semua pengunjung tanpa login -->
-  <header class="pub-hero" id="hero">
-    <div class="pub-hero-isi">
-      <div class="pub-atas">
-        <div class="brand">
-          <span id="pubLogo" class="pub-logo"><span>☪</span></span>
-          <div><strong id="pubNama">Dayah Babussa'adah</strong><small id="pubAlamat"></small></div>
+<body class="beranda">
+  <!-- Muncul bila script gagal dimuat (mis. file lama di cache / file hilang) -->
+  <div class="gangguan" id="gagalMuat" hidden>
+    Halaman gagal dimuat sepenuhnya. <button class="btn btn-sm" onclick="location.reload(true)">Muat ulang</button>
+  </div>
+
+  <div class="beranda-wrap">
+    <!-- ================= KIRI: identitas dayah + login ================= -->
+    <aside class="beranda-kiri login-foto" id="panelFoto">
+      <div class="kiri-isi">
+        <div class="kiri-identitas">
+          <div id="logoWrap" class="login-logo"><span>☪</span></div>
+          <div>
+            <h2 id="namaDayah">Dayah Babussa'adah</h2>
+            <p id="alamatDayah"></p>
+            <p id="taglineDayah" class="tagline"></p>
+          </div>
         </div>
-        <a class="btn btn-emas" href="login.html">Masuk</a>
+
+        <div class="login-box kartu-login">
+          <!-- Sudah login: tampilkan tombol ke aplikasi -->
+          <div id="sudahMasuk" hidden>
+            <h1>Assalamu'alaikum</h1>
+            <p id="sudahMasukNama"></p>
+            <a class="btn btn-blok" id="btnKeAplikasi" href="dashboard.html">Buka aplikasi →</a>
+          </div>
+
+          <div id="kotakLogin">
+            <h1>Masuk</h1>
+            <p>Untuk teungku & pengurus dayah</p>
+
+            <div class="info" id="infoSetup" hidden>
+              Belum ada Super Admin. <a href="setup.html"><b>Lakukan setup awal →</b></a>
+            </div>
+
+            <form id="formLogin">
+              <div class="field">
+                <label for="username">Nama pengguna</label>
+                <select id="username" name="username" required>
+                  <option value="">Memuat daftar...</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="password">Kata sandi</label>
+                <div class="sandi-wrap">
+                  <input type="password" id="password" name="password" required autocomplete="current-password">
+                  <button type="button" class="lihat" id="lihatSandi" aria-label="Lihat kata sandi">👁</button>
+                </div>
+              </div>
+              <button class="btn btn-blok" type="submit" id="btnMasuk">Masuk</button>
+              <div class="error" id="err"></div>
+            </form>
+          </div>
+        </div>
+        <div id="kakiKiri"></div>
       </div>
-      <h1>Jadwal Mengajar & Kitab</h1>
-      <p id="pubTagline" class="tagline"></p>
-      <div class="pub-sesi" id="pubSesi"></div>
-    </div>
-  </header>
+    </aside>
 
-  <main class="pub-main">
-    <div class="pub-tab" role="tablist">
-      <button class="aktif" data-tab="jadwal">📅 Jadwal per hari</button>
-      <button data-tab="kitab">📖 Kitab & materi</button>
-      <button data-tab="teungku">👤 Per teungku</button>
-    </div>
-
-    <!-- Jadwal per hari -->
-    <section id="tab-jadwal">
-      <div class="hari-pilih" id="hariPilih"></div>
-      <div id="jadwalHari"><div class="card empty">Memuat jadwal...</div></div>
-    </section>
-
-    <!-- Kitab & materi -->
-    <section id="tab-kitab" hidden>
-      <div class="card">
-        <div class="field" style="margin-bottom:12px"><label>Cari kitab / materi / teungku</label><input id="cariKitab" placeholder="mis. Taqrib"></div>
-        <div id="daftarKitab"></div>
+    <!-- ================= KANAN: daftar jadwal, kitab, teungku (publik) ================= -->
+    <main class="beranda-kanan">
+      <div class="kanan-judul">
+        <h1>Jadwal Mengajar & Kitab</h1>
+        <div class="pub-sesi" id="pubSesi"></div>
       </div>
-    </section>
 
-    <!-- Per teungku -->
-    <section id="tab-teungku" hidden>
-      <div id="daftarTeungku"></div>
-    </section>
-  </main>
+      <div class="pub-tab" role="tablist">
+        <button class="aktif" data-tab="jadwal">📅 Per hari</button>
+        <button data-tab="kitab">📖 Kitab & materi</button>
+        <button data-tab="teungku">👤 Per teungku</button>
+      </div>
 
-  <script type="module" src="js/publik.js"></script>
+      <section id="tab-jadwal">
+        <div class="hari-pilih" id="hariPilih"></div>
+        <div id="jadwalHari"><div class="card empty">Memuat jadwal...</div></div>
+      </section>
+
+      <section id="tab-kitab" hidden>
+        <div class="card">
+          <div class="field" style="margin-bottom:12px"><label>Cari kitab / materi / teungku</label><input id="cariKitab" placeholder="mis. Taqrib"></div>
+          <div id="daftarKitab"></div>
+        </div>
+      </section>
+
+      <section id="tab-teungku" hidden>
+        <div id="daftarTeungku"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="js/login.js?v=2.0.1"></script>
+  <script type="module" src="js/publik.js?v=2.0.1"></script>
+  <script>
+    // Bila setelah 10 detik script utama belum jalan, tampilkan tombol muat ulang
+    setTimeout(function () { if (!window.__berandaSiap) document.getElementById("gagalMuat").hidden = false; }, 10000);
+  </script>
 </body>
 </html>

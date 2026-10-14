@@ -2,54 +2,11 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0f5132">
-  <title>Login — Dayah Babussa'adah</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk — Dayah Babussa'adah</title>
+  <!-- Login sekarang ada di halaman depan (kiri). Halaman ini hanya meneruskan. -->
+  <script>location.replace("./" + location.search);</script>
+  <meta http-equiv="refresh" content="0;url=./">
 </head>
-<body class="login-page">
-  <div class="login-wrap">
-    <!-- Bilah kiri: foto dayah / pesantren + logo (diatur Super Admin di menu Profil Dayah) -->
-    <section class="login-foto" id="panelFoto">
-      <div class="login-foto-isi">
-        <div id="logoWrap" class="login-logo"><span>☪</span></div>
-        <h2 id="namaDayah">Dayah Babussa'adah</h2>
-        <p id="alamatDayah"></p>
-        <p id="taglineDayah" class="tagline"></p>
-      </div>
-    </section>
-
-    <!-- Bilah kanan: login -->
-    <section class="login-panel">
-      <div class="login-box">
-        <h1>Masuk</h1>
-        <p>Penggajian Guru · Absensi · Kas</p>
-
-        <div class="info" id="infoSetup" hidden>
-          Belum ada Super Admin. <a href="setup.html"><b>Lakukan setup awal →</b></a>
-        </div>
-
-        <form id="formLogin">
-          <div class="field">
-            <label for="username">Nama pengguna</label>
-            <select id="username" name="username" required>
-              <option value="">Memuat daftar...</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="password">Kata sandi</label>
-            <div class="sandi-wrap">
-              <input type="password" id="password" name="password" required autocomplete="current-password">
-              <button type="button" class="lihat" id="lihatSandi" aria-label="Lihat kata sandi">👁</button>
-            </div>
-          </div>
-          <button class="btn" type="submit" id="btnMasuk">Masuk</button>
-          <div class="error" id="err"></div>
-        </form>
-        <a class="link-publik" href="./">📖 Lihat jadwal mengajar & kitab</a>
-      </div>
-    </section>
-  </div>
-  <script type="module" src="js/login.js"></script>
-</body>
+<body><a href="./">Ke halaman depan</a></body>
 </html>
