@@ -1,0 +1,64 @@
+# Deploy ke GitHub Pages.
+# Config Firebase diambil dari Secret repo "FIREBASE_CONFIG" (bukan dari kode),
+# sehingga API key tidak tersimpan di repository dan tidak ditandai pemindai rahasia.
+name: Deploy ke GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Buat js/firebase-config.js dari Secret
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+        run: |
+          if [ -z "$FIREBASE_CONFIG" ]; then
+            echo "::error::Secret FIREBASE_CONFIG belum diisi (Settings > Secrets and variables > Actions)"
+            exit 1
+          fi
+          node -e '
+            const c = JSON.parse(process.env.FIREBASE_CONFIG);
+            for (const k of ["apiKey","authDomain","projectId","appId"])
+              if (!c[k]) { console.error("::error::FIREBASE_CONFIG tidak punya " + k); process.exit(1); }
+            require("fs").writeFileSync("js/firebase-config.js",
+              "export const firebaseConfig = " + JSON.stringify(c, null, 2) + ";\n");
+          '
+
+      # Setiap deploy menambahkan ?v=<versi> pada file JS/CSS lokal, supaya browser/HP
+      # tidak mencampur file lama dari cache dengan file baru (penyebab header/menu hilang).
+      - name: Paksa browser memakai file terbaru
+        run: |
+          V="${GITHUB_SHA::8}"
+          sed -i "s/__BUILD__/${V}/" js/pengaturan.js      # tampil di kaki halaman: Versi x.y.z (build)
+          find . -path ./.git -prune -o -path ./.github -prune -o \( -name "*.html" -o -name "*.js" \) -type f -print |
+          while read -r f; do
+            sed -i -E "s#([\"'])(\./[A-Za-z0-9_.-]+\.js|js/[A-Za-z0-9_.-]+\.js|css/[A-Za-z0-9_.-]+\.css)\1#\1\2?v=${V}\1#g" "$f"
+          done
+          grep -rhoE "(src|href|from) ?=? ?\"[^\"]*\?v=${V}\"" --include=*.html --include=*.js . | sort | uniq -c | head -50
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
