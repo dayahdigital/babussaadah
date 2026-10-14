@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
   <title>Data Guru — Dayah Babussa'adah</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -45,20 +46,6 @@
         <div class="field"><label>Tunjangan / bulan</label><input name="tunjangan" type="number" min="0" value="0"></div>
         <div class="field"><label>Insentif per kehadiran (per sesi)</label><input name="honorHadir" type="number" min="0" value="0"></div>
         <div class="field"><label>Potongan per alpa</label><input name="potonganAlpa" type="number" min="0" value="0"></div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Jadwal mengajar per minggu <span id="jmlJadwal" style="font-weight:600"></span></label>
-          <div class="table-wrap">
-            <table class="jadwal">
-              <thead><tr><th>Sesi</th><th>Ahad</th><th>Sen</th><th>Sel</th><th>Rab</th><th>Kam</th><th>Jum</th><th>Sab</th></tr></thead>
-              <tbody id="gridJadwal"></tbody>
-            </table>
-          </div>
-          <div style="display:flex;gap:6px;margin-top:6px">
-            <button type="button" class="btn btn-sm btn-sec" id="jdwSemua">Centang semua</button>
-            <button type="button" class="btn btn-sm btn-sec" id="jdwKosong">Kosongkan</button>
-          </div>
-          <small style="color:#6b7770">Kotak abu-abu = sesi tidak berjalan pada hari itu (atur di menu Absensi → Pengaturan).</small>
-        </div>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>

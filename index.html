@@ -2,33 +2,56 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Dayah Babussa'adah</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <meta name="description" content="Jadwal mengajar, materi, dan kitab yang diajarkan di Dayah Babussa'adah">
+  <title>Dayah Babussa'adah — Jadwal Mengajar & Kitab</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="login-page">
-  <div class="login-box">
-    <div class="logo">☪</div>
-    <h1>Dayah Babussa'adah</h1>
-    <p>Penggajian Guru · Absensi · Kas</p>
+<body class="publik">
+  <!-- Halaman publik: bisa dilihat semua pengunjung tanpa login -->
+  <header class="pub-hero" id="hero">
+    <div class="pub-hero-isi">
+      <div class="pub-atas">
+        <div class="brand">
+          <span id="pubLogo" class="pub-logo"><span>☪</span></span>
+          <div><strong id="pubNama">Dayah Babussa'adah</strong><small id="pubAlamat"></small></div>
+        </div>
+        <a class="btn btn-emas" href="login.html">Masuk</a>
+      </div>
+      <h1>Jadwal Mengajar & Kitab</h1>
+      <p id="pubTagline" class="tagline"></p>
+      <div class="pub-sesi" id="pubSesi"></div>
+    </div>
+  </header>
 
-    <div class="info" id="infoSetup" hidden>
-      Belum ada Super Admin. <a href="setup.html"><b>Lakukan setup awal →</b></a>
+  <main class="pub-main">
+    <div class="pub-tab" role="tablist">
+      <button class="aktif" data-tab="jadwal">📅 Jadwal per hari</button>
+      <button data-tab="kitab">📖 Kitab & materi</button>
+      <button data-tab="teungku">👤 Per teungku</button>
     </div>
 
-    <form id="formLogin">
-      <div class="field">
-        <label for="username">Username</label>
-        <input id="username" name="username" required autocomplete="username" autocapitalize="none" spellcheck="false">
+    <!-- Jadwal per hari -->
+    <section id="tab-jadwal">
+      <div class="hari-pilih" id="hariPilih"></div>
+      <div id="jadwalHari"><div class="card empty">Memuat jadwal...</div></div>
+    </section>
+
+    <!-- Kitab & materi -->
+    <section id="tab-kitab" hidden>
+      <div class="card">
+        <div class="field" style="margin-bottom:12px"><label>Cari kitab / materi / teungku</label><input id="cariKitab" placeholder="mis. Taqrib"></div>
+        <div id="daftarKitab"></div>
       </div>
-      <div class="field">
-        <label for="password">Kata sandi</label>
-        <input type="password" id="password" name="password" required autocomplete="current-password">
-      </div>
-      <button class="btn" type="submit" id="btnMasuk">Masuk</button>
-      <div class="error" id="err"></div>
-    </form>
-  </div>
-  <script type="module" src="js/login.js"></script>
+    </section>
+
+    <!-- Per teungku -->
+    <section id="tab-teungku" hidden>
+      <div id="daftarTeungku"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/publik.js"></script>
 </body>
 </html>

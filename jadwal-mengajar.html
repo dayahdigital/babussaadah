@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <title>Jadwal Mengajar — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main style="max-width:900px">
+    <h1>Jadwal Mengajar</h1>
+
+    <div class="card">
+      <div class="toolbar" id="pilihGuruWrap" hidden>
+        <div class="field"><label>Teungku</label><select id="pilihGuru"></select></div>
+      </div>
+      <p id="keterangan" style="font-size:14px;color:#6b7770;margin:8px 0 0"></p>
+    </div>
+
+    <div class="card">
+      <h2 id="judulJadwal">Jadwal per minggu</h2>
+      <div class="table-wrap">
+        <table class="tabel-jadwal">
+          <thead><tr><th>Hari</th><th id="thPagi">Pagi</th><th id="thMalam">Malam</th></tr></thead>
+          <tbody id="tbJadwal"><tr><td colspan="3" class="empty">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+      <p style="font-size:13px;color:#6b7770;margin-bottom:0">
+        Jadwal ini menentukan sesi yang muncul di absensi, dan tampil untuk umum di halaman depan situs
+        (nama teungku, kitab, materi, kelas — tanpa data gaji).
+      </p>
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <form class="box" id="formJadwal">
+      <h2 id="judulModal">Jadwal</h2>
+      <div class="grid" style="margin-bottom:0">
+        <div class="field" style="grid-column:1/-1">
+          <label>Kitab yang diajarkan</label>
+          <input name="kitab" required list="daftarKitab" placeholder="mis. Matan Taqrib, Jurumiyah, Tafsir Jalalain">
+          <datalist id="daftarKitab"></datalist>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Materi / bab</label>
+          <input name="materi" placeholder="mis. Bab Thaharah, Kalam & Isim">
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Kelas / tingkat / tempat</label>
+          <input name="kelas" placeholder="mis. Kelas 2 Ula, Balee 3">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-red" id="btnHapus" style="margin-right:auto">Hapus</button>
+        <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>
+        <button type="submit" class="btn">Simpan</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="js/jadwal-mengajar.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 rules_version = '2';
+// Aturan keamanan Firestore — Dayah Babussa'adah (versi 2.0.0)
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -8,6 +9,7 @@ service cloud.firestore {
     function me()        { return get(userPath()).data; }
     function aktif()     { return request.auth != null && exists(userPath()) && me().aktif == true; }
     function peran(list) { return aktif() && me().role in list; }
+    function staf()      { return peran(['superadmin', 'admin', 'bendahara', 'operator']); }
 
     // Setup awal: hanya selama config/setup belum ada, dan dibuat dalam batch yang sama
     function bootstrap() {
@@ -21,12 +23,30 @@ service cloud.firestore {
                     && getAfter(userPath()).data.role == 'superadmin';
     }
 
-    // ---------- Akun ----------
-    // usernames/{username} → { uid, email }. Bisa dibaca sebelum login (untuk proses login),
-    // tetapi tidak bisa didaftar (list) kecuali oleh Super Admin.
-    match /usernames/{username} {
+    // ---------- Profil dayah (logo, foto, nama) — tampil di halaman login & publik ----------
+    match /config/tampilan {
       allow get: if true;
-      allow list, write: if peran(['superadmin']);
+      allow write: if peran(['superadmin']);
+    }
+
+    // ---------- Sesi Pagi & Malam (jam, hari) — tampil di halaman publik ----------
+    match /config/absensi {
+      allow get: if true;
+      allow write: if peran(['superadmin']);
+    }
+
+    // ---------- Kategori kas ----------
+    match /config/kas {
+      allow get: if peran(['superadmin', 'admin', 'bendahara']);
+      allow write: if peran(['superadmin', 'admin', 'bendahara']);
+    }
+
+    // ---------- Akun ----------
+    // usernames/{username} → { uid, email, nama, role, aktif }.
+    // Bisa dibaca sebelum login: dipakai untuk dropdown nama di halaman login.
+    match /usernames/{username} {
+      allow get, list: if true;
+      allow write: if peran(['superadmin']);
       allow create: if bootstrap() && request.resource.data.uid == request.auth.uid;
     }
 
@@ -37,41 +57,37 @@ service cloud.firestore {
                     && request.resource.data.role == 'superadmin';
     }
 
-    // ---------- Data aplikasi ----------
+    // ---------- Data guru (berisi gaji: tidak publik) ----------
+    // Staf membaca semua; teungku hanya membaca datanya sendiri.
     match /guru/{id} {
-      allow read: if aktif();
-      allow write: if peran(['superadmin', 'admin']);
-    }
-    // Pengaturan absensi (daftar sesi, izin absen mandiri)
-    match /config/absensi {
-      allow read: if aktif();
+      allow read: if staf() || (peran(['guru']) && id == me().guruId);
       allow write: if peran(['superadmin', 'admin']);
     }
 
-    // Tanggal hari ini menurut WIB (UTC+7), format YYYY-MM-DD
-    function tglWIB() {
-      let t = request.time + duration.value(7, 'h');
-      return string(t.year()) + '-'
-        + (t.month() < 10 ? '0' : '') + string(t.month()) + '-'
-        + (t.day() < 10 ? '0' : '') + string(t.day());
-    }
-
-    // Absen mandiri teungku: hanya untuk dirinya, hanya HADIR, hanya hari ini,
-    // insentif harus sama dengan tarifnya, dan fitur absen mandiri sedang diizinkan.
-    function absenMandiriSah(id) {
+    // ---------- Jadwal mengajar (publik) ----------
+    // id = "<guruId>_<sesi>_<hari>". Teungku mengatur jadwalnya sendiri; Admin mengatur semua.
+    function jadwalSah(id) {
       let d = request.resource.data;
-      let g = get(/databases/$(database)/documents/guru/$(d.guruId)).data;
-      return d.guruId == me().guruId
-        && g.aktif == true
-        && d.status == 'H'
-        && d.sumber == 'mandiri'
-        && d.tanggal == tglWIB()
-        && d.bulan == d.tanggal.split('-')[0] + '-' + d.tanggal.split('-')[1]
-        && id == d.tanggal + '_' + d.sesi + '_' + d.guruId
-        && d.insentif == g.get('honorHadir', 0)
-        && sesuaiJadwal(g, d.sesi)
-        && d.waktu == request.time
-        && mandiriDiizinkan();
+      return d.sesi in ['pagi', 'malam']
+        && d.hari is int && d.hari >= 0 && d.hari <= 6
+        && d.kitab is string && d.kitab.size() > 0 && d.kitab.size() <= 120
+        && id == d.guruId + '_' + d.sesi + '_' + string(d.hari);
+    }
+    match /mengajar/{id} {
+      allow read: if true;
+      allow write: if peran(['superadmin', 'admin']);
+      allow create, update: if peran(['guru']) && request.resource.data.guruId == me().guruId
+                            && (resource == null || resource.data.guruId == me().guruId)
+                            && jadwalSah(id);
+      allow delete: if peran(['guru']) && resource.data.guruId == me().guruId;
+    }
+
+    // ---------- Absensi ----------
+    // Apakah tanggal "YYYY-MM-DD" adalah hari ini menurut WIB (UTC+7)?
+    function hariIniWIB(tgl) {
+      let p = tgl.split('-');
+      let awal = timestamp.date(int(p[0]), int(p[1]), int(p[2])) - duration.value(7, 'h');
+      return request.time >= awal && request.time < awal + duration.value(1, 'd');
     }
 
     // Hari ini menurut WIB: 0 = Ahad ... 6 = Sabtu (1 Jan 1970 adalah hari Kamis = 4)
@@ -79,9 +95,9 @@ service cloud.firestore {
       return (math.floor((request.time.toMillis() + 25200000) / 86400000) + 4) % 7;
     }
 
-    // Jika teungku punya jadwal, sesi yang diabsen harus ada di jadwalnya untuk hari ini
-    function sesuaiJadwal(g, sesi) {
-      return !('jadwal' in g) || (sesi + ':' + string(hariWIB())) in g.jadwal;
+    // Sesi yang diabsen harus ada di jadwal mengajar teungku untuk hari ini
+    function sesuaiJadwal(guruId, sesi) {
+      return exists(/databases/$(database)/documents/mengajar/$(guruId + '_' + sesi + '_' + string(hariWIB())));
     }
 
     function mandiriDiizinkan() {
@@ -89,15 +105,37 @@ service cloud.firestore {
       return !exists(p) || get(p).data.get('guruMandiri', true) == true;
     }
 
+    // Absen mandiri teungku: hanya dirinya, hanya HADIR, hanya hari ini (WIB),
+    // hanya sesi di jadwalnya, insentif sama dengan tarifnya, dan fitur sedang diizinkan.
+    function absenMandiriSah(id) {
+      let d = request.resource.data;
+      let g = get(/databases/$(database)/documents/guru/$(d.guruId)).data;
+      return d.guruId == me().guruId
+        && g.aktif == true
+        && d.status == 'H'
+        && d.sumber == 'mandiri'
+        && d.tanggal is string && d.tanggal.size() == 10
+        && hariIniWIB(d.tanggal)
+        && d.bulan == d.tanggal.split('-')[0] + '-' + d.tanggal.split('-')[1]
+        && id == d.tanggal + '_' + d.sesi + '_' + d.guruId
+        && d.insentif == g.get('honorHadir', 0)
+        && sesuaiJadwal(d.guruId, d.sesi)
+        && d.waktu == request.time
+        && mandiriDiizinkan();
+    }
+
     match /absensi/{id} {
-      allow read: if peran(['superadmin', 'admin', 'operator', 'bendahara'])
-                  || (peran(['guru']) && resource.data.guruId == me().guruId);
+      allow read: if staf() || (peran(['guru']) && resource.data.guruId == me().guruId);
       allow write: if peran(['superadmin', 'admin', 'operator']);
       // Teungku hanya bisa MEMBUAT (bukan mengubah/menghapus) catatan hadirnya sendiri
       allow create: if peran(['guru']) && absenMandiriSah(id);
     }
+
+    // ---------- Keuangan ----------
     match /gaji/{id} {
       allow read, write: if peran(['superadmin', 'admin', 'bendahara']);
+      // Teungku boleh melihat slip gajinya sendiri
+      allow get: if peran(['guru']) && resource.data.guruId == me().guruId;
     }
     match /kas/{id} {
       allow read, write: if peran(['superadmin', 'admin', 'bendahara']);

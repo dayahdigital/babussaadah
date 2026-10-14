@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
   <title>Absen Saya — Dayah Babussa'adah</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -18,7 +19,7 @@
     </div>
 
     <div class="card">
-      <h2>Jadwal mengajar saya</h2>
+      <h2 style="display:flex;justify-content:space-between;align-items:center;gap:8px">Jadwal mengajar saya <a class="btn btn-sm btn-sec" href="jadwal-mengajar.html">Ubah jadwal</a></h2>
       <div class="table-wrap">
         <table><tbody id="tbJadwal"></tbody></table>
       </div>
@@ -27,6 +28,11 @@
     <div class="grid grid-4">
       <div class="card stat"><div class="label">Kehadiran bulan ini</div><div class="value" id="sHadir">–</div></div>
       <div class="card stat saldo"><div class="label">Insentif bulan ini</div><div class="value" id="sInsentif">–</div></div>
+    </div>
+
+    <div class="card" id="kartuGaji" hidden>
+      <h2>Gaji saya</h2>
+      <div class="table-wrap"><table><tbody id="tbGaji"></tbody></table></div>
     </div>
 
     <div class="card">
