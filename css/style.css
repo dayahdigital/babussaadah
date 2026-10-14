@@ -1,123 +1,184 @@
+/* =========================================================
+   Dayah Babussa'adah — gaya tampilan
+   Responsif: komputer & HP, potret & lanskap
+   ========================================================= */
 :root{
   --hijau:#0f5132; --hijau-2:#198754; --emas:#c9a227; --bg:#f4f6f3; --card:#fff;
   --teks:#1f2a24; --abu:#6b7770; --garis:#e2e7e3; --merah:#b42318; --biru:#1d4ed8;
   --radius:12px;
+  --tinggi-header:108px;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--teks)}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--teks);line-height:1.4}
 a{color:inherit}
+img{max-width:100%}
 
-/* Navbar */
-#navbar{background:var(--hijau);color:#fff;display:flex;align-items:center;justify-content:space-between;
-  padding:10px 20px;position:sticky;top:0;z-index:10;flex-wrap:wrap;gap:8px}
-.brand{display:flex;align-items:center;gap:10px}
-.brand .logo{font-size:26px;color:var(--emas)}
+/* ---------- Header (selalu tampil, menempel di atas) ---------- */
+#navbar{
+  position:sticky;top:0;z-index:20;background:var(--hijau);color:#fff;
+  min-height:var(--tinggi-header);              /* ruang header dipesan sejak awal: tidak "hilang" */
+  padding-top:env(safe-area-inset-top);
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+.nav-atas{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px 6px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;min-width:0}
+.brand img{width:40px;height:40px;object-fit:contain;border-radius:8px;background:#fff;padding:2px;flex-shrink:0}
+.brand .logo{font-size:28px;color:var(--emas);flex-shrink:0}
+.brand div{min-width:0}
+.brand strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand small{display:block;font-size:12px;opacity:.8}
-#navbar nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-#navbar nav a{text-decoration:none;padding:8px 12px;border-radius:8px;font-size:14px}
-#navbar nav a:hover{background:rgba(255,255,255,.12)}
-#navbar nav a.active{background:var(--emas);color:var(--hijau);font-weight:600}
-#navbar .user{font-size:12px;opacity:.75;margin:0 8px}
-.menu-toggle{display:none;background:none;border:0;color:#fff;font-size:24px;cursor:pointer}
+.nav-user{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nav-user .user{font-size:12px;opacity:.85;line-height:1.25;text-align:right}
+.nav-tab{display:flex;gap:4px;padding:4px 16px 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.nav-tab::-webkit-scrollbar{display:none}
+.nav-tab a{flex-shrink:0;text-decoration:none;padding:8px 14px;border-radius:8px;font-size:14px;white-space:nowrap}
+.nav-tab a:hover{background:rgba(255,255,255,.12)}
+.nav-tab a.active{background:var(--emas);color:var(--hijau);font-weight:600}
 
-main{max-width:1150px;margin:0 auto;padding:20px 16px 60px}
+.gangguan{background:#fde2e0;color:var(--merah);padding:10px 16px;text-align:center;font-size:14px}
+
+/* ---------- Isi halaman ---------- */
+main{max-width:1150px;margin:0 auto;padding:20px 16px calc(60px + env(safe-area-inset-bottom))}
 h1{font-size:22px;margin:4px 0 16px;color:var(--hijau)}
 h2{font-size:17px;margin:0 0 12px}
 
 .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:18px}
-.grid{display:grid;gap:14px}
+.grid{display:grid;gap:14px;margin-bottom:18px}
+.grid > .card{margin-bottom:0}
 .grid-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-.grid-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
 
 .stat{border-left:4px solid var(--hijau-2)}
 .stat .label{font-size:13px;color:var(--abu)}
-.stat .value{font-size:22px;font-weight:700;margin-top:4px}
+.stat .value{font-size:22px;font-weight:700;margin-top:4px;word-break:break-word}
 .stat.in{border-color:var(--hijau-2)} .stat.out{border-color:var(--merah)} .stat.saldo{border-color:var(--emas)}
 
-/* Form */
+/* ---------- Form ---------- */
 form.inline,.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
 .field{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1}
 .field label{font-size:13px;color:var(--abu)}
-input,select,textarea{padding:9px 10px;border:1px solid var(--garis);border-radius:8px;font:inherit;background:#fff;width:100%}
+.field small{color:var(--abu);font-size:12px}
+input,select,textarea{padding:10px 11px;border:1px solid var(--garis);border-radius:8px;font:inherit;font-size:16px;background:#fff;width:100%;color:inherit}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--hijau-2);border-color:transparent}
+input[type=checkbox],input[type=radio]{width:auto}
 
-.btn{padding:9px 16px;border:0;border-radius:8px;cursor:pointer;font:inherit;font-weight:600;background:var(--hijau-2);color:#fff;white-space:nowrap}
+.btn{padding:10px 16px;border:0;border-radius:8px;cursor:pointer;font:inherit;font-weight:600;background:var(--hijau-2);color:#fff;white-space:nowrap;touch-action:manipulation}
 .btn:hover{filter:brightness(.95)}
 .btn:disabled{opacity:.6;cursor:not-allowed}
 .btn-sec{background:#e8efe9;color:var(--hijau)}
 .btn-red{background:var(--merah)}
 .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff}
-.btn-sm{padding:5px 10px;font-size:13px}
+.btn-sm{padding:6px 10px;font-size:13px}
 
-/* Tabel */
-.table-wrap{overflow-x:auto}
+.info{background:#fff8e1;border:1px solid #f0d77a;color:#5c4500;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:14px;text-align:center}
+.info a{color:var(--hijau)}
+.error{color:var(--merah);font-size:13px;min-height:18px;margin-top:8px;text-align:center}
+.error-box{display:block;background:#fde2e0;color:var(--merah);padding:10px 12px;border-radius:8px;font-weight:600}
+
+/* ---------- Tabel ---------- */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:9px 10px;border-bottom:1px solid var(--garis);text-align:left;vertical-align:middle}
-th{background:#f0f4f1;font-weight:600;color:var(--hijau)}
-td.num,th.num{text-align:right}
+th{background:#f0f4f1;font-weight:600;color:var(--hijau);white-space:nowrap}
+td.num,th.num{text-align:right;white-space:nowrap}
 tr:hover td{background:#fafcfa}
 .empty{text-align:center;color:var(--abu);padding:24px}
-.aksi{display:flex;gap:6px}
+.aksi{display:flex;gap:6px;flex-wrap:wrap}
 
-.badge{padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600}
+.badge{padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
 .b-in{background:#d1f0dc;color:#0f5132} .b-out{background:#fde2e0;color:#b42318}
 .b-lunas{background:#d1f0dc;color:#0f5132} .b-belum{background:#fff2c6;color:#7a5b00}
 
-/* Absensi pilihan status */
-.status-group{display:flex;gap:4px;flex-wrap:wrap}
+/* ---------- Absensi ---------- */
+.status-group{display:flex;gap:4px;flex-wrap:nowrap}
 .status-group label{cursor:pointer}
 .status-group input{display:none}
-.status-group span{display:inline-block;padding:5px 10px;border-radius:6px;border:1px solid var(--garis);font-size:13px}
+.status-group span{display:inline-block;min-width:34px;text-align:center;padding:7px 10px;border-radius:6px;border:1px solid var(--garis);font-size:14px;font-weight:600}
 .status-group input:checked+span.H{background:#198754;color:#fff;border-color:#198754}
 .status-group input:checked+span.I{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
 .status-group input:checked+span.S{background:#c9a227;color:#fff;border-color:#c9a227}
 .status-group input:checked+span.A{background:#b42318;color:#fff;border-color:#b42318}
 
-/* Absen mandiri teungku */
 .sesi-list{display:flex;flex-direction:column;gap:10px}
 .sesi-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border:1px solid var(--garis);border-radius:10px}
 .sesi-item small{color:var(--abu)}
 .sesi-item .btn{padding:12px 26px;font-size:16px}
 
-/* Grid jadwal (sesi × hari) */
 table.jadwal th,table.jadwal td{text-align:center;padding:6px}
 table.jadwal th:first-child,table.jadwal td:first-child{text-align:left}
-table.jadwal input[type=checkbox]{width:18px;height:18px;cursor:pointer}
+table.jadwal input[type=checkbox]{width:20px;height:20px;cursor:pointer}
 table.jadwal td.off{background:#eef1ee}
 table.jadwal .namaSesi{min-width:150px}
 label.cek{display:flex;gap:8px;align-items:center;font-size:14px;margin:10px 0 0}
-label.cek input{width:auto}
 
-/* Modal */
+/* ---------- Modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
 .modal.open{display:flex}
-.modal .box{background:#fff;border-radius:var(--radius);padding:20px;width:100%;max-width:640px;max-height:90vh;overflow:auto}
+.modal .box{background:#fff;border-radius:var(--radius);padding:20px;width:100%;max-width:640px;max-height:90vh;max-height:90dvh;overflow:auto}
 .modal .box .grid{grid-template-columns:1fr 1fr}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 
-/* Toast */
-.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:10px;color:#fff;background:var(--hijau-2);
-  opacity:0;transform:translateY(10px);transition:.25s;z-index:100}
+/* ---------- Toast ---------- */
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));right:20px;max-width:min(420px,calc(100vw - 32px));
+  padding:12px 18px;border-radius:10px;color:#fff;background:var(--hijau-2);
+  opacity:0;transform:translateY(10px);transition:.25s;z-index:100;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .toast.show{opacity:1;transform:none}
 .toast-err{background:var(--merah)}
 
-/* Login */
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#0f5132,#198754)}
-.login-box{background:#fff;padding:32px;border-radius:16px;width:100%;max-width:380px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-.login-box .logo{font-size:44px;color:var(--emas);text-align:center}
-.login-box h1{text-align:center;margin:6px 0 2px}
-.login-box p{text-align:center;color:var(--abu);margin:0 0 20px;font-size:14px}
-.login-box .field{margin-bottom:12px}
-.login-box .btn{width:100%;margin-top:6px}
-.info{background:#fff8e1;border:1px solid #f0d77a;color:#5c4500;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:14px;text-align:center}
-.info a{color:var(--hijau)}
-.login-box small{font-size:12px}
-#navbar .user{line-height:1.25;text-align:right}
-.error{color:var(--merah);font-size:13px;min-height:18px;margin-top:8px;text-align:center}
+/* ---------- Profil Dayah ---------- */
+.unggah{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.unggah > div{display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px}
+.unggah small{color:var(--abu);font-size:12px}
+.pratinjau-logo{width:72px;height:72px;border-radius:12px;background:#f0f4f1;display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--emas);overflow:hidden}
+.pratinjau-logo img{width:100%;height:100%;object-fit:contain}
+.pratinjau-login{display:grid;grid-template-columns:1.3fr 1fr;border-radius:10px;overflow:hidden;border:1px solid var(--garis);min-height:260px}
+.pratinjau-login .login-foto{min-height:260px;padding:16px}
+.pratinjau-login .login-foto h2{font-size:18px}
+.pv-form{padding:16px;display:flex;flex-direction:column;gap:10px;justify-content:center}
+.pv-form div{height:28px;border-radius:6px;background:#eef1ee}
+.pv-form .pv-btn{background:var(--hijau-2)}
 
-/* Slip gaji (cetak) */
+/* =========================================================
+   LOGIN — dua bilah: kiri foto dayah, kanan form
+   ========================================================= */
+.login-page{min-height:100vh;min-height:100dvh;margin:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0f5132,#198754)}
+.login-wrap{display:grid;grid-template-columns:1.25fr 1fr;width:100%;min-height:100vh;min-height:100dvh}
+
+.login-foto{
+  position:relative;display:flex;align-items:flex-end;padding:48px;color:#fff;
+  background-color:var(--hijau);
+  background-image:radial-gradient(circle at 20% 20%,rgba(201,162,39,.35),transparent 45%),
+                   linear-gradient(135deg,#0b3d26,#198754);
+  background-size:cover;background-position:center;
+}
+.login-foto::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(5,30,18,.85) 0%,rgba(5,30,18,.35) 55%,rgba(5,30,18,.1) 100%)}
+.login-foto-isi{position:relative;max-width:520px}
+.login-logo{width:84px;height:84px;border-radius:18px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;
+  font-size:46px;color:var(--emas);margin-bottom:16px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.login-logo img{width:100%;height:100%;object-fit:contain;padding:6px}
+.login-foto h2{font-size:30px;margin:0 0 6px;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.login-foto p{margin:0 0 4px;opacity:.92;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+.login-foto .tagline{font-style:italic;color:#f3dd8a;margin-top:8px}
+
+.login-panel{background:#fff;display:flex;align-items:center;justify-content:center;padding:32px 24px;overflow-y:auto}
+.login-box{background:#fff;padding:32px;border-radius:16px;width:100%;max-width:380px}
+.login-page > .login-box{box-shadow:0 10px 30px rgba(0,0,0,.2);margin:16px}   /* halaman setup */
+.login-box .logo{font-size:44px;color:var(--emas);text-align:center}
+.login-box h1{text-align:center;margin:6px 0 2px;font-size:26px}
+.login-box > p{text-align:center;color:var(--abu);margin:0 0 22px;font-size:14px}
+.login-box .field{margin-bottom:14px}
+.login-box .btn{width:100%;margin-top:6px;padding:12px;font-size:16px}
+.login-box small{font-size:12px}
+.sandi-wrap{position:relative}
+.sandi-wrap input{padding-right:44px}
+.sandi-wrap .lihat{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;font-size:18px;cursor:pointer;padding:6px 8px;opacity:.6}
+
+/* ---------- Slip gaji (cetak) ---------- */
 #slip{display:none}
 @media print{
   body *{visibility:hidden}
@@ -129,9 +190,158 @@ label.cek input{width:auto}
 .slip table td{border:0;padding:4px 0}
 .slip .ttd{display:flex;justify-content:flex-end;margin-top:40px;text-align:center}
 
-@media (max-width:760px){
-  .menu-toggle{display:block}
-  #navbar nav{display:none;width:100%;flex-direction:column;align-items:stretch}
-  #navbar nav.open{display:flex}
+/* ---------- Kaki halaman: versi & hak cipta ---------- */
+.kaki a{color:var(--hijau-2)}
+.kaki{text-align:center;font-size:12px;color:var(--abu);padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
+main + .kaki{margin-top:-40px}
+.login-panel{flex-direction:column}
+.login-panel .kaki{padding-bottom:0}
+.login-page{flex-direction:column}
+.login-page > .kaki{color:rgba(255,255,255,.8)}
+.link-publik{display:block;text-align:center;margin-top:18px;color:var(--hijau);font-size:14px;font-weight:600;text-decoration:none}
+.teks-peringatan{color:#9a6b00;font-weight:600}
+
+/* ---------- Jadwal mengajar (editor) ---------- */
+.tabel-jadwal th.hari{width:90px;background:#f0f4f1}
+.tabel-jadwal td{vertical-align:top;padding:6px}
+.tabel-jadwal td.off-cell{background:#eef1ee;color:var(--abu);font-size:12px;text-align:center;vertical-align:middle}
+.slot{display:block;width:100%;text-align:left;border-radius:8px;padding:10px;font:inherit;cursor:pointer;min-height:58px}
+.slot.kosong{background:#fff;border:1.5px dashed #b9c8bd;color:var(--hijau);font-weight:600;text-align:center}
+.slot.kosong:hover{background:#f0f7f2}
+.slot.isi{background:#e8f5ec;border:1px solid #bfe0c9}
+.slot.isi:hover{border-color:var(--hijau-2)}
+.slot.isi b{display:block;color:var(--hijau)}
+.slot.isi span{display:block;font-size:13px}
+.slot.isi small{display:block;color:var(--abu);font-size:12px}
+
+/* ---------- Kelola kategori kas ---------- */
+.sub-judul{font-size:15px;margin:4px 0 8px;color:var(--hijau)}
+.kat-list{display:flex;flex-direction:column;gap:6px;max-height:46vh;overflow:auto;padding-right:2px}
+.kat-baris{display:flex;gap:6px;align-items:center}
+.kat-baris input{padding:7px 9px;font-size:15px}
+.kat-baris small{color:var(--abu);font-size:11px;min-width:24px;text-align:right}
+.kat-tambah{display:flex;gap:6px;margin-top:8px}
+.kat-tambah input{padding:7px 9px;font-size:15px}
+
+/* =========================================================
+   HALAMAN PUBLIK
+   ========================================================= */
+body.publik{background:var(--bg)}
+.btn-emas{background:var(--emas);color:#1f2a24;text-decoration:none}
+.pub-hero{color:#fff;background:linear-gradient(135deg,#0b3d26,#198754);background-size:cover;background-position:center;
+  padding:calc(16px + env(safe-area-inset-top)) 16px 28px}
+.pub-hero-isi{max-width:1000px;margin:0 auto}
+.pub-atas{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pub-atas .brand strong{font-size:17px}
+.pub-atas .brand small{opacity:.85}
+.pub-logo{width:46px;height:46px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--emas);overflow:hidden;flex-shrink:0}
+.pub-logo img{width:100%;height:100%;object-fit:contain;padding:3px}
+.pub-hero h1{color:#fff;font-size:30px;margin:28px 0 4px;text-shadow:0 2px 8px rgba(0,0,0,.3)}
+.pub-hero .tagline{color:#f3dd8a;font-style:italic;margin:0 0 10px}
+.pub-sesi{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.pub-sesi span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:6px 12px;border-radius:20px;font-size:14px}
+.pub-main{max-width:1000px;margin:0 auto;padding:0 16px 60px}
+.pub-tab{display:flex;gap:6px;margin:-20px 0 16px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.pub-tab::-webkit-scrollbar{display:none}
+.pub-tab button{flex-shrink:0;border:0;background:#fff;padding:12px 16px;border-radius:10px;font:inherit;font-weight:600;color:var(--hijau);
+  box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer}
+.pub-tab button.aktif{background:var(--hijau-2);color:#fff}
+.hari-pilih{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;padding-bottom:2px}
+.hari-pilih::-webkit-scrollbar{display:none}
+.hari-pilih button{flex-shrink:0;border:1px solid var(--garis);background:#fff;padding:8px 14px;border-radius:20px;font:inherit;cursor:pointer}
+.hari-pilih button.aktif{background:var(--hijau);color:#fff;border-color:var(--hijau)}
+.jam{font-weight:400;color:var(--abu);font-size:13px;margin-left:6px}
+.pub-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.pub-item{border:1px solid var(--garis);border-left:4px solid var(--emas);border-radius:10px;padding:12px}
+.pub-item .kitab{font-weight:700;color:var(--hijau)}
+.pub-item .materi{font-size:14px;margin-top:2px}
+.pub-item .meta{font-size:13px;color:var(--abu);margin-top:6px}
+.kitab-item{border:1px solid var(--garis);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.kitab-item summary{padding:12px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center;background:#fafcfa}
+.kitab-item table{font-size:13px}
+@media (max-width:820px){
+  .pub-hero h1{font-size:23px;margin-top:20px}
+  .pub-main{padding:0 10px 60px}
+  .pub-list{grid-template-columns:1fr}
+  .tabel-jadwal th.hari{width:64px;font-size:13px}
+  .slot{padding:8px;font-size:13px}
+}
+
+/* =========================================================
+   TABLET & HP POTRET
+   ========================================================= */
+@media (max-width:820px){
+  :root{--tinggi-header:100px}
+  .nav-atas{padding:8px 12px 4px}
+  .nav-tab{padding:4px 8px 8px}
+  .brand img{width:34px;height:34px}
+  .brand strong{font-size:15px;max-width:52vw}
+  .brand small{display:none}
+  main{padding:14px 10px calc(60px + env(safe-area-inset-bottom))}
+  h1{font-size:19px;margin-bottom:12px}
+  .card{padding:14px;margin-bottom:12px}
+  .grid-4,.grid-3{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stat .value{font-size:18px}
+  .toolbar .field{min-width:calc(50% - 5px)}
+  .toolbar .btn{flex:1}
+  table{font-size:13px}
+  th,td{padding:8px}
+
+  /* Modal jadi lembar penuh dari bawah */
+  .modal{padding:0;align-items:flex-end}
+  .modal .box{max-width:none;border-radius:16px 16px 0 0;max-height:94vh;max-height:94dvh;padding:18px 14px calc(18px + env(safe-area-inset-bottom))}
   .modal .box .grid{grid-template-columns:1fr}
+  .modal-actions .btn{flex:1}
+
+  .toast{left:16px;right:16px;max-width:none;text-align:center}
+
+  /* Login potret: foto di atas sebagai sampul, form di bawah */
+  .login-wrap{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .login-foto{min-height:36vh;min-height:36dvh;padding:24px 20px;align-items:flex-end}
+  .login-logo{width:64px;height:64px;font-size:34px;border-radius:14px;margin-bottom:10px}
+  .login-foto h2{font-size:22px}
+  .login-foto p{font-size:14px}
+  .login-panel{align-items:flex-start;padding:8px 12px calc(24px + env(safe-area-inset-bottom));
+    border-radius:20px 20px 0 0;margin-top:-20px;position:relative}
+  .login-box{padding:24px 12px}
+  .pratinjau-login{grid-template-columns:1fr}
+}
+
+@media (max-width:420px){
+  .grid-4,.grid-3{grid-template-columns:1fr 1fr}
+  .stat .value{font-size:16px}
+  .nav-user .user{display:none}       /* nama pengguna ada di menu Akun Saya */
+  .toolbar .field{min-width:100%}
+  .sesi-item{flex-wrap:wrap}
+  .sesi-item .btn{width:100%}
+}
+
+/* =========================================================
+   HP LANSKAP (layar pendek): header satu baris, login berdampingan
+   ========================================================= */
+@media (max-height:500px) and (orientation:landscape){
+  :root{--tinggi-header:52px}
+  #navbar{display:flex;align-items:center;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .nav-atas{display:contents}               /* logo | tab menu | tombol keluar dalam satu baris */
+  .brand{order:0;padding:6px 6px 6px 10px;flex-shrink:0}
+  .brand div{display:none}
+  .nav-tab{order:1;flex:1;padding:6px 4px}
+  .nav-user{order:2;padding:6px 10px 6px 4px}
+  .nav-user .user{display:none}
+  .nav-tab a{padding:6px 10px;font-size:13px}
+  main{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  .grid-4,.grid-3{grid-template-columns:repeat(3,1fr)}
+
+  .modal{align-items:center;padding:8px}
+  .modal .box{border-radius:12px;max-height:96dvh}
+
+  .login-wrap{grid-template-columns:1fr 1fr;grid-template-rows:none}
+  .login-foto{min-height:100dvh;padding:20px}
+  .login-logo{width:52px;height:52px;font-size:28px}
+  .login-foto h2{font-size:20px}
+  .login-panel{margin-top:0;border-radius:0;align-items:center;padding:12px}
+  .login-box{padding:12px}
+  .login-box h1{font-size:20px}
+  .login-box > p{margin-bottom:10px}
+  .login-box .field{margin-bottom:8px}
 }
