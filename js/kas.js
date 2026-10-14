@@ -1,8 +1,8 @@
 // Kas pemasukan & pengeluaran: catat, ubah, hapus, filter, rekap per kategori, kelola kategori.
 import {
   db, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, setDoc, doc, writeBatch, serverTimestamp
-} from "./firebase.js?v=2.0.1";
-import { requireAuth, AKSES, rupiah, today, thisMonth, namaBulan, tglIndo, toast, esc, downloadCSV } from "./common.js?v=2.0.1";
+} from "./firebase.js?v=2.0.2";
+import { requireAuth, AKSES, rupiah, today, thisMonth, namaBulan, tglIndo, toast, esc, downloadCSV } from "./common.js?v=2.0.2";
 
 const { profil } = await requireAuth(AKSES.kas);
 

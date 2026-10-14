@@ -1,6 +1,6 @@
 // Fungsi bersama: penjaga login & peran, navigasi, tampilan dayah, format rupiah, notifikasi
-import { auth, db, onAuthStateChanged, signOut, doc, getDoc, getDocs, collection, query, where } from "./firebase.js?v=2.0.1";
-import { LEMBAGA, EMAIL_DOMAIN, APP_VERSI, APP_BUILD, HAK_CIPTA } from "./pengaturan.js?v=2.0.1";
+import { auth, db, onAuthStateChanged, signOut, doc, getDoc, getDocs, collection, query, where } from "./firebase.js?v=2.0.2";
+import { LEMBAGA, EMAIL_DOMAIN, APP_VERSI, APP_BUILD, HAK_CIPTA } from "./pengaturan.js?v=2.0.2";
 
 // ---------- Peran & hak akses ----------
 export const PERAN = {

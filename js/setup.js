@@ -1,8 +1,8 @@
 // Membuat Super Admin pertama. Aturan Firestore hanya mengizinkan ini selama config/setup belum ada.
 import {
   auth, db, createUserWithEmailAndPassword, signOut, doc, getDoc, writeBatch, serverTimestamp
-} from "./firebase.js?v=2.0.1";
-import { normUsername, usernameValid, buatEmail, pasangFooter } from "./common.js?v=2.0.1";
+} from "./firebase.js?v=2.0.2";
+import { normUsername, usernameValid, buatEmail, pasangFooter } from "./common.js?v=2.0.2";
 
 pasangFooter();
 

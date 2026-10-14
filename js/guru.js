@@ -1,6 +1,6 @@
-import { db, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "./firebase.js?v=2.0.1";
-import { requireAuth, AKSES, rupiah, toast, esc, ambilJadwal, SEMUA_HARI, HARI } from "./common.js?v=2.0.1";
-import { writeBatch, query, where } from "./firebase.js?v=2.0.1";
+import { db, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "./firebase.js?v=2.0.2";
+import { requireAuth, AKSES, rupiah, toast, esc, ambilJadwal, SEMUA_HARI, HARI } from "./common.js?v=2.0.2";
+import { writeBatch, query, where } from "./firebase.js?v=2.0.2";
 
 await requireAuth(AKSES.guru);
 

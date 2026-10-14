@@ -1,5 +1,5 @@
-import { db, collection, getDocs, query, where } from "./firebase.js?v=2.0.1";
-import { requireAuth, AKSES, rupiah, today, thisMonth, namaBulan, tglIndo, esc } from "./common.js?v=2.0.1";
+import { db, collection, getDocs, query, where } from "./firebase.js?v=2.0.2";
+import { requireAuth, AKSES, rupiah, today, thisMonth, namaBulan, tglIndo, esc } from "./common.js?v=2.0.2";
 
 const { profil } = await requireAuth(AKSES.dashboard);
 

@@ -1,12 +1,12 @@
 // Absensi oleh Operator/Admin: per tanggal, per sesi.
 // Hanya sesi yang berjalan pada hari itu, dan hanya teungku yang terjadwal di sesi itu.
 // Insentif = tarif "insentif per kehadiran" teungku (disimpan saat absensi dicatat).
-import { db, collection, getDocs, doc, setDoc, query, where, writeBatch, serverTimestamp } from "./firebase.js?v=2.0.1";
+import { db, collection, getDocs, doc, setDoc, query, where, writeBatch, serverTimestamp } from "./firebase.js?v=2.0.2";
 import {
   requireAuth, AKSES, today, thisMonth, namaBulan, toast, esc, rupiah, downloadCSV,
   ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, sesiPadaHari, terjadwal, hitungJadwalBulan,
   ambilJadwal, indeksJadwal, idJadwal, jamSesi
-} from "./common.js?v=2.0.1";
+} from "./common.js?v=2.0.2";
 
 const { profil } = await requireAuth(AKSES.absensi);
 const bolehAtur = AKSES.aturSesi.includes(profil.role);   // jam & hari sesi: Super Admin

@@ -1,12 +1,12 @@
 // Halaman teungku: absen mandiri per sesi + lihat insentif sendiri.
 // Aturan Firestore memastikan teungku hanya bisa mencatat HADIR untuk dirinya sendiri,
 // hanya untuk tanggal hari ini (WIB), dengan insentif sesuai tarifnya, dan tidak bisa mengubahnya lagi.
-import { db, collection, getDocs, getDoc, setDoc, doc, query, where, serverTimestamp } from "./firebase.js?v=2.0.1";
+import { db, collection, getDocs, getDoc, setDoc, doc, query, where, serverTimestamp } from "./firebase.js?v=2.0.2";
 import {
   requireAuth, AKSES, today, thisMonth, namaBulan, tglIndo, toast, esc, rupiah,
   ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, terjadwal, selisihJam,
   ambilJadwal, indeksJadwal, idJadwal, jamSesi, waktuAbsen
-} from "./common.js?v=2.0.1";
+} from "./common.js?v=2.0.2";
 
 const { profil } = await requireAuth(AKSES.absenSaya);
 document.getElementById("nama").textContent = profil.nama;
@@ -132,7 +132,7 @@ document.getElementById("daftarSesi").addEventListener("click", async (e) => {
     // Ambil tarif terbaru (bisa saja baru diubah Admin) — harus sama persis dengan yang dicek server
     guru = (await getDoc(doc(db, "guru", profil.guruId))).data() || guru;
     await setDoc(doc(db, "absensi", `${tgl}_${sesiId}_${profil.guruId}`), {
-      tanggal: tgl, bulan: bln, sesi: sesiId, sesiNama: s.nama,
+      tanggal: tgl, bulan: bln, hari: hariIniNo, sesi: sesiId, sesiNama: s.nama,
       guruId: profil.guruId, nama: guru.nama, status: "H",
       insentif: guru.honorHadir ?? 0, keterangan: "",
       sumber: "mandiri", dicatatOleh: profil.username, waktu: serverTimestamp()

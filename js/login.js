@@ -1,7 +1,7 @@
 import {
   auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut, doc, getDoc, getDocs, collection
-} from "./firebase.js?v=2.0.1";
-import { ambilProfil, ambilTampilan, tampilanCache, beranda, simpan, esc, PERAN, pasangFooter } from "./common.js?v=2.0.1";
+} from "./firebase.js?v=2.0.2";
+import { ambilProfil, ambilTampilan, tampilanCache, beranda, simpan, esc, PERAN, pasangFooter } from "./common.js?v=2.0.2";
 
 // Halaman depan: login di kiri, jadwal publik di kanan (js/publik.js)
 pasangFooter(document.getElementById("kakiKiri") || document.querySelector(".login-panel") || document.body);

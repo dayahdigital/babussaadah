@@ -1,10 +1,10 @@
 // Jadwal mengajar: teungku memilih sesi (Pagi/Malam) per hari beserta kitab, materi, kelas.
 // Teungku hanya mengatur jadwalnya sendiri; Admin & Super Admin bisa mengatur semua teungku.
 // Jadwal ini dipakai absensi (siapa terjadwal di sesi apa) dan tampil di halaman publik.
-import { db, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, where, serverTimestamp } from "./firebase.js?v=2.0.1";
+import { db, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, where, serverTimestamp } from "./firebase.js?v=2.0.2";
 import {
   requireAuth, AKSES, toast, esc, ambilConfigAbsensi, ambilJadwal, idJadwal, HARI, SEMUA_HARI, jamSesi
-} from "./common.js?v=2.0.1";
+} from "./common.js?v=2.0.2";
 
 const { profil } = await requireAuth(AKSES.jadwal);
 const isGuru = profil.role === "guru";

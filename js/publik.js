@@ -1,7 +1,7 @@
 // Bagian kanan halaman depan (tanpa login): jadwal mengajar, kitab & materi, per teungku.
 // Identitas dayah & form login di bagian kiri diurus js/login.js.
 // Hanya membaca data yang memang publik: config/tampilan, config/absensi, koleksi mengajar.
-import { ambilConfigAbsensi, ambilJadwal, HARI, SEMUA_HARI, jamSesi, esc, today, hariDari } from "./common.js?v=2.0.1";
+import { ambilConfigAbsensi, ambilJadwal, HARI, SEMUA_HARI, jamSesi, esc, today, hariDari } from "./common.js?v=2.0.2";
 
 // ---------- Data ----------
 const [cfg, semua] = await Promise.all([

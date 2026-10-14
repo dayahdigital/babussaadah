@@ -1,7 +1,7 @@
 // Pengaturan lembaga & versi aplikasi (aman masuk repo GitHub)
 
 // Versi aplikasi. BUILD diganti otomatis saat deploy (kode commit), jadi mudah dicek versi mana yang tampil.
-export const APP_VERSI = "2.0.1";
+export const APP_VERSI = "2.0.2";
 export const APP_BUILD = "__BUILD__";
 export const HAK_CIPTA = "©SRISP 2026";
 
