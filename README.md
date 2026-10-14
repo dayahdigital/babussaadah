@@ -62,9 +62,9 @@ Config Firebase web (`apiKey`, dll.) **memang dirancang terlihat di browser**. I
    ```
 2. Repo → **Settings → Secrets and variables → Actions → New repository secret**
    - Name: `FIREBASE_CONFIG`
-   - Secret (satu baris JSON):
+   - Secret: satu baris JSON berisi config dari Firebase Console (Project settings → Your apps). Isi `...` dengan nilai asli; jangan tulis nilai asli di file mana pun di repo:
      ```
-     {"apiKey":"AIzaSyAesgUQDDj02za_t8c-M0bS1BfigYi-AYI","authDomain":"dayahdigital.firebaseapp.com","projectId":"dayahdigital","storageBucket":"dayahdigital.firebasestorage.app","messagingSenderId":"1063252068248","appId":"1:1063252068248:web:7247d625903539aa494ded"}
+     {"apiKey":"...","authDomain":"dayahdigital.firebaseapp.com","projectId":"dayahdigital","storageBucket":"dayahdigital.firebasestorage.app","messagingSenderId":"...","appId":"..."}
      ```
 3. Repo → **Settings → Pages → Source: GitHub Actions**.
 4. Tab **Actions** → *Deploy ke GitHub Pages* → **Run workflow**. Selanjutnya berjalan otomatis setiap ada perubahan. Aplikasi tersedia di `https://USERNAME.github.io/babussaadah/`.
