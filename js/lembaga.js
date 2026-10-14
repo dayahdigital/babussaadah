@@ -1,7 +1,7 @@
 // Profil Dayah (Super Admin): nama, alamat, logo & foto untuk halaman login, header, dan slip gaji.
 // Gambar diperkecil di browser lalu disimpan di Firestore (config/tampilan), jadi tidak perlu Firebase Storage.
-import { db, doc, setDoc, serverTimestamp } from "./firebase.js";
-import { requireAuth, AKSES, ambilTampilan, simpan, toast, perkecilGambar } from "./common.js";
+import { db, doc, setDoc, serverTimestamp } from "./firebase.js?v=2.0.1";
+import { requireAuth, AKSES, ambilTampilan, simpan, toast, perkecilGambar } from "./common.js?v=2.0.1";
 
 const { profil } = await requireAuth(AKSES.lembaga);
 

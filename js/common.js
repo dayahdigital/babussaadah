@@ -1,6 +1,6 @@
 // Fungsi bersama: penjaga login & peran, navigasi, tampilan dayah, format rupiah, notifikasi
-import { auth, db, onAuthStateChanged, signOut, doc, getDoc, getDocs, collection, query, where } from "./firebase.js";
-import { LEMBAGA, EMAIL_DOMAIN, APP_VERSI, APP_BUILD, HAK_CIPTA } from "./pengaturan.js";
+import { auth, db, onAuthStateChanged, signOut, doc, getDoc, getDocs, collection, query, where } from "./firebase.js?v=2.0.1";
+import { LEMBAGA, EMAIL_DOMAIN, APP_VERSI, APP_BUILD, HAK_CIPTA } from "./pengaturan.js?v=2.0.1";
 
 // ---------- Peran & hak akses ----------
 export const PERAN = {
@@ -173,7 +173,7 @@ export async function ambilProfil(uid) {
 export async function keluar() {
   simpan.del("profil", true);
   await signOut(auth).catch(() => {});
-  location.replace("login.html");
+  location.replace("./");
 }
 
 function pesanGangguan(teks) {
@@ -200,7 +200,7 @@ export function requireAuth(roles = null) {
     let stop = null;
     stop = onAuthStateChanged(auth, async (user) => {
       if (stop) stop();
-      if (!user) { simpan.del("profil", true); return location.replace("login.html"); }
+      if (!user) { simpan.del("profil", true); return location.replace("./"); }
 
       let profil;
       try {
@@ -213,7 +213,7 @@ export function requireAuth(roles = null) {
       if (!profil || !profil.aktif) {
         simpan.del("profil", true);
         await signOut(auth).catch(() => {});
-        return location.replace("login.html?nonaktif=1");
+        return location.replace("./?nonaktif=1");
       }
       if (roles && !roles.includes(profil.role)) return location.replace(beranda(profil.role));
 

@@ -1,10 +1,10 @@
 import {
   db, collection, getDocs, doc, setDoc, updateDoc, query, where, serverTimestamp, writeBatch
-} from "./firebase.js";
+} from "./firebase.js?v=2.0.1";
 import {
   requireAuth, AKSES, rupiah, thisMonth, namaBulan, today, toast, esc, downloadCSV, ambilTampilan,
   ambilConfigAbsensi, ambilJadwal, indeksJadwal, terjadwal, hariDari, hitungJadwalBulan
-} from "./common.js";
+} from "./common.js?v=2.0.1";
 const { profil } = await requireAuth(AKSES.penggajian);
 const LEMBAGA = await ambilTampilan();   // nama, alamat, bendahara dari menu Profil Dayah
 

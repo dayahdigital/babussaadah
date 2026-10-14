@@ -1,9 +1,10 @@
 import {
   auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut, doc, getDoc, getDocs, collection
-} from "./firebase.js";
-import { ambilProfil, ambilTampilan, tampilanCache, beranda, simpan, esc, PERAN, pasangFooter } from "./common.js";
+} from "./firebase.js?v=2.0.1";
+import { ambilProfil, ambilTampilan, tampilanCache, beranda, simpan, esc, PERAN, pasangFooter } from "./common.js?v=2.0.1";
 
-pasangFooter(document.querySelector(".login-panel"));
+// Halaman depan: login di kiri, jadwal publik di kanan (js/publik.js)
+pasangFooter(document.getElementById("kakiKiri") || document.querySelector(".login-panel") || document.body);
 
 const form = document.getElementById("formLogin");
 const sel = document.getElementById("username");
@@ -19,9 +20,10 @@ function pasangTampilan(t) {
   document.getElementById("namaDayah").textContent = t.nama;
   document.getElementById("alamatDayah").textContent = t.alamat || "";
   document.getElementById("taglineDayah").textContent = t.tagline || "";
-  document.title = "Login — " + t.nama;
+  document.title = `${t.nama} — Jadwal Mengajar & Kitab`;
   if (t.logo) document.getElementById("logoWrap").innerHTML = `<img src="${t.logo}" alt="Logo">`;
-  if (t.foto) document.getElementById("panelFoto").style.backgroundImage = `url("${t.foto}")`;
+  if (t.foto) document.getElementById("panelFoto").style.backgroundImage =
+    `linear-gradient(to bottom, rgba(5,30,18,.55), rgba(5,30,18,.9)), url("${t.foto}")`;
 }
 pasangTampilan(tampilanCache());        // langsung dari cache
 ambilTampilan().then(pasangTampilan);    // lalu versi terbaru dari server
@@ -61,12 +63,15 @@ getDoc(doc(db, "config", "setup"))
   .then(s => { if (!s.exists()) document.getElementById("infoSetup").hidden = false; })
   .catch(() => {});
 
-// Sudah login sebelumnya? langsung ke halaman awal
+// Sudah login? Jadwal tetap bisa dilihat; kotak login diganti tombol "Buka aplikasi"
 onAuthStateChanged(auth, async (user) => {
   if (!user || sedangLogin) return;
   const p = await ambilProfil(user.uid).catch(() => null);
-  if (p?.aktif) location.replace(beranda(p.role));
-  else await signOut(auth);
+  if (!p?.aktif) { await signOut(auth).catch(() => {}); return; }
+  document.getElementById("kotakLogin").hidden = true;
+  document.getElementById("sudahMasuk").hidden = false;
+  document.getElementById("sudahMasukNama").textContent = `${p.nama} · ${PERAN[p.role] || p.role}`;
+  document.getElementById("btnKeAplikasi").href = beranda(p.role);
 });
 
 document.getElementById("lihatSandi").onclick = () =>

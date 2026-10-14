@@ -8,7 +8,7 @@ import {
   getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc,
   deleteDoc, query, where, orderBy, serverTimestamp, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig } from "./firebase-config.js?v=2.0.1";
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

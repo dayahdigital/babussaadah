@@ -1,10 +1,10 @@
 // Kelola pengguna — khusus Super Admin
 import {
   db, buatAkunAuth, collection, doc, getDoc, getDocs, updateDoc, writeBatch, serverTimestamp
-} from "./firebase.js";
+} from "./firebase.js?v=2.0.1";
 import {
   requireAuth, AKSES, PERAN, normUsername, usernameValid, buatEmail, toast, esc
-} from "./common.js";
+} from "./common.js?v=2.0.1";
 
 const { profil: saya } = await requireAuth(AKSES.pengguna);
 

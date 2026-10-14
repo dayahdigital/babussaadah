@@ -1,12 +1,12 @@
 // Halaman teungku: absen mandiri per sesi + lihat insentif sendiri.
 // Aturan Firestore memastikan teungku hanya bisa mencatat HADIR untuk dirinya sendiri,
 // hanya untuk tanggal hari ini (WIB), dengan insentif sesuai tarifnya, dan tidak bisa mengubahnya lagi.
-import { db, collection, getDocs, getDoc, setDoc, doc, query, where, serverTimestamp } from "./firebase.js";
+import { db, collection, getDocs, getDoc, setDoc, doc, query, where, serverTimestamp } from "./firebase.js?v=2.0.1";
 import {
   requireAuth, AKSES, today, thisMonth, namaBulan, tglIndo, toast, esc, rupiah,
   ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, terjadwal, selisihJam,
   ambilJadwal, indeksJadwal, idJadwal, jamSesi, waktuAbsen
-} from "./common.js";
+} from "./common.js?v=2.0.1";
 
 const { profil } = await requireAuth(AKSES.absenSaya);
 document.getElementById("nama").textContent = profil.nama;

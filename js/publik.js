@@ -1,24 +1,7 @@
-// Halaman publik (tanpa login): jadwal mengajar, kitab & materi, per teungku.
+// Bagian kanan halaman depan (tanpa login): jadwal mengajar, kitab & materi, per teungku.
+// Identitas dayah & form login di bagian kiri diurus js/login.js.
 // Hanya membaca data yang memang publik: config/tampilan, config/absensi, koleksi mengajar.
-import {
-  ambilTampilan, tampilanCache, ambilConfigAbsensi, ambilJadwal, HARI, SEMUA_HARI, jamSesi,
-  esc, today, hariDari, pasangFooter
-} from "./common.js";
-
-pasangFooter();
-
-// ---------- Identitas dayah ----------
-function pasangTampilan(t) {
-  document.getElementById("pubNama").textContent = t.nama;
-  document.getElementById("pubAlamat").textContent = t.alamat || "";
-  document.getElementById("pubTagline").textContent = t.tagline || "";
-  document.title = `${t.nama} — Jadwal Mengajar & Kitab`;
-  if (t.logo) document.getElementById("pubLogo").innerHTML = `<img src="${t.logo}" alt="Logo">`;
-  if (t.foto) document.getElementById("hero").style.backgroundImage =
-    `linear-gradient(to bottom, rgba(5,30,18,.55), rgba(5,30,18,.88)), url("${t.foto}")`;
-}
-pasangTampilan(tampilanCache());
-ambilTampilan().then(pasangTampilan);
+import { ambilConfigAbsensi, ambilJadwal, HARI, SEMUA_HARI, jamSesi, esc, today, hariDari } from "./common.js?v=2.0.1";
 
 // ---------- Data ----------
 const [cfg, semua] = await Promise.all([
@@ -112,3 +95,5 @@ document.getElementById("daftarTeungku").innerHTML = guruUrut.length ? guruUrut.
     </tbody></table></div>
   </div>`).join("")
   : `<div class="card empty">Belum ada jadwal.</div>`;
+
+window.__berandaSiap = true;

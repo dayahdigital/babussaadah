@@ -1,5 +1,5 @@
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "./firebase.js";
-import { requireAuth, PERAN, toast } from "./common.js";
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "./firebase.js?v=2.0.1";
+import { requireAuth, PERAN, toast } from "./common.js?v=2.0.1";
 
 const { user, profil } = await requireAuth();
 
