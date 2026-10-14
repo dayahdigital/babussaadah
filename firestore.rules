@@ -1,5 +1,5 @@
 rules_version = '2';
-// Aturan keamanan Firestore — Dayah Babussa'adah (versi 2.0.0)
+// Aturan keamanan Firestore — Dayah Babussa'adah (versi 2.0.2)
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -90,14 +90,18 @@ service cloud.firestore {
       return request.time >= awal && request.time < awal + duration.value(1, 'd');
     }
 
-    // Hari ini menurut WIB: 0 = Ahad ... 6 = Sabtu (1 Jan 1970 adalah hari Kamis = 4)
-    function hariWIB() {
-      return (math.floor((request.time.toMillis() + 25200000) / 86400000) + 4) % 7;
+    // Apakah "hari" (0 = Ahad ... 6 = Sabtu) benar hari ini menurut WIB?
+    // Hanya memakai bilangan bulat (tanpa pembagian): dihitung dari Ahad 4 Jan 2026 00:00 WIB
+    // = 1767459600000 ms. Sisa bagi satu minggu (604800000 ms) menunjukkan posisi dalam minggu.
+    function hariIniBenar(hari) {
+      let w = (request.time.toMillis() - 1767459600000) % 604800000;
+      return hari is int && hari >= 0 && hari <= 6
+        && w >= hari * 86400000 && w < (hari + 1) * 86400000;
     }
 
-    // Sesi yang diabsen harus ada di jadwal mengajar teungku untuk hari ini
-    function sesuaiJadwal(guruId, sesi) {
-      return exists(/databases/$(database)/documents/mengajar/$(guruId + '_' + sesi + '_' + string(hariWIB())));
+    // Sesi yang diabsen harus ada di jadwal mengajar teungku untuk hari itu
+    function sesuaiJadwal(guruId, sesi, hari) {
+      return exists(/databases/$(database)/documents/mengajar/$(guruId + '_' + sesi + '_' + string(hari)));
     }
 
     function mandiriDiizinkan() {
@@ -119,7 +123,8 @@ service cloud.firestore {
         && d.bulan == d.tanggal.split('-')[0] + '-' + d.tanggal.split('-')[1]
         && id == d.tanggal + '_' + d.sesi + '_' + d.guruId
         && d.insentif == g.get('honorHadir', 0)
-        && sesuaiJadwal(d.guruId, d.sesi)
+        && hariIniBenar(d.hari)
+        && sesuaiJadwal(d.guruId, d.sesi, d.hari)
         && d.waktu == request.time
         && mandiriDiizinkan();
     }

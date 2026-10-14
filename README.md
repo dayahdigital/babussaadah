@@ -1,4 +1,4 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 2.0.1
+# Sistem Administrasi Dayah Babussa'adah — Versi 2.0.2
 
 ©SRISP 2026
 
@@ -44,7 +44,7 @@ Config Firebase web memang terlihat di browser; ia hanya pengenal proyek. Data d
 1. Unggah **semua** isi folder ke repo, **termasuk `js/firebase-config.js`**. Tanpa file ini semua halaman gagal dimuat.
 2. **Settings → Pages → Source: Deploy from a branch → main / (root)**; *Custom domain* `dayahbabussaadah.web.id`.
 3. Batasi API key (bagian 2), lalu tutup peringatan GitHub *Secret scanning* dengan **Close alert → Won't fix**.
-4. Setiap rilis, angka versi ada di setiap tautan file (`?v=2.0.1`), jadi HP otomatis mengunduh file baru.
+4. Setiap rilis, angka versi ada di setiap tautan file (`?v=2.0.2`), jadi HP otomatis mengunduh file baru.
 
 **Cara lanjutan (GitHub Actions)**, opsional: folder **`.github/workflows`** (ejaan persis `.github`) membuat `firebase-config.js` dari Secret `FIREBASE_CONFIG` sehingga key tidak perlu disimpan di repo. Aktifkan dengan **Settings → Pages → Source: GitHub Actions**. Kalau tidak dipakai, folder ini boleh dihapus.
 
