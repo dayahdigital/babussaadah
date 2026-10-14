@@ -1,0 +1,137 @@
+:root{
+  --hijau:#0f5132; --hijau-2:#198754; --emas:#c9a227; --bg:#f4f6f3; --card:#fff;
+  --teks:#1f2a24; --abu:#6b7770; --garis:#e2e7e3; --merah:#b42318; --biru:#1d4ed8;
+  --radius:12px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--teks)}
+a{color:inherit}
+
+/* Navbar */
+#navbar{background:var(--hijau);color:#fff;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;position:sticky;top:0;z-index:10;flex-wrap:wrap;gap:8px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{font-size:26px;color:var(--emas)}
+.brand small{display:block;font-size:12px;opacity:.8}
+#navbar nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+#navbar nav a{text-decoration:none;padding:8px 12px;border-radius:8px;font-size:14px}
+#navbar nav a:hover{background:rgba(255,255,255,.12)}
+#navbar nav a.active{background:var(--emas);color:var(--hijau);font-weight:600}
+#navbar .user{font-size:12px;opacity:.75;margin:0 8px}
+.menu-toggle{display:none;background:none;border:0;color:#fff;font-size:24px;cursor:pointer}
+
+main{max-width:1150px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:4px 0 16px;color:var(--hijau)}
+h2{font-size:17px;margin:0 0 12px}
+
+.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:18px}
+.grid{display:grid;gap:14px}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+.stat{border-left:4px solid var(--hijau-2)}
+.stat .label{font-size:13px;color:var(--abu)}
+.stat .value{font-size:22px;font-weight:700;margin-top:4px}
+.stat.in{border-color:var(--hijau-2)} .stat.out{border-color:var(--merah)} .stat.saldo{border-color:var(--emas)}
+
+/* Form */
+form.inline,.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1}
+.field label{font-size:13px;color:var(--abu)}
+input,select,textarea{padding:9px 10px;border:1px solid var(--garis);border-radius:8px;font:inherit;background:#fff;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--hijau-2);border-color:transparent}
+
+.btn{padding:9px 16px;border:0;border-radius:8px;cursor:pointer;font:inherit;font-weight:600;background:var(--hijau-2);color:#fff;white-space:nowrap}
+.btn:hover{filter:brightness(.95)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-sec{background:#e8efe9;color:var(--hijau)}
+.btn-red{background:var(--merah)}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff}
+.btn-sm{padding:5px 10px;font-size:13px}
+
+/* Tabel */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--garis);text-align:left;vertical-align:middle}
+th{background:#f0f4f1;font-weight:600;color:var(--hijau)}
+td.num,th.num{text-align:right}
+tr:hover td{background:#fafcfa}
+.empty{text-align:center;color:var(--abu);padding:24px}
+.aksi{display:flex;gap:6px}
+
+.badge{padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600}
+.b-in{background:#d1f0dc;color:#0f5132} .b-out{background:#fde2e0;color:#b42318}
+.b-lunas{background:#d1f0dc;color:#0f5132} .b-belum{background:#fff2c6;color:#7a5b00}
+
+/* Absensi pilihan status */
+.status-group{display:flex;gap:4px;flex-wrap:wrap}
+.status-group label{cursor:pointer}
+.status-group input{display:none}
+.status-group span{display:inline-block;padding:5px 10px;border-radius:6px;border:1px solid var(--garis);font-size:13px}
+.status-group input:checked+span.H{background:#198754;color:#fff;border-color:#198754}
+.status-group input:checked+span.I{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+.status-group input:checked+span.S{background:#c9a227;color:#fff;border-color:#c9a227}
+.status-group input:checked+span.A{background:#b42318;color:#fff;border-color:#b42318}
+
+/* Absen mandiri teungku */
+.sesi-list{display:flex;flex-direction:column;gap:10px}
+.sesi-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border:1px solid var(--garis);border-radius:10px}
+.sesi-item small{color:var(--abu)}
+.sesi-item .btn{padding:12px 26px;font-size:16px}
+
+/* Grid jadwal (sesi × hari) */
+table.jadwal th,table.jadwal td{text-align:center;padding:6px}
+table.jadwal th:first-child,table.jadwal td:first-child{text-align:left}
+table.jadwal input[type=checkbox]{width:18px;height:18px;cursor:pointer}
+table.jadwal td.off{background:#eef1ee}
+table.jadwal .namaSesi{min-width:150px}
+label.cek{display:flex;gap:8px;align-items:center;font-size:14px;margin:10px 0 0}
+label.cek input{width:auto}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.open{display:flex}
+.modal .box{background:#fff;border-radius:var(--radius);padding:20px;width:100%;max-width:640px;max-height:90vh;overflow:auto}
+.modal .box .grid{grid-template-columns:1fr 1fr}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:10px;color:#fff;background:var(--hijau-2);
+  opacity:0;transform:translateY(10px);transition:.25s;z-index:100}
+.toast.show{opacity:1;transform:none}
+.toast-err{background:var(--merah)}
+
+/* Login */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0f5132,#198754)}
+.login-box{background:#fff;padding:32px;border-radius:16px;width:100%;max-width:380px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.login-box .logo{font-size:44px;color:var(--emas);text-align:center}
+.login-box h1{text-align:center;margin:6px 0 2px}
+.login-box p{text-align:center;color:var(--abu);margin:0 0 20px;font-size:14px}
+.login-box .field{margin-bottom:12px}
+.login-box .btn{width:100%;margin-top:6px}
+.info{background:#fff8e1;border:1px solid #f0d77a;color:#5c4500;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:14px;text-align:center}
+.info a{color:var(--hijau)}
+.login-box small{font-size:12px}
+#navbar .user{line-height:1.25;text-align:right}
+.error{color:var(--merah);font-size:13px;min-height:18px;margin-top:8px;text-align:center}
+
+/* Slip gaji (cetak) */
+#slip{display:none}
+@media print{
+  body *{visibility:hidden}
+  #slip,#slip *{visibility:visible}
+  #slip{display:block;position:absolute;inset:0;padding:30px}
+}
+.slip h3{text-align:center;margin:0}
+.slip .sub{text-align:center;font-size:13px;margin-bottom:16px}
+.slip table td{border:0;padding:4px 0}
+.slip .ttd{display:flex;justify-content:flex-end;margin-top:40px;text-align:center}
+
+@media (max-width:760px){
+  .menu-toggle{display:block}
+  #navbar nav{display:none;width:100%;flex-direction:column;align-items:stretch}
+  #navbar nav.open{display:flex}
+  .modal .box .grid{grid-template-columns:1fr}
+}
