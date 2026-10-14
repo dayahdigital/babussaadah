@@ -28,6 +28,26 @@ async function muat() {
     .sort((a, b) => a.nama.localeCompare(b.nama));
   dataGuru = gSnap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nama.localeCompare(b.nama));
   tampil();
+  sinkronDaftarLogin().catch(ex => console.warn("Sinkron daftar login gagal", ex));
+}
+
+// Daftar nama di halaman login diambil dari koleksi "usernames".
+// Fungsi ini memastikan nama, peran & status aktif di sana selalu sama dengan data pengguna.
+async function sinkronDaftarLogin() {
+  const snap = await getDocs(collection(db, "usernames"));
+  const b = writeBatch(db);
+  let n = 0;
+  snap.docs.forEach(d => {
+    const m = d.data();
+    const u = daftar.find(x => x.uid === m.uid);
+    if (!u) return;
+    const target = { nama: u.nama, role: u.role, aktif: !!u.aktif };
+    if (m.nama !== target.nama || m.role !== target.role || m.aktif !== target.aktif) {
+      b.update(d.ref, target);
+      n++;
+    }
+  });
+  if (n) await b.commit();
 }
 
 // Pilihan teungku: hanya yang belum punya akun (plus yang sedang ditautkan ke akun ini)
@@ -113,7 +133,7 @@ fUser.addEventListener("submit", async (e) => {
         uid, username: u, nama, role, guruId, aktif: true, email,
         dibuat: serverTimestamp(), dibuatOleh: saya.username
       });
-      b.set(doc(db, "usernames", u), { uid, email });
+      b.set(doc(db, "usernames", u), { uid, email, nama, role, aktif: true });
       await b.commit();
       toast(`Pengguna "${u}" dibuat`);
     }
@@ -138,7 +158,7 @@ fReset.addEventListener("submit", async (e) => {
     const b = writeBatch(db);
     b.set(doc(db, "users", uidBaru), { ...data, uid: uidBaru, email, diubah: serverTimestamp() });
     b.update(doc(db, "users", uid), { aktif: false, dihapus: true, digantiOleh: uidBaru });
-    b.set(doc(db, "usernames", lama.username), { uid: uidBaru, email });
+    b.set(doc(db, "usernames", lama.username), { uid: uidBaru, email, nama: lama.nama, role: lama.role, aktif: !!lama.aktif });
     await b.commit();
     mReset.classList.remove("open");
     toast(`Kata sandi ${lama.username} sudah direset`);

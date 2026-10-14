@@ -1,6 +1,11 @@
-// Pengaturan lembaga (aman masuk repo GitHub)
+// Pengaturan lembaga & versi aplikasi (aman masuk repo GitHub)
 
-// Identitas lembaga (tampil di header & slip gaji)
+// Versi aplikasi. BUILD diganti otomatis saat deploy (kode commit), jadi mudah dicek versi mana yang tampil.
+export const APP_VERSI = "2.0.0";
+export const APP_BUILD = "__BUILD__";
+export const HAK_CIPTA = "©SRISP 2026";
+
+// Nilai bawaan identitas lembaga. Bisa diubah Super Admin di menu Profil Dayah.
 export const LEMBAGA = {
   nama: "Dayah Babussa'adah",
   alamat: "Alamat Dayah Babussa'adah",

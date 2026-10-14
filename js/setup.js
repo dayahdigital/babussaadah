@@ -2,7 +2,9 @@
 import {
   auth, db, createUserWithEmailAndPassword, signOut, doc, getDoc, writeBatch, serverTimestamp
 } from "./firebase.js";
-import { normUsername, usernameValid, buatEmail } from "./common.js";
+import { normUsername, usernameValid, buatEmail, pasangFooter } from "./common.js";
+
+pasangFooter();
 
 const form = document.getElementById("formSetup");
 const err = document.getElementById("err");
@@ -29,7 +31,9 @@ form.addEventListener("submit", async (e) => {
       uid: akun.uid, username: u, nama: form.nama.value.trim(), role: "superadmin",
       aktif: true, email, dibuat: serverTimestamp(), dibuatOleh: "setup"
     });
-    b.set(doc(db, "usernames", u), { uid: akun.uid, email });
+    b.set(doc(db, "usernames", u), {
+      uid: akun.uid, email, nama: form.nama.value.trim(), role: "superadmin", aktif: true
+    });
     b.set(doc(db, "config", "setup"), { selesai: true, oleh: u, waktu: serverTimestamp() });
     await b.commit();
     location.replace("dashboard.html");
