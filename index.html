@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-page">
+  <div class="login-box">
+    <div class="logo">☪</div>
+    <h1>Dayah Babussa'adah</h1>
+    <p>Penggajian Guru · Absensi · Kas</p>
+
+    <div class="info" id="infoSetup" hidden>
+      Belum ada Super Admin. <a href="setup.html"><b>Lakukan setup awal →</b></a>
+    </div>
+
+    <form id="formLogin">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" required autocomplete="username" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="password">Kata sandi</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <button class="btn" type="submit" id="btnMasuk">Masuk</button>
+      <div class="error" id="err"></div>
+    </form>
+  </div>
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>

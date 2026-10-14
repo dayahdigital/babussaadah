@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akun Saya — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main style="max-width:520px">
+    <h1>Akun Saya</h1>
+
+    <div class="card">
+      <table>
+        <tr><td style="width:40%;color:#6b7770">Nama</td><td id="aNama"></td></tr>
+        <tr><td style="color:#6b7770">Username</td><td id="aUser"></td></tr>
+        <tr><td style="color:#6b7770">Peran</td><td id="aPeran"></td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Ganti kata sandi</h2>
+      <form id="formSandi">
+        <div class="field" style="margin-bottom:10px"><label>Kata sandi lama</label>
+          <input type="password" name="lama" required autocomplete="current-password"></div>
+        <div class="field" style="margin-bottom:10px"><label>Kata sandi baru (min. 6 karakter)</label>
+          <input type="password" name="baru" minlength="6" required autocomplete="new-password"></div>
+        <div class="field" style="margin-bottom:14px"><label>Ulangi kata sandi baru</label>
+          <input type="password" name="baru2" minlength="6" required autocomplete="new-password"></div>
+        <button class="btn" type="submit">Simpan Kata Sandi</button>
+      </form>
+    </div>
+  </main>
+  <script type="module" src="js/akun.js"></script>
+</body>
+</html>

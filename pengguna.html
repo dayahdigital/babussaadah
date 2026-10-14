@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengguna — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main>
+    <h1>Kelola Pengguna</h1>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="field"><label>Cari</label><input id="cari" placeholder="Nama / username..."></div>
+        <button class="btn" id="btnTambah">+ Tambah Pengguna</button>
+      </div>
+      <table style="margin-top:14px;font-size:13px">
+        <thead><tr><th>Peran</th><th>Hak akses</th></tr></thead>
+        <tbody>
+          <tr><td><b>Super Admin</b></td><td>Semua menu + kelola pengguna (tambah, ubah peran, reset sandi, nonaktifkan, hapus)</td></tr>
+          <tr><td><b>Admin</b></td><td>Data Guru, Absensi, Penggajian, Kas</td></tr>
+          <tr><td><b>Bendahara</b></td><td>Penggajian, Kas</td></tr>
+          <tr><td><b>Operator Absensi</b></td><td>Absensi semua teungku</td></tr>
+          <tr><td><b>Teungku / Guru</b></td><td>Absen mandiri (tombol Hadir) & melihat insentifnya sendiri</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nama</th><th>Username</th><th>Peran</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="tbUser"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Tambah / ubah pengguna -->
+  <div class="modal" id="modalUser">
+    <form class="box" id="formUser">
+      <h2 id="judulUser">Tambah Pengguna</h2>
+      <div class="grid">
+        <div class="field" style="grid-column:1/-1"><label>Nama lengkap</label><input name="nama" required></div>
+        <div class="field">
+          <label>Username</label>
+          <input name="username" required autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="field"><label>Peran</label>
+          <select name="role">
+            <option value="guru">Teungku / Guru</option>
+            <option value="operator">Operator Absensi</option>
+            <option value="bendahara">Bendahara</option>
+            <option value="admin">Admin</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </div>
+        <div class="field" id="boxGuru" style="grid-column:1/-1">
+          <label>Tautkan ke data teungku</label>
+          <select name="guruId"></select>
+        </div>
+        <div class="field" id="boxSandi" style="grid-column:1/-1">
+          <label>Kata sandi awal (min. 6 karakter)</label>
+          <input name="password" type="text" minlength="6" autocomplete="off">
+        </div>
+      </div>
+      <small style="color:#6b7770">Username: 3–20 karakter, huruf kecil, angka, titik, garis bawah. Tidak bisa diganti setelah dibuat.</small>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" data-tutup>Batal</button>
+        <button type="submit" class="btn">Simpan</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Reset kata sandi -->
+  <div class="modal" id="modalReset">
+    <form class="box" id="formReset">
+      <h2 id="judulReset">Reset Kata Sandi</h2>
+      <div class="field">
+        <label>Kata sandi baru (min. 6 karakter)</label>
+        <input name="password" type="text" minlength="6" required autocomplete="off">
+      </div>
+      <small style="color:#6b7770">Berikan kata sandi ini ke pengguna, lalu minta mereka menggantinya di menu Akun Saya.</small>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" data-tutup>Batal</button>
+        <button type="submit" class="btn">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="js/pengguna.js"></script>
+</body>
+</html>

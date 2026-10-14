@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Penggajian — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main>
+    <h1>Penggajian Guru</h1>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="field" style="max-width:200px"><label>Periode</label><input type="month" id="periode"></div>
+        <button class="btn" id="btnHitung">Hitung dari Absensi</button>
+        <button class="btn btn-sec" id="btnExport">Unduh CSV</button>
+      </div>
+      <p style="font-size:13px;color:#6b7770;margin-bottom:0">
+        Rumus: Gaji Pokok + Tunjangan + Total Insentif Kehadiran (dari absensi) + Bonus − (Potongan/Alpa × Jumlah Alpa) − Potongan Lain.
+        Saat ditandai <b>Dibayar</b>, otomatis tercatat sebagai pengeluaran kas.
+      </p>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="card stat"><div class="label">Total gaji periode ini</div><div class="value" id="sTotal">–</div></div>
+      <div class="card stat in"><div class="label">Sudah dibayar</div><div class="value" id="sLunas">–</div></div>
+      <div class="card stat out"><div class="label">Belum dibayar</div><div class="value" id="sBelum">–</div></div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Nama</th><th class="num">Hadir</th><th class="num">Alpa</th><th class="num">Pokok</th>
+            <th class="num">Tunjangan</th><th class="num">Insentif Hadir</th><th class="num">Bonus</th>
+            <th class="num">Potongan</th><th class="num">Total</th><th>Status</th><th>Aksi</th>
+          </tr></thead>
+          <tbody id="tbGaji"><tr><td colspan="11" class="empty">Pilih periode lalu klik "Hitung dari Absensi".</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <form class="box" id="formAdj">
+      <h2 id="adjJudul">Bonus & Potongan</h2>
+      <div class="grid">
+        <div class="field"><label>Bonus / THR</label><input name="bonus" type="number" min="0"></div>
+        <div class="field"><label>Potongan lain (kasbon, dll)</label><input name="potonganLain" type="number" min="0"></div>
+        <div class="field" style="grid-column:1/-1"><label>Catatan</label><input name="catatan"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>
+        <button type="submit" class="btn">Simpan</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="slip"></div>
+
+  <script type="module" src="js/penggajian.js"></script>
+</body>
+</html>

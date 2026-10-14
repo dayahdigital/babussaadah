@@ -1,0 +1,2 @@
+# Config Firebase tidak disimpan di repo; dibuat otomatis dari Secret saat deploy
+js/firebase-config.js

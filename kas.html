@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kas — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main>
+    <h1>Kas Pemasukan & Pengeluaran</h1>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h2>Catat transaksi</h2>
+        <form id="formKas" class="inline">
+          <div class="field"><label>Tanggal</label><input type="date" name="tanggal" required></div>
+          <div class="field"><label>Jenis</label>
+            <select name="jenis" id="jenis">
+              <option value="masuk">Pemasukan</option>
+              <option value="keluar">Pengeluaran</option>
+            </select>
+          </div>
+          <div class="field"><label>Kategori</label><select name="kategori" id="kategori"></select></div>
+          <div class="field"><label>Jumlah (Rp)</label><input type="number" name="jumlah" min="1" required></div>
+          <div class="field" style="flex-basis:100%"><label>Keterangan</label><input name="keterangan" required></div>
+          <button class="btn" type="submit">Simpan</button>
+        </form>
+      </div>
+
+      <div class="grid">
+        <div class="card stat in"><div class="label">Pemasukan (periode)</div><div class="value" id="sMasuk">–</div></div>
+        <div class="card stat out"><div class="label">Pengeluaran (periode)</div><div class="value" id="sKeluar">–</div></div>
+        <div class="card stat saldo"><div class="label">Saldo kas keseluruhan</div><div class="value" id="sSaldo">–</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="field" style="max-width:200px"><label>Bulan</label><input type="month" id="bulan"></div>
+        <div class="field" style="max-width:200px"><label>Jenis</label>
+          <select id="fJenis"><option value="">Semua</option><option value="masuk">Pemasukan</option><option value="keluar">Pengeluaran</option></select>
+        </div>
+        <div class="field"><label>Cari</label><input id="cari" placeholder="Keterangan / kategori..."></div>
+        <button class="btn btn-sec" id="btnExport">Unduh CSV</button>
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th class="num">Jumlah</th><th>Aksi</th></tr></thead>
+          <tbody id="tbKas"><tr><td colspan="6" class="empty">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="js/kas.js"></script>
+</body>
+</html>

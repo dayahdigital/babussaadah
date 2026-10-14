@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Guru — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main>
+    <h1>Data Guru</h1>
+    <div class="card">
+      <div class="toolbar">
+        <div class="field"><label>Cari</label><input id="cari" placeholder="Nama / jabatan..."></div>
+        <button class="btn" id="btnTambah">+ Tambah Guru</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Nama</th><th>NIP/NIY</th><th>Jabatan</th><th>No. HP</th>
+            <th class="num">Gaji Pokok</th><th class="num">Tunjangan</th><th class="num">Insentif/Hadir</th>
+            <th>Jadwal</th><th>Status</th><th>Aksi</th>
+          </tr></thead>
+          <tbody id="tbGuru"><tr><td colspan="10" class="empty">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <form class="box" id="formGuru">
+      <h2 id="modalJudul">Tambah Guru</h2>
+      <div class="grid">
+        <div class="field" style="grid-column:1/-1"><label>Nama lengkap</label><input name="nama" required></div>
+        <div class="field"><label>NIP / NIY</label><input name="nip"></div>
+        <div class="field"><label>Jabatan</label><input name="jabatan" placeholder="Guru Kitab, Wali Kelas..."></div>
+        <div class="field"><label>No. HP</label><input name="hp"></div>
+        <div class="field"><label>Status</label>
+          <select name="aktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select>
+        </div>
+        <div class="field"><label>Gaji pokok / bulan</label><input name="gajiPokok" type="number" min="0" value="0"></div>
+        <div class="field"><label>Tunjangan / bulan</label><input name="tunjangan" type="number" min="0" value="0"></div>
+        <div class="field"><label>Insentif per kehadiran (per sesi)</label><input name="honorHadir" type="number" min="0" value="0"></div>
+        <div class="field"><label>Potongan per alpa</label><input name="potonganAlpa" type="number" min="0" value="0"></div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Jadwal mengajar per minggu <span id="jmlJadwal" style="font-weight:600"></span></label>
+          <div class="table-wrap">
+            <table class="jadwal">
+              <thead><tr><th>Sesi</th><th>Ahad</th><th>Sen</th><th>Sel</th><th>Rab</th><th>Kam</th><th>Jum</th><th>Sab</th></tr></thead>
+              <tbody id="gridJadwal"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button type="button" class="btn btn-sm btn-sec" id="jdwSemua">Centang semua</button>
+            <button type="button" class="btn btn-sm btn-sec" id="jdwKosong">Kosongkan</button>
+          </div>
+          <small style="color:#6b7770">Kotak abu-abu = sesi tidak berjalan pada hari itu (atur di menu Absensi → Pengaturan).</small>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>
+        <button type="submit" class="btn">Simpan</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="js/guru.js"></script>
+</body>
+</html>

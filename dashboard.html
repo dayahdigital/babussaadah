@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main>
+    <h1>Assalamu'alaikum, <span id="nama"></span>
+      <small id="periode" style="font-size:14px;color:#6b7770;font-weight:400"></small></h1>
+
+    <div class="grid grid-4">
+      <div class="card stat"><div class="label">Jumlah guru aktif</div><div class="value" id="sGuru">–</div></div>
+      <div class="card stat"><div class="label">Hadir hari ini</div><div class="value" id="sHadir">–</div></div>
+      <div class="card stat in" data-roles="superadmin,admin,bendahara"><div class="label">Pemasukan bulan ini</div><div class="value" id="sMasuk">–</div></div>
+      <div class="card stat out" data-roles="superadmin,admin,bendahara"><div class="label">Pengeluaran bulan ini</div><div class="value" id="sKeluar">–</div></div>
+      <div class="card stat saldo" data-roles="superadmin,admin,bendahara"><div class="label">Saldo kas keseluruhan</div><div class="value" id="sSaldo">–</div></div>
+      <div class="card stat" data-roles="superadmin,admin,bendahara"><div class="label">Total gaji bulan ini</div><div class="value" id="sGaji">–</div></div>
+    </div>
+
+    <div class="card" data-roles="superadmin,admin,bendahara">
+      <h2>Transaksi kas terakhir</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th class="num">Jumlah</th></tr></thead>
+          <tbody id="tbKas"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

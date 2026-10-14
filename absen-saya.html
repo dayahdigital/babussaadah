@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absen Saya — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main style="max-width:640px">
+    <h1>Assalamu'alaikum, <span id="nama"></span></h1>
+
+    <div class="card">
+      <h2 id="judulHariIni">Absen hari ini</h2>
+      <p id="pesan" style="font-size:14px;color:#6b7770;margin-top:0"></p>
+      <div id="daftarSesi" class="sesi-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Jadwal mengajar saya</h2>
+      <div class="table-wrap">
+        <table><tbody id="tbJadwal"></tbody></table>
+      </div>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="card stat"><div class="label">Kehadiran bulan ini</div><div class="value" id="sHadir">–</div></div>
+      <div class="card stat saldo"><div class="label">Insentif bulan ini</div><div class="value" id="sInsentif">–</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Riwayat <span id="bulanIni" style="font-weight:400;color:#6b7770"></span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th class="num">Insentif</th></tr></thead>
+          <tbody id="tbRiwayat"><tr><td colspan="4" class="empty">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="js/absen-saya.js"></script>
+</body>
+</html>
