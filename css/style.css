@@ -558,3 +558,29 @@ body.ada-marquee .beranda-kiri{height:calc(100dvh - 46px)}
   .logo-besar{width:64px;height:64px}
   .kiri-identitas .arab,.kiri-identitas p{display:none}
 }
+
+/* ===== v3.1.1: tombol install tunggal, ganti tampilan tersembunyi ===== */
+.tombol-install{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;font:inherit;color:#fff;
+  background:linear-gradient(135deg,var(--emas,#c9a227),#e2bf4d);border:0;border-radius:16px;padding:12px 14px;
+  box-shadow:0 8px 22px rgba(0,0,0,.25);transition:transform .15s}
+.tombol-install:hover{transform:translateY(-2px)}
+.tombol-install img{width:46px;height:46px;border-radius:12px;background:#fff;padding:3px;flex:none}
+.tombol-install span{flex:1;min-width:0;color:#2b2207}
+.tombol-install b{display:block;font-size:16px}
+.tombol-install small{display:block;font-size:12.5px;opacity:.85}
+.tombol-install .panah{font-style:normal;font-weight:800;color:#2b2207;background:rgba(255,255,255,.55);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none}
+.tombol-install[hidden]{display:none}
+.install-box{max-width:420px}
+.install-kepala{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.install-kepala img{width:52px;height:52px;border-radius:12px}
+.install-kepala b{display:block;font-size:17px;color:var(--hijau)}
+.install-kepala small{color:var(--abu)}
+.install-langkah{counter-reset:l;list-style:none;padding:0;margin:0}
+.install-langkah li{counter-increment:l;display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--garis)}
+.install-langkah li::before{content:counter(l);flex:none;width:26px;height:26px;border-radius:50%;background:var(--hijau);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.install-langkah .simbol{display:inline-flex;vertical-align:middle;border:1px solid var(--garis);border-radius:6px;padding:1px 4px;margin:0 2px}
+.kaki a.lnk-pengelola{cursor:pointer}
+.ganti-tampilan{display:flex;justify-content:flex-end;margin:-4px 0 8px}
+.ganti-tampilan button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--garis);background:var(--card,#fff);color:var(--hijau);
+  border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.ganti-tampilan button[aria-expanded="true"]{background:var(--hijau-3);border-color:var(--hijau-2)}
