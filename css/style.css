@@ -584,3 +584,16 @@ body.ada-marquee .beranda-kiri{height:calc(100dvh - 46px)}
 .ganti-tampilan button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--garis);background:var(--card,#fff);color:var(--hijau);
   border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .ganti-tampilan button[aria-expanded="true"]{background:var(--hijau-3);border-color:var(--hijau-2)}
+
+/* ===== v3.1.2: dialog konfirmasi ===== */
+.dialog-konfirmasi{z-index:120;animation:dkMasuk .15s ease-out}
+.dialog-konfirmasi .box{max-width:360px;text-align:center;padding:24px 20px 18px;border-radius:20px;animation:dkNaik .18s ease-out}
+.dialog-konfirmasi h2{margin:6px 0 6px;font-size:19px;color:var(--teks,#1d2b22)}
+.dialog-konfirmasi p{margin:0 0 4px;color:var(--abu);font-size:14.5px}
+.dk-ikon{width:62px;height:62px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;background:var(--hijau-3);color:var(--hijau)}
+.dk-ikon.bahaya{background:#fdecec;color:var(--merah,#c0392b)}
+.dk-tombol{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.dk-tombol .btn{width:100%;justify-content:center}
+.dialog-konfirmasi.keluar-anim{opacity:0;transition:opacity .15s}
+@keyframes dkMasuk{from{opacity:0}to{opacity:1}}
+@keyframes dkNaik{from{transform:translateY(14px) scale(.97);opacity:.6}to{transform:none;opacity:1}}
