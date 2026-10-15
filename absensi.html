@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
   <title>Absensi — Dayah Babussa'adah</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0.2">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header id="navbar"></header>
@@ -15,57 +17,48 @@
     <div class="card">
       <h2>Input absensi per sesi</h2>
       <div class="toolbar">
-        <div class="field" style="max-width:180px"><label>Tanggal <span id="namaHari"></span></label><input type="date" id="tanggal"></div>
-        <div class="field" style="max-width:260px"><label>Sesi</label><select id="sesi"></select></div>
-        <button class="btn btn-sec" id="btnSemuaHadir">Tandai semua Hadir</button>
+        <div class="field"><label>Tanggal <span id="namaHari"></span></label><input type="date" id="tanggal"></div>
+        <div class="field"><label>Sesi</label><select id="sesi"></select></div>
+        <button class="btn btn-sec" id="btnSemuaHadir">✔ Semua Hadir</button>
         <button class="btn" id="btnSimpan">Simpan Absensi</button>
       </div>
       <label class="cek"><input type="checkbox" id="tampilSemua"> Tampilkan juga teungku yang tidak terjadwal (badal / pengganti)</label>
-      <p style="font-size:13px;color:#6b7770">
-        H = Hadir · I = Izin · S = Sakit · A = Alpa. Yang tampil hanya teungku yang <b>terjadwal</b> di sesi ini.
-        Insentif dihitung otomatis dari tarif tiap teungku saat statusnya Hadir.
-        <span class="badge b-in">mandiri</span> = diisi sendiri oleh teungku; Anda tetap bisa mengoreksinya.
-      </p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Nama</th><th>Status</th><th class="num">Insentif</th><th>Keterangan</th><th></th></tr></thead>
-          <tbody id="tbAbsen"><tr><td colspan="6" class="empty">Memuat...</td></tr></tbody>
-          <tfoot><tr><td colspan="3"><b>Total insentif sesi ini</b></td><td class="num"><b id="totSesi">Rp 0</b></td><td colspan="2"></td></tr></tfoot>
-        </table>
-      </div>
+      <div class="legenda"><span class="badge st-h"><b>✔</b> H · Hadir</span><span class="badge st-i"><b>✉</b> I · Izin</span>
+        <span class="badge st-s"><b>✚</b> S · Sakit</span><span class="badge st-a"><b>✖</b> A · Alpa</span>
+        <span class="badge b-in">📷 = absen sendiri dengan selfie</span></div>
+      <table class="kartu-hp">
+        <thead><tr><th>Teungku</th><th>Kitab / materi</th><th>Status</th><th class="num">Mukafaah</th><th>Keterangan</th><th>Selfie</th></tr></thead>
+        <tbody id="tbAbsen"><tr><td colspan="6" class="empty">Memuat...</td></tr></tbody>
+        <tfoot><tr class="total"><td colspan="3">Total mukafaah kehadiran sesi ini</td><td class="num" id="totSesi">Rp 0</td><td colspan="2"></td></tr></tfoot>
+      </table>
     </div>
 
     <div class="card">
-      <h2>Rekap bulanan & insentif</h2>
-      <div class="toolbar">
-        <div class="field" style="max-width:200px"><label>Bulan</label><input type="month" id="bulan"></div>
-        <button class="btn btn-sec" id="btnExport">Unduh CSV</button>
-      </div>
-      <p style="font-size:13px;color:#6b7770">Jadwal = jumlah sesi yang seharusnya diajar bulan ini (sampai hari ini), sesuai jadwal masing-masing teungku.</p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Nama</th><th class="num">Jadwal</th><th class="num">Hadir</th><th class="num">Izin</th><th class="num">Sakit</th><th class="num">Alpa</th><th class="num">Belum diabsen</th><th class="num">% Hadir</th><th class="num">Total Insentif</th></tr></thead>
-          <tbody id="tbRekap"></tbody>
-        </table>
-      </div>
+      <div class="card-judul"><h2>Rekap bulanan</h2>
+        <div class="aksi"><button class="btn btn-sm btn-sec" id="btnPdfRekap">📄 PDF rekap</button><button class="btn btn-sm btn-sec" id="btnPdfRinci">📄 PDF rincian</button>
+          <button class="btn btn-sm btn-sec" id="btnExcel">📊 Excel</button></div></div>
+      <div class="toolbar"><div class="field" style="max-width:220px"><label>Bulan</label><input type="month" id="bulan"></div></div>
+      <p class="kecil muted">Jadwal = sesi yang seharusnya diajar (sampai sekarang) menurut jadwal yang berlaku saat itu.</p>
+      <table class="kartu-hp">
+        <thead><tr><th>Nama Teungku</th><th class="num">Jadwal</th><th class="num">✔ Hadir</th><th class="num">✉ Izin</th><th class="num">✚ Sakit</th><th class="num">✖ Alpa</th><th class="num">Belum diabsen</th><th class="num">% Hadir</th><th class="num">Mukafaah kehadiran</th></tr></thead>
+        <tbody id="tbRekap"></tbody>
+      </table>
     </div>
 
     <div class="card" data-roles="superadmin">
-      <h2>Pengaturan sesi Pagi & Malam</h2>
-      <p style="font-size:13px;color:#6b7770;margin-top:0">
-        Atur jam dan hari berjalannya tiap sesi. Teungku bisa menekan Hadir mulai 30 menit sebelum sesi
-        sampai 30 menit setelah sesi selesai. Jadwal mengajar (kitab & materi) dipilih teungku di menu <b>Jadwal Mengajar</b>.
-      </p>
-      <div class="table-wrap">
-        <table class="jadwal">
-          <thead><tr><th>Sesi</th><th>Mulai</th><th>Selesai</th><th>Ahad</th><th>Sen</th><th>Sel</th><th>Rab</th><th>Kam</th><th>Jum</th><th>Sab</th></tr></thead>
-          <tbody id="daftarSesi"></tbody>
-        </table>
+      <h2>⚙ Pengaturan sesi</h2>
+      <p class="kecil muted" style="margin-top:0">Nama dan jam sesi bebas diatur. Bila jam selesai lebih awal dari jam mulai, sesi dianggap berakhir keesokan hari (lewat tengah malam).
+        Jam absen diperiksa oleh server, bukan jam HP.</p>
+      <div id="daftarSesi"></div>
+      <div class="grid grid-2">
+        <div class="field"><label>Absen dibuka (menit sebelum sesi mulai)</label><input type="number" id="tolSebelum" min="0" max="240"></div>
+        <div class="field"><label>Absen ditutup (menit setelah sesi selesai)</label><input type="number" id="tolSesudah" min="0" max="240"></div>
       </div>
-      <label class="cek"><input type="checkbox" id="guruMandiri"> Teungku boleh absen sendiri lewat akunnya</label>
+      <label class="cek"><input type="checkbox" id="guruMandiri"> Teungku boleh absen sendiri (dengan selfie wajib)</label>
       <div style="margin-top:14px"><button class="btn" id="btnSimpanAtur">Simpan Pengaturan</button></div>
     </div>
   </main>
-  <script type="module" src="js/absensi.js?v=2.0.2"></script>
+  <div class="modal" id="modalSelfie"><div class="box" style="max-width:380px;text-align:center"><img id="fotoSelfie" alt="" style="width:100%;border-radius:12px"><p id="ketSelfie" class="kecil muted"></p></div></div>
+  <script type="module" src="js/absensi.js"></script>
 </body>
 </html>

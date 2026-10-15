@@ -4,87 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
   <title>Kas — Dayah Babussa'adah</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0.2">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header id="navbar"></header>
   <main>
     <h1>Kas Pemasukan & Pengeluaran</h1>
 
-    <div class="grid grid-2">
-      <div class="card">
-        <h2 style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-          <span id="judulForm">Catat transaksi</span>
-          <button type="button" class="btn btn-sm btn-sec" id="btnKategori">⚙ Kelola kategori</button>
-        </h2>
-        <form id="formKas" class="inline">
+    <div class="grid grid-3">
+      <div class="card stat in"><div class="bulat">↓</div><div><div class="label">Pemasukan <span id="lblPeriode1"></span></div><div class="value" id="sMasuk">–</div></div></div>
+      <div class="card stat out"><div class="bulat">↑</div><div><div class="label">Pengeluaran <span id="lblPeriode2"></span></div><div class="value" id="sKeluar">–</div></div></div>
+      <div class="card stat saldo"><div class="bulat">Rp</div><div><div class="label">Saldo kas keseluruhan</div><div class="value" id="sSaldo">–</div>
+        <button class="btn btn-sm btn-sec" id="btnHitungUlang" style="margin-top:4px">↻ Hitung ulang</button></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-judul"><h2 id="judulForm">Catat transaksi</h2>
+        <button type="button" class="btn btn-sm btn-sec" id="btnKategori">⚙ Kelola kategori</button></div>
+      <form id="formKas">
+        <div class="grid grid-3" style="margin-bottom:0">
           <div class="field"><label>Tanggal</label><input type="date" name="tanggal" required></div>
           <div class="field"><label>Jenis</label>
-            <select name="jenis" id="jenis">
-              <option value="masuk">Pemasukan</option>
-              <option value="keluar">Pengeluaran</option>
-            </select>
-          </div>
+            <select name="jenis" id="jenis"><option value="masuk">↓ Pemasukan</option><option value="keluar">↑ Pengeluaran</option></select></div>
           <div class="field"><label>Kategori</label><select name="kategori" id="kategori"></select></div>
-          <div class="field"><label>Jumlah (Rp)</label><input type="number" name="jumlah" min="1" required></div>
-          <div class="field" style="flex-basis:100%"><label>Keterangan</label><input name="keterangan" required></div>
+          <div class="field"><label>Jumlah (Rp)</label><input name="jumlah" class="uang" required placeholder="0"></div>
+          <div class="field" style="grid-column:span 2"><label>Keterangan</label><input name="keterangan" required maxlength="200"></div>
+        </div>
+        <div class="field"><label>Bukti transaksi (opsional: foto nota / kwitansi)</label>
+          <input type="file" id="fileBukti" accept="image/*">
+          <div><img id="pvBukti" class="pratinjau-bukti" hidden alt=""> <button type="button" class="btn btn-sm btn-sec" id="hapusBukti" hidden>Hapus foto</button></div></div>
+        <div class="aksi">
           <button class="btn" type="submit" id="btnSimpanKas">Simpan</button>
           <button class="btn btn-sec" type="button" id="btnBatalUbah" hidden>Batal ubah</button>
-        </form>
-      </div>
-
-      <div class="grid">
-        <div class="card stat in"><div class="label">Pemasukan (periode)</div><div class="value" id="sMasuk">–</div></div>
-        <div class="card stat out"><div class="label">Pengeluaran (periode)</div><div class="value" id="sKeluar">–</div></div>
-        <div class="card stat saldo"><div class="label">Saldo kas keseluruhan</div><div class="value" id="sSaldo">–</div></div>
-      </div>
+        </div>
+      </form>
     </div>
 
     <div class="card">
       <div class="toolbar">
-        <div class="field" style="max-width:200px"><label>Bulan</label><input type="month" id="bulan"></div>
-        <div class="field" style="max-width:200px"><label>Jenis</label>
-          <select id="fJenis"><option value="">Semua</option><option value="masuk">Pemasukan</option><option value="keluar">Pengeluaran</option></select>
-        </div>
+        <div class="field"><label>Bulan</label><input type="month" id="bulan"></div>
+        <div class="field"><label>Jenis</label>
+          <select id="fJenis"><option value="">Semua</option><option value="masuk">Pemasukan</option><option value="keluar">Pengeluaran</option></select></div>
         <div class="field"><label>Cari</label><input id="cari" placeholder="Keterangan / kategori..."></div>
-        <button class="btn btn-sec" id="btnExport">Unduh CSV</button>
       </div>
-      <div class="table-wrap" style="margin-top:12px">
-        <table>
-          <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th class="num">Jumlah</th><th>Aksi</th></tr></thead>
-          <tbody id="tbKas"><tr><td colspan="6" class="empty">Memuat...</td></tr></tbody>
-        </table>
+      <div class="aksi" style="margin:10px 0">
+        <button class="btn btn-sm btn-sec" id="btnPdf">📄 PDF bulan ini</button>
+        <button class="btn btn-sm btn-sec" id="btnPdfTahun">📄 PDF setahun</button>
+        <button class="btn btn-sm btn-sec" id="btnExcel">📊 Excel bulan ini</button>
       </div>
+      <table class="kartu-hp">
+        <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th class="num">Jumlah</th><th>Bukti</th><th></th></tr></thead>
+        <tbody id="tbKas"><tr><td colspan="7" class="empty">Memuat...</td></tr></tbody>
+      </table>
     </div>
 
     <div class="card">
       <h2>Rekap per kategori <small class="jam" id="judulRekap"></small></h2>
       <div class="grid grid-2" style="margin-bottom:0">
-        <div class="table-wrap"><table><thead><tr><th>Pemasukan</th><th class="num">Jumlah</th></tr></thead><tbody id="rekapMasuk"></tbody></table></div>
-        <div class="table-wrap"><table><thead><tr><th>Pengeluaran</th><th class="num">Jumlah</th></tr></thead><tbody id="rekapKeluar"></tbody></table></div>
+        <table class="kartu-hp"><thead><tr><th>Pemasukan</th><th class="num">Jumlah</th></tr></thead><tbody id="rekapMasuk"></tbody></table>
+        <table class="kartu-hp"><thead><tr><th>Pengeluaran</th><th class="num">Jumlah</th></tr></thead><tbody id="rekapKeluar"></tbody></table>
       </div>
     </div>
   </main>
-  <!-- Kelola kategori -->
+
   <div class="modal" id="modalKategori">
     <div class="box">
       <h2>Kelola kategori</h2>
-      <p style="font-size:13px;color:#6b7770;margin-top:0">
-        Ubah nama langsung di kotaknya. Mengganti nama juga memperbarui transaksi lama yang memakai kategori itu.
-        Kategori "Gaji Guru" dipakai otomatis oleh Penggajian sehingga tidak bisa diubah.
-      </p>
+      <p class="kecil muted" style="margin-top:0">Ubah nama langsung di kotaknya; transaksi lama ikut diperbarui. Kategori bertanda 🔒 dipakai otomatis oleh Mukafaah.</p>
       <div class="grid grid-2" style="margin-bottom:0">
-        <div>
-          <h3 class="sub-judul">Pemasukan</h3>
-          <div id="katMasuk" class="kat-list"></div>
-          <div class="kat-tambah"><input id="baruMasuk" placeholder="Kategori baru"><button class="btn btn-sm" data-tambah="masuk">Tambah</button></div>
-        </div>
-        <div>
-          <h3 class="sub-judul">Pengeluaran</h3>
-          <div id="katKeluar" class="kat-list"></div>
-          <div class="kat-tambah"><input id="baruKeluar" placeholder="Kategori baru"><button class="btn btn-sm" data-tambah="keluar">Tambah</button></div>
-        </div>
+        <div><h3 class="sub-judul">Pemasukan</h3><div id="katMasuk" class="kat-list"></div>
+          <div class="kat-tambah"><input id="baruMasuk" placeholder="Kategori baru"><button class="btn btn-sm" data-tambah="masuk">Tambah</button></div></div>
+        <div><h3 class="sub-judul">Pengeluaran</h3><div id="katKeluar" class="kat-list"></div>
+          <div class="kat-tambah"><input id="baruKeluar" placeholder="Kategori baru"><button class="btn btn-sm" data-tambah="keluar">Tambah</button></div></div>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-sec" data-tutup>Batal</button>
@@ -92,7 +86,7 @@
       </div>
     </div>
   </div>
-
-  <script type="module" src="js/kas.js?v=2.0.2"></script>
+  <div class="modal" id="modalBukti"><div class="box" style="padding:8px;max-width:800px"><img id="fotoBukti" alt="" style="width:100%;border-radius:10px"></div></div>
+  <script type="module" src="js/kas.js"></script>
 </body>
 </html>

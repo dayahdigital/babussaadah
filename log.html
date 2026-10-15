@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Log Aktivitas — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main style="max-width:960px">
+    <h1>Log Aktivitas</h1>
+    <div class="info-hijau kecil">Setiap perubahan di aplikasi tercatat di sini: siapa, kapan, dan apa yang diubah. Catatan log tidak bisa diubah atau dihapus oleh siapa pun.</div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="field"><label>Bulan</label><input type="month" id="bulan"></div>
+        <div class="field"><label>Modul</label><select id="modul"><option value="">Semua</option></select></div>
+        <div class="field"><label>Cari</label><input id="cari" placeholder="nama / isi..."></div>
+      </div>
+      <div class="aksi" style="margin-top:10px"><button class="btn btn-sm btn-sec" id="btnPdf">📄 PDF</button><button class="btn btn-sm btn-sec" id="btnExcel">📊 Excel</button></div>
+    </div>
+    <div class="card"><div id="daftar"><p class="empty">Memuat...</p></div></div>
+  </main>
+  <script type="module" src="js/log.js"></script>
+</body>
+</html>

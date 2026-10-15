@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Panduan — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header style="background:var(--hijau);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px">
+    <div style="max-width:860px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <b>📘 Panduan Aplikasi</b>
+      <a class="btn btn-sm btn-ghost" href="javascript:history.length>1?history.back():location.assign('./')">← Kembali</a>
+    </div>
+  </header>
+  <main class="panduan" style="max-width:860px">
+    <p class="muted">Pilih bagian sesuai peran Anda. Ketuk judul untuk membuka.</p>
+
+    <details open><summary>📱 Memasang aplikasi di HP & laptop</summary><div class="isi">
+      <ol>
+        <li><b>HP Android (Chrome):</b> buka situs dayah → ketuk menu ⋮ → <b>Tambahkan ke layar utama / Instal aplikasi</b>.</li>
+        <li><b>iPhone (Safari):</b> ketuk tombol Bagikan → <b>Tambah ke Layar Utama</b>.</li>
+        <li><b>Laptop/PC (Chrome/Edge):</b> klik ikon ⊕ / "Instal" di ujung kanan bilah alamat, atau tombol <b>Pasang aplikasi</b> di halaman depan.</li>
+        <li>Setelah terpasang, aplikasi terbuka penuh seperti aplikasi biasa dan tetap bisa menampilkan data terakhir saat sinyal lemah.</li>
+      </ol></div></details>
+
+    <details><summary>🔑 Masuk & kata sandi</summary><div class="isi">
+      <ul>
+        <li>Masuk di halaman depan dengan <b>username</b> dan <b>kata sandi</b> yang diberikan pengelola.</li>
+        <li>Lupa kata sandi? Hubungi pengelola (Super Admin) untuk direset, lalu ganti sendiri di menu <b>Akun Saya</b>.</li>
+        <li>Pengelola (Super Admin) masuk lewat <b>Pintu Pengelola</b> yang hanya diketahui pengelola.</li>
+      </ul></div></details>
+
+    <details><summary>👳 Teungku: absen dengan selfie</summary><div class="isi">
+      <ol>
+        <li>Buka menu <b>Absen</b>. Sesi hari ini sesuai jadwal Anda muncul beserta kitabnya.</li>
+        <li>Tombol <b>📷 Hadir</b> aktif mulai beberapa menit sebelum sesi sampai beberapa menit setelah sesi selesai (diatur pengelola). Jam yang dipakai adalah <b>jam server</b>, bukan jam HP.</li>
+        <li>Ketuk <b>Hadir</b> → izinkan kamera → arahkan wajah ke bingkai → <b>Ambil foto</b> → <b>Gunakan foto ini</b>.</li>
+        <li>Isi <b>materi yang diajarkan hari ini</b> (bisa diubah dari isian jadwal) → <b>Kirim Hadir</b>.</li>
+        <li>Bila ditolak, aplikasi menuliskan alasannya (mis. di luar jam sesi, sesi tidak ada di jadwal).</li>
+      </ol>
+      <p class="kecil">Status: <span class="badge st-h"><b>✔</b> H · Hadir</span> <span class="badge st-i"><b>✉</b> I · Izin</span> <span class="badge st-s"><b>✚</b> S · Sakit</span> <span class="badge st-a"><b>✖</b> A · Alpa</span></p>
+    </div></details>
+
+    <details><summary>📅 Teungku: mengatur jadwal mengajar</summary><div class="isi">
+      <ol>
+        <li>Menu <b>Jadwal</b> → ketuk kotak <b>+ Pilih</b> pada hari & sesi yang Anda ajar.</li>
+        <li>Isi <b>kitab</b>, <b>materi/bab</b>, dan <b>kelas</b> → Simpan. Ketuk kotak yang sudah terisi untuk mengubah atau menghapus.</li>
+        <li>Jadwal tampil untuk umum di halaman depan. Setiap perubahan tercatat di <b>Riwayat perubahan</b> (bisa dilihat siapa saja).</li>
+      </ol></div></details>
+
+    <details><summary>✉ Teungku: izin & sakit</summary><div class="isi">
+      <ol>
+        <li>Menu <b>Absen</b> → <b>+ Ajukan izin / sakit</b>.</li>
+        <li>Pilih jenis, tanggal, sesi, tulis alasan; lampirkan surat dokter/foto bila ada → <b>Kirim</b>.</li>
+        <li>Pimpinan Dayah menerima notifikasi dan memutuskan. Hasilnya muncul di daftar pengajuan Anda dan sebagai notifikasi 🔔.</li>
+      </ol></div></details>
+
+    <details><summary>🏛 Pimpinan Dayah: menyetujui izin</summary><div class="isi">
+      <ol><li>Menu <b>Izin & Sakit</b> menampilkan pengajuan yang menunggu.</li>
+        <li>Periksa alasan & lampiran, isi catatan bila perlu, lalu <b>Setujui</b> atau <b>Tolak</b>.</li>
+        <li>Bila disetujui, absensi sesi terjadwal pada tanggal tersebut otomatis tercatat Izin/Sakit.</li></ol></div></details>
+
+    <details><summary>🗂 Operator: mengisi absensi</summary><div class="isi">
+      <ol><li>Menu <b>Absensi</b> → pilih tanggal & sesi. Yang tampil hanya teungku yang terjadwal.</li>
+        <li>Pilih status H / I / S / A tiap teungku (atau <b>✔ Semua Hadir</b>), isi keterangan bila perlu → <b>Simpan Absensi</b>.</li>
+        <li>Untuk badal, centang <b>Tampilkan teungku yang tidak terjadwal</b>.</li>
+        <li>Rekap bulanan bisa diunduh <b>PDF</b> (rekap / rincian lengkap dengan kitab & materi) atau <b>Excel</b>.</li></ol></div></details>
+
+    <details><summary>💰 Bendahara: mukafaah & kas</summary><div class="isi">
+      <ol><li>Menu <b>Mukafaah</b> → pilih periode → <b>Hitung dari Absensi</b>.</li>
+        <li>Tambah bonus/potongan bila ada → <b>Serahkan</b>. Mukafaah otomatis tercatat di Kas dan <b>terkunci</b>.</li>
+        <li><b>📄 Slip</b> mengunduh slip PDF; <b>WhatsApp</b> mengirim slip ke teungku.</li>
+        <li>Menu <b>Kas</b>: catat pemasukan/pengeluaran (angka otomatis bertitik), lampirkan foto nota bila ada. Kategori bisa diatur lewat <b>⚙ Kelola kategori</b>.</li>
+        <li>Laporan kas bulanan/tahunan tersedia dalam PDF & Excel bergaris dengan tanda tangan.</li></ol></div></details>
+
+    <details><summary>🛠 Super Admin: pengaturan</summary><div class="isi">
+      <ul>
+        <li><b>Pengguna</b>: buat akun (teungku ditautkan ke datanya), reset sandi, nonaktifkan, hapus. Buatlah minimal <b>2 Super Admin</b>.</li>
+        <li><b>Absensi → Pengaturan sesi</b>: nama & jam sesi, hari, batas buka/tutup absen, izinkan absen mandiri.</li>
+        <li><b>Pengumuman</b>: teks berjalan & mading di halaman depan.</li>
+        <li><b>Profil Dayah</b>: logo, foto, alamat, nama pimpinan & bendahara (dipakai di laporan).</li>
+        <li><b>Log Aktivitas</b>: semua perubahan tercatat dan tidak bisa dihapus.</li>
+        <li><b>Backup</b>: unduh/pulihkan data; backup otomatis berkala saat membuka Beranda.</li>
+        <li>Hanya Super Admin yang bisa mengubah atau membatalkan mukafaah yang sudah diserahkan.</li>
+      </ul></div></details>
+
+    <details><summary>⚠ Bila ada masalah</summary><div class="isi">
+      <ul>
+        <li>Pesan merah menjelaskan penyebabnya (internet, hak akses, jam sesi, dll.).</li>
+        <li>Tampilan aneh setelah pembaruan? Tutup lalu buka lagi aplikasi, atau tarik ke bawah untuk memuat ulang.</li>
+        <li>Versi aplikasi tertera di kaki halaman; sebutkan saat melapor ke pengelola.</li>
+      </ul></div></details>
+  </main>
+  <script type="module">
+    import { pasangFooter, siapkanHalamanPublik } from "./js/common.js";
+    siapkanHalamanPublik(); pasangFooter();
+  </script>
+</body>
+</html>

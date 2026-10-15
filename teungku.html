@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Data Teungku — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main>
+    <h1>Data Teungku</h1>
+    <div class="card">
+      <div class="toolbar">
+        <div class="field"><label>Cari</label><input id="cari" placeholder="Nama / jabatan..."></div>
+        <button class="btn" id="btnTambah">+ Tambah Teungku</button>
+        <button class="btn btn-sec" id="btnPdf">📄 PDF</button>
+        <button class="btn btn-sec" id="btnExcel">📊 Excel</button>
+      </div>
+    </div>
+    <div class="card">
+      <table class="kartu-hp">
+        <thead><tr><th>Nama Teungku</th><th>Jabatan</th><th>No. HP</th><th class="num">Mukafaah pokok</th><th class="num">Tunjangan</th>
+          <th class="num">Nilai per kehadiran</th><th>Jadwal</th><th>Akun</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tbGuru"><tr><td colspan="10" class="empty">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <form class="box" id="formGuru">
+      <h2 id="modalJudul">Tambah Teungku</h2>
+      <div class="grid">
+        <div class="field" style="grid-column:1/-1"><label>Nama lengkap</label><input name="nama" required maxlength="80"></div>
+        <div class="field"><label>NIP / NIY</label><input name="nip" maxlength="40"></div>
+        <div class="field"><label>Jabatan</label><input name="jabatan" maxlength="60" placeholder="Guru Kitab, Wali Kelas..."></div>
+        <div class="field"><label>No. HP / WhatsApp</label><input name="hp" inputmode="tel" maxlength="20" placeholder="08xx"></div>
+        <div class="field"><label>Status</label><select name="aktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></div>
+        <div class="field"><label>Mukafaah pokok / bulan (Rp)</label><input name="gajiPokok" class="uang"></div>
+        <div class="field"><label>Tunjangan / bulan (Rp)</label><input name="tunjangan" class="uang"></div>
+        <div class="field"><label>Nilai per kehadiran / sesi (Rp)</label><input name="honorHadir" class="uang"></div>
+        <div class="field"><label>Potongan per alpa (Rp)</label><input name="potonganAlpa" class="uang"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-red" id="btnHapus" style="margin-right:auto">Hapus</button>
+        <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>
+        <button type="submit" class="btn" id="btnSimpan">Simpan</button>
+      </div>
+    </form>
+  </div>
+  <script type="module" src="js/teungku.js"></script>
+</body>
+</html>

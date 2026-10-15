@@ -1,84 +1,66 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 2.0.2
+# Sistem Administrasi Dayah Babussa'adah — Versi 3.0.0
 
-©SRISP 2026
+©SRISP 2026 · Situs: `dayahbabussaadah.web.id` · GitHub Pages + Firebase (Authentication + Firestore)
 
-Aplikasi web untuk **jadwal mengajar, absensi teungku, penggajian, dan kas** Dayah Babussa'adah.
-HTML + JavaScript terpisah, di-hosting di **GitHub Pages** (`dayahbabussaadah.web.id`), data di **Firebase** (Authentication + Firestore).
+## Isi aplikasi
 
-## Halaman
-
-| Alamat | Untuk | Isi |
+| Halaman | Untuk | Isi |
 |---|---|---|
-| `/` (index.html) | **Semua pengunjung** | Kiri: identitas dayah + **login** (pilih nama + kata sandi). Kanan: **daftar jadwal mengajar**, kitab & materi, per teungku |
-| `login.html` | — | Hanya meneruskan ke halaman depan (untuk tautan lama) |
-| `setup.html` | Sekali saja | Membuat Super Admin pertama |
-| `dashboard.html` | Staf | Ringkasan |
-| `jadwal-mengajar.html` | Teungku, Admin, Super Admin | Memilih sesi Pagi/Malam per hari + kitab, materi, kelas |
-| `absen-saya.html` | Teungku | Tombol Hadir, jadwal saya, insentif, gaji saya |
-| `absensi.html` | Operator, Admin, Super Admin | Absensi per sesi, rekap bulanan, pengaturan jam sesi (Super Admin) |
-| `guru.html` | Admin, Super Admin | Data teungku & tarif |
-| `penggajian.html` | Bendahara, Admin, Super Admin | Hitung gaji, bayar, slip |
-| `kas.html` | Bendahara, Admin, Super Admin | Kas masuk/keluar, kategori, rekap |
-| `pengguna.html` | Super Admin | Akun & peran |
-| `lembaga.html` | Super Admin | Profil dayah: logo, foto, nama, alamat, bendahara |
-| `akun.html` | Semua pengguna | Ganti kata sandi |
+| `index.html` (halaman depan) | Semua pengunjung | Teks berjalan, mading, jadwal mengajar per hari / kitab / teungku, riwayat perubahan jadwal, login |
+| `dashboard.html` | Staf | Ringkasan hari ini, pengajian per sesi, grafik kehadiran & kas 6 bulan, backup otomatis |
+| `absen-saya.html` | Teungku | Absen dengan **selfie live** (jam server), izin/sakit, jadwal, riwayat, mukafaah & slip |
+| `izin.html` | Pimpinan Dayah | Menyetujui / menolak izin & sakit |
+| `absensi.html` | Operator, Admin | Absensi per sesi (HISA), selfie, rekap, PDF/Excel; **Super Admin**: jam & hari sesi, toleransi |
+| `jadwal-mengajar.html` | Teungku, Admin | Pilih sesi Pagi/Malam + kitab, materi, kelas; riwayat perubahan |
+| `teungku.html` | Admin | Data teungku, mukafaah pokok, nilai per kehadiran |
+| `mukafaah.html` | Bendahara, Admin | Hitung, serahkan (terkunci), slip PDF islami, kirim WhatsApp |
+| `kas.html` | Bendahara, Admin | Kas per bulan, bukti foto, kategori, laporan bulanan/tahunan |
+| `pengumuman.html` | Admin | Teks berjalan & mading |
+| `pengguna.html`, `lembaga.html`, `log.html`, `backup.html` | Super Admin | Akun, profil dayah, log aktivitas, backup |
+| `panduan.html` | Semua | Panduan per peran |
+| `setup.html` | Sekali | Super Admin pertama |
 
-Setiap halaman `xxx.html` punya file `js/xxx.js` sendiri. File bersama: `js/common.js` (login, peran, menu, sesi, jadwal), `js/firebase.js`, `js/pengaturan.js` (versi & nilai bawaan), `css/style.css`.
+Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/laporan.js` (PDF/Excel), `js/kamera.js` (selfie), `js/cadangan.js` (backup). Pustaka PDF/Excel ada di `js/vendor/` (MIT). PWA: `manifest.webmanifest`, `sw.js`, `icons/`.
 
-## 1. Siapkan Firebase (proyek `dayahdigital`)
-
-1. **Authentication → Sign-in method → Email/Password → Enable.**
-2. **Firestore Database** sudah dibuat (lokasi `asia-southeast2`).
-3. **Firestore → Rules**: salin seluruh isi `firestore.rules` → **Publish**. *Wajib diulang setiap ada versi baru.*
-4. **Authentication → Settings → Authorized domains**: `dayahbabussaadah.web.id` dan `dayahdigital.github.io`.
-
-## 2. Keamanan API key
-
-Config Firebase web memang terlihat di browser; ia hanya pengenal proyek. Data dijaga oleh login dan `firestore.rules`.
-- `js/firebase-config.js` **tidak** disimpan di repo (`.gitignore`). Saat deploy, file itu dibuat dari Secret GitHub `FIREBASE_CONFIG`.
-- Batasi key di Google Cloud → **Credentials → Browser key**: *Websites* `https://dayahbabussaadah.web.id/*`, `https://dayahdigital.github.io/*`, `https://dayahdigital.firebaseapp.com/*`; *API restrictions*: Identity Toolkit API, Token Service API, Cloud Firestore API.
-
-## 3. Deploy ke GitHub Pages
-
-**Cara sederhana (Deploy from a branch)** — yang dipakai saat ini:
-1. Unggah **semua** isi folder ke repo, **termasuk `js/firebase-config.js`**. Tanpa file ini semua halaman gagal dimuat.
-2. **Settings → Pages → Source: Deploy from a branch → main / (root)**; *Custom domain* `dayahbabussaadah.web.id`.
-3. Batasi API key (bagian 2), lalu tutup peringatan GitHub *Secret scanning* dengan **Close alert → Won't fix**.
-4. Setiap rilis, angka versi ada di setiap tautan file (`?v=2.0.2`), jadi HP otomatis mengunduh file baru.
-
-**Cara lanjutan (GitHub Actions)**, opsional: folder **`.github/workflows`** (ejaan persis `.github`) membuat `firebase-config.js` dari Secret `FIREBASE_CONFIG` sehingga key tidak perlu disimpan di repo. Aktifkan dengan **Settings → Pages → Source: GitHub Actions**. Kalau tidak dipakai, folder ini boleh dihapus.
-
-## 4. Peran
+## Peran
 
 | Peran | Akses |
 |---|---|
-| **Super Admin** | Semua menu, kelola pengguna, profil dayah, jam & hari sesi |
-| **Admin** | Jadwal mengajar semua teungku, Data Guru, Absensi, Penggajian, Kas |
-| **Bendahara** | Penggajian, Kas (termasuk kategori) |
-| **Operator Absensi** | Absensi semua teungku |
-| **Teungku / Guru** | Jadwal mengajarnya sendiri, Absen Saya (tombol Hadir), insentif & status gajinya |
+| **Super Admin** | Semua. Masuk lewat **Pintu Pengelola**: di halaman depan **ketuk logo dayah 5 kali**. Login biasa menolak akun Super Admin. Hanya Super Admin yang bisa mengubah/membatalkan mukafaah yang sudah diserahkan. |
+| **Pimpinan Dayah** | Menyetujui izin & sakit |
+| **Admin** | Teungku, Jadwal, Absensi, Mukafaah, Kas, Pengumuman |
+| **Bendahara** | Mukafaah, Kas |
+| **Operator Absensi** | Absensi |
+| **Teungku** | Absen (selfie wajib), jadwal sendiri, izin/sakit, mukafaah & slip sendiri |
 
-Akun dibuat Super Admin di menu **Pengguna**; akun teungku ditautkan ke data gurunya.
+## Memasang / memperbarui
 
-## 5. Sesi, jadwal & absensi
+1. Unggah **semua** isi folder ke repo (termasuk `js/firebase-config.js`, `js/vendor/`, `icons/`, `sw.js`, `manifest.webmanifest`). Hapus file lama yang tidak ada lagi: `js/login.js`, `js/publik.js`, `js/guru.js`, `js/penggajian.js`.
+2. **Firebase → Firestore → Rules**: salin seluruh `firestore.rules` (baris 2: *versi 3.0.0*) → **Publish**. *Wajib.*
+3. **Super Admin → Absensi → Pengaturan sesi → Simpan** sekali, agar jam sesi tersimpan untuk pemeriksaan server.
+4. **Super Admin → Pengguna**: buka sekali (merapikan data login lama), buat akun **Pimpinan Dayah**, dan **Super Admin kedua** sebagai cadangan.
+5. Isi **Profil Dayah** (logo, alamat, nama pimpinan & bendahara — dipakai di laporan).
 
-- Mengajar dibagi **dua sesi: Pagi dan Malam**. **Super Admin** mengatur jam mulai/selesai dan hari berjalannya di *Absensi → Pengaturan sesi Pagi & Malam*.
-- **Teungku memilih jadwalnya sendiri** di *Jadwal Mengajar*: untuk tiap hari, sesi Pagi dan/atau Malam beserta **kitab, materi/bab, dan kelas**. Admin juga bisa mengatur jadwal teungku mana pun.
-- Jadwal ini menentukan absensi: operator hanya melihat teungku yang terjadwal di sesi itu (badal bisa ditampilkan), dan tombol **Hadir** teungku hanya muncul untuk sesi di jadwalnya.
-- Tombol Hadir aktif dari **30 menit sebelum** sesi mulai sampai **30 menit setelah** sesi selesai.
-- **Insentif** dihitung dan disimpan saat absensi dicatat (tarif *Insentif per kehadiran* teungku saat itu).
-- Pengaman di database: teungku hanya bisa mencatat Hadir **untuk dirinya, hari ini (WIB), sesi yang ada di jadwalnya**, dengan insentif sesuai tarif, dan tidak bisa mengubahnya lagi. Jika ditolak, aplikasi menampilkan alasannya.
-- Jadwal (nama teungku, kitab, materi, kelas) tampil **publik** di halaman depan. Data gaji tidak pernah publik.
+**Nomor build otomatis (opsional, disarankan):** Settings → Pages → Source: **GitHub Actions**. Workflow `.github/workflows/deploy.yml` mengisi nomor build (tampil di kaki halaman: `Versi 3.0.0 · build 12`). Tanpa ini tetap jalan dengan "Deploy from a branch".
 
-## 6. Penggajian & kas
+Pembaruan file otomatis sampai ke HP: service worker selalu mengambil file terbaru saat online (tidak perlu `?v=`).
 
-- `Total = Gaji Pokok + Tunjangan + Insentif Kehadiran + Bonus − Potongan Alpa × Alpa − Potongan Lain` (tidak pernah minus).
-- Opsi *Hitung sesi terjadwal yang tidak diabsen sebagai Alpa* — untuk sesi di jadwal yang sama sekali tidak dicatat.
-- **Bayar** mencatat pengeluaran kas "Gaji Guru" dan menandai lunas sekaligus (tidak bisa tercatat ganda).
-- **Kategori kas** bisa ditambah, diganti nama, dan dihapus (*Kas → Kelola kategori*). Ganti nama ikut memperbarui transaksi lama. "Gaji Guru" dikunci karena dipakai Penggajian.
-- Transaksi kas bisa **diubah** dan dihapus; ada rekap per kategori. Semua laporan bisa diunduh CSV.
+## Absensi
+- Dua sesi (nama bebas, default Pagi & Malam). Jam mulai/selesai bebas; bila selesai < mulai, sesi berakhir esok hari.
+- **Jam server**, bukan jam HP. Database menolak absen di luar jendela sesi (± toleransi yang diatur Super Admin), sesi yang tidak ada di jadwal teungku, tanpa selfie, atau selfie lama.
+- Persetujuan izin tidak pernah menimpa catatan Hadir.
+- Jadwal punya **tanggal berlaku**, jadi rekap bulan lalu tidak berubah ketika jadwal diganti. Semua perubahan jadwal tercatat dan terlihat publik.
 
-## Catatan
+## Keuangan
+- `Mukafaah = pokok + tunjangan + mukafaah kehadiran + bonus − potongan alpa × alpa − potongan lain` (tidak pernah minus).
+- **Serahkan** = catat kas "Mukafaah Teungku" + kunci, dalam satu transaksi.
+- Kas memuat per bulan; saldo dari `ringkasan/kas` (tombol *Hitung ulang* bila perlu). Bukti foto disimpan kecil (≤ ±280 KB) di Firestore.
+- Semua kolom uang otomatis bertitik (1.250.000).
 
-- Uji di komputer sendiri: salin `js/firebase-config.example.js` menjadi `js/firebase-config.js`, isi config, lalu jalankan lewat server lokal (mis. `npx serve .`).
-- Paket gratis Firebase (Spark) cukup untuk skala dayah; gambar profil disimpan di Firestore sehingga tidak butuh Firebase Storage.
+## Keamanan & catatan
+- Log aktivitas tidak bisa diubah/dihapus siapa pun.
+- Daftar username tidak bisa dibaca publik.
+- **Hapus pengguna / reset sandi**: akun lama ditutup dan disembunyikan di aplikasi. Akun login lamanya masih tersisa di *Firebase Console → Authentication* (aplikasi tanpa server tidak bisa menghapusnya); boleh dihapus manual di sana, tidak berbahaya bila dibiarkan.
+- **Notifikasi** muncul di lonceng 🔔 dan sebagai notifikasi HP selama aplikasi terbuka/di latar. Notifikasi saat aplikasi tertutup penuh butuh server (paket Blaze).
+- **Backup otomatis** berjalan saat Super Admin membuka Beranda sesuai jadwal (default 7 hari) dan mengunduh file `.json`. Simpan di tempat aman — berisi data mukafaah & akun.
+- Aturan database belum diuji di emulator Firebase (tidak bisa diunduh di lingkungan pengembangan); uji alur penting setelah Publish.

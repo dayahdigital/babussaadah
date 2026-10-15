@@ -4,22 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
-  <meta name="description" content="Jadwal mengajar, materi, dan kitab yang diajarkan di Dayah Babussa'adah">
-  <title>Dayah Babussa'adah — Jadwal Mengajar & Kitab</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0.2">
+  <meta name="description" content="Pengumuman, jadwal mengajar, kitab & materi di Dayah Babussa'adah">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="beranda">
-  <!-- Muncul bila script gagal dimuat (mis. file lama di cache / file hilang) -->
-  <div class="gangguan" id="gagalMuat" hidden>
-    Halaman gagal dimuat sepenuhnya. <button class="btn btn-sm" onclick="location.reload(true)">Muat ulang</button>
-  </div>
+  <!-- Teks berjalan (pengumuman singkat) -->
+  <div class="teks-berjalan" id="teksBerjalan" hidden><div class="jalur" id="jalurBerjalan"></div></div>
 
   <div class="beranda-wrap">
-    <!-- ================= KIRI: identitas dayah + login ================= -->
-    <aside class="beranda-kiri login-foto" id="panelFoto">
+    <!-- ================= KIRI: identitas + login ================= -->
+    <aside class="beranda-kiri" id="panelKiri">
       <div class="kiri-isi">
         <div class="kiri-identitas">
-          <div id="logoWrap" class="login-logo"><span>☪</span></div>
+          <div id="logoWrap" class="login-logo" title=""><span>☪</span></div>
           <div>
             <h2 id="namaDayah">Dayah Babussa'adah</h2>
             <p id="alamatDayah"></p>
@@ -27,48 +28,51 @@
           </div>
         </div>
 
-        <div class="login-box kartu-login">
-          <!-- Sudah login: tampilkan tombol ke aplikasi -->
-          <div id="sudahMasuk" hidden>
-            <h1>Assalamu'alaikum</h1>
-            <p id="sudahMasukNama"></p>
-            <a class="btn btn-blok" id="btnKeAplikasi" href="dashboard.html">Buka aplikasi →</a>
-          </div>
-
-          <div id="kotakLogin">
-            <h1>Masuk</h1>
-            <p>Untuk teungku & pengurus dayah</p>
-
-            <div class="info" id="infoSetup" hidden>
-              Belum ada Super Admin. <a href="setup.html"><b>Lakukan setup awal →</b></a>
-            </div>
-
-            <form id="formLogin">
-              <div class="field">
-                <label for="username">Nama pengguna</label>
-                <select id="username" name="username" required>
-                  <option value="">Memuat daftar...</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="password">Kata sandi</label>
-                <div class="sandi-wrap">
-                  <input type="password" id="password" name="password" required autocomplete="current-password">
-                  <button type="button" class="lihat" id="lihatSandi" aria-label="Lihat kata sandi">👁</button>
-                </div>
-              </div>
-              <button class="btn btn-blok" type="submit" id="btnMasuk">Masuk</button>
-              <div class="error" id="err"></div>
-            </form>
-          </div>
+        <!-- Sudah login -->
+        <div class="kartu-login" id="sudahMasuk" hidden>
+          <h1>Assalamu'alaikum</h1>
+          <p class="sub" id="sudahMasukNama"></p>
+          <a class="btn btn-blok" id="btnKeAplikasi" href="dashboard.html">Buka aplikasi →</a>
         </div>
-        <div id="kakiKiri"></div>
+
+        <!-- Login biasa: Teungku & pengurus -->
+        <div class="kartu-login" id="kotakLogin">
+          <h1 id="judulLogin">Masuk</h1>
+          <p class="sub" id="subLogin">Untuk teungku & pengurus dayah</p>
+          <div class="info" id="infoSetup" hidden>Aplikasi belum disiapkan. <a href="setup.html"><b>Setup awal →</b></a></div>
+          <form id="formLogin" autocomplete="on">
+            <div class="field">
+              <label for="username">Username</label>
+              <input id="username" name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="mis. tgk.yusuf">
+            </div>
+            <div class="field">
+              <label for="password">Kata sandi</label>
+              <div class="sandi-wrap">
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <button type="button" class="lihat" id="lihatSandi" aria-label="Lihat kata sandi">👁</button>
+              </div>
+            </div>
+            <button class="btn btn-blok" type="submit" id="btnMasuk">Masuk</button>
+            <div class="error" id="err"></div>
+            <p class="kecil muted" style="text-align:center;margin:6px 0 0">Lupa kata sandi? Hubungi pengelola dayah.</p>
+            <button type="button" class="btn btn-sm btn-sec btn-blok" id="btnBatalPengelola" hidden style="margin-top:8px">← Kembali ke login biasa</button>
+          </form>
+        </div>
+
+        <button class="btn btn-emas tombol-pasang" id="btnPasang" hidden>⬇ Pasang aplikasi di HP / laptop</button>
+
+        <div class="kiri-bawah" id="kakiKiri"></div>
       </div>
     </aside>
 
-    <!-- ================= KANAN: daftar jadwal, kitab, teungku (publik) ================= -->
+    <!-- ================= KANAN: pengumuman, jadwal, kitab (publik) ================= -->
     <main class="beranda-kanan">
-      <div class="kanan-judul">
+      <section id="madingWrap" hidden>
+        <h1>📌 Mading Dayah</h1>
+        <div class="mading" id="mading"></div>
+      </section>
+
+      <div class="kanan-judul" style="margin-top:14px">
         <h1>Jadwal Mengajar & Kitab</h1>
         <div class="pub-sesi" id="pubSesi"></div>
       </div>
@@ -77,31 +81,31 @@
         <button class="aktif" data-tab="jadwal">📅 Per hari</button>
         <button data-tab="kitab">📖 Kitab & materi</button>
         <button data-tab="teungku">👤 Per teungku</button>
+        <button data-tab="riwayat">🕘 Riwayat perubahan</button>
       </div>
 
       <section id="tab-jadwal">
         <div class="hari-pilih" id="hariPilih"></div>
         <div id="jadwalHari"><div class="card empty">Memuat jadwal...</div></div>
       </section>
-
       <section id="tab-kitab" hidden>
         <div class="card">
-          <div class="field" style="margin-bottom:12px"><label>Cari kitab / materi / teungku</label><input id="cariKitab" placeholder="mis. Taqrib"></div>
+          <div class="field"><label>Cari kitab / materi / teungku</label><input id="cariKitab" placeholder="mis. Taqrib"></div>
           <div id="daftarKitab"></div>
         </div>
       </section>
-
-      <section id="tab-teungku" hidden>
-        <div id="daftarTeungku"></div>
+      <section id="tab-teungku" hidden><div id="daftarTeungku"></div></section>
+      <section id="tab-riwayat" hidden>
+        <div class="card">
+          <h2>Riwayat perubahan jadwal mengajar</h2>
+          <ul class="riwayat" id="daftarRiwayat"><li class="empty">Memuat...</li></ul>
+        </div>
       </section>
     </main>
   </div>
 
-  <script type="module" src="js/login.js?v=2.0.2"></script>
-  <script type="module" src="js/publik.js?v=2.0.2"></script>
-  <script>
-    // Bila setelah 10 detik script utama belum jalan, tampilkan tombol muat ulang
-    setTimeout(function () { if (!window.__berandaSiap) document.getElementById("gagalMuat").hidden = false; }, 10000);
-  </script>
+  <div class="modal" id="modalGambar"><div class="box" style="padding:8px;max-width:900px"><img id="gambarBesar" alt="" style="width:100%;border-radius:10px"></div></div>
+
+  <script type="module" src="js/beranda.js"></script>
 </body>
 </html>

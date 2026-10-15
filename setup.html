@@ -4,32 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
+  <link rel="icon" href="icons/icon-192.png">
   <title>Setup Awal — Dayah Babussa'adah</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0.2">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="login-page">
-  <div class="login-box">
-    <div class="logo">☪</div>
+<body class="setup">
+  <div class="setup-kartu">
+    <div class="login-logo" id="logo"><span>☪</span></div>
     <h1>Setup Awal</h1>
-    <p>Buat akun <b>Super Admin</b> pertama. Halaman ini hanya bisa dipakai sekali.</p>
+    <p class="sub">Membuat akun <b>Super Admin</b> pertama. Halaman ini hanya bisa dipakai sekali.</p>
+    <div class="langkah"><span class="aktif"></span><span id="l2"></span></div>
 
     <div class="info" id="sudah" hidden>
-      Setup sudah pernah dilakukan. <a href="./"><b>Ke halaman login →</b></a>
+      Setup sudah pernah dilakukan. <a href="./"><b>Ke halaman depan →</b></a>
     </div>
 
     <form id="formSetup" hidden>
-      <div class="field"><label>Nama lengkap</label><input name="nama" required></div>
+      <div class="field"><label>Nama lengkap</label><input name="nama" required autocomplete="name"></div>
       <div class="field">
         <label>Username</label>
-        <input name="username" required autocapitalize="none" spellcheck="false" placeholder="mis. superadmin">
-        <small style="color:#6b7770">3–20 karakter: huruf kecil, angka, titik, garis bawah.</small>
+        <input name="username" required autocapitalize="none" spellcheck="false" placeholder="mis. pengelola">
+        <small>3–20 karakter: huruf kecil, angka, titik, garis bawah. Hindari nama yang mudah ditebak.</small>
       </div>
-      <div class="field"><label>Kata sandi</label><input type="password" name="password" minlength="6" required autocomplete="new-password"></div>
-      <div class="field"><label>Ulangi kata sandi</label><input type="password" name="password2" minlength="6" required autocomplete="new-password"></div>
-      <button class="btn" type="submit" id="btnBuat">Buat Super Admin</button>
+      <div class="field"><label>Kata sandi (min. 8 karakter)</label><input type="password" name="password" minlength="8" required autocomplete="new-password"></div>
+      <div class="field"><label>Ulangi kata sandi</label><input type="password" name="password2" minlength="8" required autocomplete="new-password"></div>
+      <button class="btn btn-blok" type="submit" id="btnBuat">Buat Super Admin</button>
       <div class="error" id="err"></div>
     </form>
+
+    <div id="selesai" hidden>
+      <div class="info-hijau"><b>Berhasil.</b> Simpan baik-baik username & kata sandi Anda.</div>
+      <ol class="kecil" style="padding-left:18px">
+        <li>Super Admin masuk lewat <b>Pintu Pengelola</b>: di halaman depan, <b>ketuk logo dayah 5 kali</b> dengan cepat.</li>
+        <li>Buat <b>Super Admin kedua</b> di menu Pengguna sebagai cadangan bila lupa kata sandi.</li>
+        <li>Atur Profil Dayah, jam sesi, data teungku, lalu akun teungku.</li>
+      </ol>
+      <a class="btn btn-blok" href="dashboard.html">Masuk ke aplikasi →</a>
+    </div>
   </div>
-  <script type="module" src="js/setup.js?v=2.0.2"></script>
+  <script type="module" src="js/setup.js"></script>
 </body>
 </html>

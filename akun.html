@@ -4,35 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
   <title>Akun Saya — Dayah Babussa'adah</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0.2">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header id="navbar"></header>
-  <main style="max-width:520px">
+  <main style="max-width:560px">
     <h1>Akun Saya</h1>
-
     <div class="card">
-      <table>
-        <tr><td style="width:40%;color:#6b7770">Nama</td><td id="aNama"></td></tr>
-        <tr><td style="color:#6b7770">Username</td><td id="aUser"></td></tr>
-        <tr><td style="color:#6b7770">Peran</td><td id="aPeran"></td></tr>
-      </table>
+      <table class="kartu-hp"><tbody>
+        <tr><td data-label="Nama" id="aNama"></td></tr>
+        <tr><td data-label="Username" id="aUser"></td></tr>
+        <tr><td data-label="Peran" id="aPeran"></td></tr>
+      </tbody></table>
     </div>
-
     <div class="card">
       <h2>Ganti kata sandi</h2>
       <form id="formSandi">
-        <div class="field" style="margin-bottom:10px"><label>Kata sandi lama</label>
-          <input type="password" name="lama" required autocomplete="current-password"></div>
-        <div class="field" style="margin-bottom:10px"><label>Kata sandi baru (min. 6 karakter)</label>
-          <input type="password" name="baru" minlength="6" required autocomplete="new-password"></div>
-        <div class="field" style="margin-bottom:14px"><label>Ulangi kata sandi baru</label>
-          <input type="password" name="baru2" minlength="6" required autocomplete="new-password"></div>
-        <button class="btn" type="submit">Simpan Kata Sandi</button>
+        <div class="field"><label>Kata sandi lama</label><input type="password" name="lama" required autocomplete="current-password"></div>
+        <div class="field"><label>Kata sandi baru (min. 6 karakter)</label><input type="password" name="baru" minlength="6" required autocomplete="new-password"></div>
+        <div class="field"><label>Ulangi kata sandi baru</label><input type="password" name="baru2" minlength="6" required autocomplete="new-password"></div>
+        <button class="btn" type="submit" id="btnSandi">Simpan Kata Sandi</button>
       </form>
     </div>
+    <div class="card">
+      <h2>Aplikasi</h2>
+      <p class="kecil muted">Pasang aplikasi agar bisa dibuka dari layar utama HP / laptop seperti aplikasi biasa.</p>
+      <div class="aksi">
+        <button class="btn btn-emas tombol-pasang" id="btnPasang" hidden>⬇ Pasang aplikasi</button>
+        <button class="btn btn-sec" id="btnNotif">🔔 Aktifkan notifikasi</button>
+        <a class="btn btn-sec" href="panduan.html">❓ Panduan</a>
+      </div>
+      <p class="kecil muted" id="infoVersi"></p>
+    </div>
   </main>
-  <script type="module" src="js/akun.js?v=2.0.2"></script>
+  <script type="module" src="js/akun.js"></script>
 </body>
 </html>

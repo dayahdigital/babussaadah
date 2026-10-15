@@ -4,34 +4,43 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
-  <title>Dashboard — Dayah Babussa'adah</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0.2">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Beranda — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header id="navbar"></header>
   <main>
-    <h1>Assalamu'alaikum, <span id="nama"></span>
-      <small id="periode" style="font-size:14px;color:#6b7770;font-weight:400"></small></h1>
+    <h1>Assalamu'alaikum, <span id="nama"></span></h1>
+    <p class="muted" style="margin:-8px 0 16px" id="tanggalHariIni"></p>
 
-    <div class="grid grid-3">
-      <div class="card stat"><div class="label">Jumlah guru aktif</div><div class="value" id="sGuru">–</div></div>
-      <div class="card stat"><div class="label">Hadir hari ini</div><div class="value" id="sHadir">–</div></div>
-      <div class="card stat in" data-roles="superadmin,admin,bendahara"><div class="label">Pemasukan bulan ini</div><div class="value" id="sMasuk">–</div></div>
-      <div class="card stat out" data-roles="superadmin,admin,bendahara"><div class="label">Pengeluaran bulan ini</div><div class="value" id="sKeluar">–</div></div>
-      <div class="card stat saldo" data-roles="superadmin,admin,bendahara"><div class="label">Saldo kas keseluruhan</div><div class="value" id="sSaldo">–</div></div>
-      <div class="card stat" data-roles="superadmin,admin,bendahara"><div class="label">Total gaji bulan ini</div><div class="value" id="sGaji">–</div></div>
+    <div class="grid grid-4">
+      <div class="card stat"><div class="bulat">👤</div><div><div class="label">Teungku aktif</div><div class="value" id="sGuru">–</div></div></div>
+      <div class="card stat"><div class="bulat">✔</div><div><div class="label">Hadir hari ini / terjadwal</div><div class="value" id="sHadir">–</div></div></div>
+      <div class="card stat biru" data-roles="superadmin,admin,operator"><div class="bulat">✉</div><div><div class="label">Izin menunggu pimpinan</div><div class="value" id="sIzin">–</div></div></div>
+      <div class="card stat saldo" data-roles="superadmin,admin,bendahara"><div class="bulat">Rp</div><div><div class="label">Saldo kas</div><div class="value" id="sSaldo">–</div></div></div>
+      <div class="card stat in" data-roles="superadmin,admin,bendahara"><div class="bulat">↓</div><div><div class="label">Pemasukan bulan ini</div><div class="value" id="sMasuk">–</div></div></div>
+      <div class="card stat out" data-roles="superadmin,admin,bendahara"><div class="bulat">↑</div><div><div class="label">Pengeluaran bulan ini</div><div class="value" id="sKeluar">–</div></div></div>
+      <div class="card stat" data-roles="superadmin,admin,bendahara"><div class="bulat">Σ</div><div><div class="label">Mukafaah bulan ini</div><div class="value" id="sMukafaah">–</div></div></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-judul"><h2>📅 Pengajian hari ini</h2><a class="btn btn-sm btn-sec" href="absensi.html" data-roles="superadmin,admin,operator">Isi absensi</a></div>
+        <div id="hariIni" class="daftar-hari"><p class="empty">Memuat...</p></div>
+      </div>
+      <div class="card">
+        <h2>Kehadiran 6 bulan terakhir</h2>
+        <div id="grafikHadir"><p class="empty">Memuat...</p></div>
+      </div>
     </div>
 
     <div class="card" data-roles="superadmin,admin,bendahara">
-      <h2>Transaksi kas terakhir</h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th class="num">Jumlah</th></tr></thead>
-          <tbody id="tbKas"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
-        </table>
-      </div>
+      <h2>Kas 6 bulan terakhir</h2>
+      <div id="grafikKas"><p class="empty">Memuat...</p></div>
     </div>
   </main>
-  <script type="module" src="js/dashboard.js?v=2.0.2"></script>
+  <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Mukafaah — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main>
+    <h1>Mukafaah Teungku</h1>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="field" style="max-width:220px"><label>Periode</label><input type="month" id="periode"></div>
+        <button class="btn" id="btnHitung">🧮 Hitung dari Absensi</button>
+        <button class="btn btn-sec" id="btnPdf">📄 PDF</button>
+        <button class="btn btn-sec" id="btnExcel">📊 Excel</button>
+      </div>
+      <label class="cek"><input type="checkbox" id="alpaOtomatis"> Hitung sesi terjadwal yang <b>tidak diabsen sama sekali</b> sebagai Alpa</label>
+      <p class="kecil muted" style="margin-bottom:0">
+        Rumus: Mukafaah pokok + Tunjangan + Mukafaah kehadiran + Bonus − (Potongan per alpa × Alpa) − Potongan lain.
+        Saat <b>diserahkan</b>, otomatis tercatat di Kas dan dikunci (hanya Super Admin yang bisa mengubah/membatalkan).</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card stat"><div class="bulat">Σ</div><div><div class="label">Total mukafaah</div><div class="value" id="sTotal">–</div></div></div>
+      <div class="card stat in"><div class="bulat">✔</div><div><div class="label">Sudah diserahkan</div><div class="value" id="sLunas">–</div></div></div>
+      <div class="card stat out"><div class="bulat">⏳</div><div><div class="label">Belum diserahkan</div><div class="value" id="sBelum">–</div></div></div>
+    </div>
+
+    <div class="card">
+      <table class="kartu-hp">
+        <thead><tr><th>Nama Teungku</th><th class="num">✔ Hadir</th><th class="num">✖ Alpa</th><th class="num">Mukafaah pokok</th><th class="num">Tunjangan</th>
+          <th class="num">Mukafaah kehadiran</th><th class="num">Bonus</th><th class="num">Potongan</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tbGaji"><tr><td colspan="11" class="empty">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <form class="box" id="formAdj" style="max-width:480px">
+      <h2 id="adjJudul">Bonus & potongan</h2>
+      <div class="info" id="adjInfo" hidden>Mukafaah ini sudah diserahkan. Perubahan juga memperbarui catatan kas.</div>
+      <div class="field"><label>Bonus / THR (Rp)</label><input name="bonus" class="uang"></div>
+      <div class="field"><label>Potongan lain, mis. kasbon (Rp)</label><input name="potonganLain" class="uang"></div>
+      <div class="field"><label>Catatan</label><input name="catatan" maxlength="200"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>
+        <button type="submit" class="btn" id="btnSimpanAdj">Simpan</button>
+      </div>
+    </form>
+  </div>
+  <script type="module" src="js/mukafaah.js"></script>
+</body>
+</html>

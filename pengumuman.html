@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Pengumuman — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main style="max-width:960px">
+    <h1>Pengumuman</h1>
+    <div class="info-hijau">Tampil di halaman depan situs untuk semua pengunjung. <b>Teks berjalan</b> untuk info singkat di bagian atas;
+      <b>Mading</b> untuk info lengkap berupa kartu, bisa dengan gambar/brosur.</div>
+
+    <div class="card">
+      <div class="card-judul"><h2>Daftar pengumuman</h2><button class="btn" id="btnTambah">+ Pengumuman baru</button></div>
+      <table class="kartu-hp">
+        <thead><tr><th>Judul</th><th>Jenis</th><th>Tayang</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tb"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <form class="box" id="form">
+      <h2 id="judulModal">Pengumuman baru</h2>
+      <div class="field"><label>Jenis</label>
+        <select name="jenis"><option value="berjalan">Teks berjalan (singkat)</option><option value="mading">Mading (kartu)</option></select></div>
+      <div class="field"><label>Judul</label><input name="judul" required maxlength="120"></div>
+      <div class="field"><label>Isi</label><textarea name="isi" maxlength="1500" placeholder="Boleh dikosongkan untuk teks berjalan"></textarea></div>
+      <div class="field" id="boxGambar"><label>Gambar / brosur (opsional)</label>
+        <input type="file" id="fileGambar" accept="image/*">
+        <img id="pvGambar" class="pratinjau-bukti" hidden alt="">
+        <button type="button" class="btn btn-sm btn-sec" id="hapusGambar" hidden>Hapus gambar</button>
+      </div>
+      <div class="grid">
+        <div class="field"><label>Mulai tayang</label><input type="date" name="mulai" required></div>
+        <div class="field"><label>Sampai (kosong = terus)</label><input type="date" name="sampai"></div>
+        <div class="field"><label>Urutan (kecil tampil dulu)</label><input type="number" name="urutan" value="0"></div>
+        <div class="field"><label>Status</label><select name="aktif"><option value="true">Tampil</option><option value="false">Disembunyikan</option></select></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-red" id="btnHapus" style="margin-right:auto">Hapus</button>
+        <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>
+        <button type="submit" class="btn" id="btnSimpan">Simpan</button>
+      </div>
+    </form>
+  </div>
+  <script type="module" src="js/pengumuman.js"></script>
+</body>
+</html>

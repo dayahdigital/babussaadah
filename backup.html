@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Backup — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="navbar"></header>
+  <main style="max-width:760px">
+    <h1>Backup Data</h1>
+    <div class="card">
+      <h2>Status</h2>
+      <p id="status" class="kecil">Memuat...</p>
+      <div class="grid grid-2" style="margin-bottom:0">
+        <div class="field"><label>Backup otomatis setiap</label>
+          <select id="interval"><option value="1">1 hari</option><option value="3">3 hari</option><option value="7">7 hari</option>
+            <option value="14">14 hari</option><option value="30">30 hari</option><option value="0">Mati</option></select>
+          <small>Berjalan saat Super Admin membuka Beranda; file langsung terunduh ke perangkat.</small></div>
+        <div class="field" style="justify-content:flex-end"><button class="btn btn-sec" id="btnSimpanInterval">Simpan pengaturan</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>⬇ Unduh backup sekarang</h2>
+      <label class="cek"><input type="checkbox" id="denganFoto"> Sertakan foto (selfie absen & bukti transaksi) — file jauh lebih besar</label>
+      <div style="margin-top:12px"><button class="btn" id="btnBackup">⬇ Unduh backup</button></div>
+      <p class="kecil muted" id="kemajuan"></p>
+      <div class="info">Simpan file backup di tempat aman (Google Drive, flashdisk). File berisi data mukafaah & akun — <b>jangan dibagikan</b>.</div>
+    </div>
+    <div class="card">
+      <h2>⬆ Pulihkan dari backup</h2>
+      <p class="kecil">Menulis ulang data dari file backup (.json). Data dengan ID sama akan ditimpa; data baru yang tidak ada di backup tetap ada.</p>
+      <input type="file" id="fileBackup" accept=".json,application/json">
+      <div style="margin-top:12px"><button class="btn btn-red" id="btnPulihkan" disabled>Pulihkan</button></div>
+      <p class="kecil muted" id="kemajuan2"></p>
+    </div>
+  </main>
+  <script type="module" src="js/backup.js"></script>
+</body>
+</html>

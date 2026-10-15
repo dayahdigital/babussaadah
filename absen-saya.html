@@ -4,47 +4,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
-  <title>Absen Saya — Dayah Babussa'adah</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0.2">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>Absen — Dayah Babussa'adah</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header id="navbar"></header>
-  <main style="max-width:640px">
+  <main style="max-width:720px">
     <h1>Assalamu'alaikum, <span id="nama"></span></h1>
 
     <div class="card">
-      <h2 id="judulHariIni">Absen hari ini</h2>
-      <p id="pesan" style="font-size:14px;color:#6b7770;margin-top:0"></p>
-      <div id="daftarSesi" class="sesi-list"></div>
+      <div class="card-judul"><h2 id="judulHariIni">Absen hari ini</h2><span class="jam-server" id="jamServer"></span></div>
+      <p id="pesan" class="kecil muted" style="margin-top:0"></p>
+      <div id="daftarSesi" class="sesi-list"><p class="empty">Memuat...</p></div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card stat"><div class="bulat">✔</div><div><div class="label">Hadir bulan ini</div><div class="value" id="sHadir">–</div></div></div>
+      <div class="card stat biru"><div class="bulat">✉</div><div><div class="label">Izin / Sakit</div><div class="value" id="sIzin">–</div></div></div>
+      <div class="card stat saldo"><div class="bulat">Rp</div><div><div class="label">Mukafaah kehadiran</div><div class="value" id="sInsentif">–</div></div></div>
     </div>
 
     <div class="card">
-      <h2 style="display:flex;justify-content:space-between;align-items:center;gap:8px">Jadwal mengajar saya <a class="btn btn-sm btn-sec" href="jadwal-mengajar.html">Ubah jadwal</a></h2>
-      <div class="table-wrap">
-        <table><tbody id="tbJadwal"></tbody></table>
-      </div>
+      <div class="card-judul"><h2>Izin & sakit</h2><button class="btn btn-sm" id="btnAjukan">+ Ajukan izin / sakit</button></div>
+      <p class="kecil muted" style="margin-top:0">Pengajuan diperiksa dan disetujui oleh Pimpinan Dayah.</p>
+      <div id="daftarIzin"><p class="empty">Memuat...</p></div>
     </div>
 
-    <div class="grid grid-4">
-      <div class="card stat"><div class="label">Kehadiran bulan ini</div><div class="value" id="sHadir">–</div></div>
-      <div class="card stat saldo"><div class="label">Insentif bulan ini</div><div class="value" id="sInsentif">–</div></div>
-    </div>
-
-    <div class="card" id="kartuGaji" hidden>
-      <h2>Gaji saya</h2>
-      <div class="table-wrap"><table><tbody id="tbGaji"></tbody></table></div>
+    <div class="card" id="kartuMukafaah" hidden>
+      <h2>Mukafaah saya</h2>
+      <table class="kartu-hp"><thead><tr><th>Bulan</th><th class="num">Jumlah</th><th>Status</th><th></th></tr></thead><tbody id="tbMukafaah"></tbody></table>
     </div>
 
     <div class="card">
-      <h2>Riwayat <span id="bulanIni" style="font-weight:400;color:#6b7770"></span></h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th class="num">Insentif</th></tr></thead>
-          <tbody id="tbRiwayat"><tr><td colspan="4" class="empty">Memuat...</td></tr></tbody>
-        </table>
-      </div>
+      <div class="card-judul"><h2>Jadwal mengajar saya</h2><a class="btn btn-sm btn-sec" href="jadwal-mengajar.html">Ubah jadwal</a></div>
+      <table class="kartu-hp"><thead><tr><th>Hari</th><th>Sesi & kitab</th></tr></thead><tbody id="tbJadwal"></tbody></table>
+    </div>
+
+    <div class="card">
+      <h2>Riwayat absen <span class="jam" id="bulanIni"></span></h2>
+      <table class="kartu-hp">
+        <thead><tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th>Materi</th><th class="num">Mukafaah</th></tr></thead>
+        <tbody id="tbRiwayat"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+      </table>
     </div>
   </main>
-  <script type="module" src="js/absen-saya.js?v=2.0.2"></script>
+
+  <!-- Hadir: konfirmasi materi -->
+  <div class="modal" id="modalHadir">
+    <form class="box" id="formHadir" style="max-width:460px">
+      <h2 id="judulHadir">Hadir</h2>
+      <img id="pvSelfie" alt="" style="width:120px;border-radius:12px;display:block;margin:0 auto 10px">
+      <div class="field"><label>Kitab</label><input name="kitab" readonly></div>
+      <div class="field"><label>Materi yang diajarkan hari ini</label><input name="materi" maxlength="200" placeholder="mis. Bab Wudhu, halaman 12"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" id="btnBatalHadir">Batal</button>
+        <button type="submit" class="btn" id="btnKirimHadir">✔ Kirim Hadir</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Ajukan izin / sakit -->
+  <div class="modal" id="modalIzin">
+    <form class="box" id="formIzin" style="max-width:520px">
+      <h2>Ajukan izin / sakit</h2>
+      <div class="field"><label>Jenis</label>
+        <select name="jenis"><option value="I">✉ Izin</option><option value="S">✚ Sakit</option></select></div>
+      <div class="grid">
+        <div class="field"><label>Dari tanggal</label><input type="date" name="dari" required></div>
+        <div class="field"><label>Sampai tanggal</label><input type="date" name="sampai" required></div>
+      </div>
+      <div class="field"><label>Sesi</label>
+        <div class="hari-cek" id="cekSesiIzin"></div></div>
+      <div class="field"><label>Alasan</label><textarea name="alasan" required maxlength="500"></textarea></div>
+      <div class="field"><label>Lampiran (opsional: surat dokter / foto)</label><input type="file" id="fileLampiran" accept="image/*">
+        <img id="pvLampiran" class="pratinjau-bukti" hidden alt=""></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" id="btnBatalIzin">Batal</button>
+        <button type="submit" class="btn" id="btnKirimIzin">Kirim pengajuan</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="js/absen-saya.js"></script>
 </body>
 </html>
