@@ -1,4 +1,4 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 3.1.0
+# Sistem Administrasi Dayah Babussa'adah — Versi 3.1.1
 
 ©SRISP 2026 · Situs: `dayahbabussaadah.web.id` · GitHub Pages + Firebase (Authentication + Firestore)
 
@@ -21,6 +21,12 @@
 | `setup.html` | Sekali | Super Admin pertama |
 
 Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/laporan.js` (PDF/Excel), `js/kamera.js` (selfie), `js/cadangan.js` (backup). Pustaka PDF/Excel ada di `js/vendor/` (MIT). PWA: `manifest.webmanifest`, `sw.js`, `icons/`.
+
+## Baru di 3.1.1
+- Satu tombol **Install Aplikasi** (Android/PC langsung muncul dialog install; iPhone menampilkan 2 langkah karena aturan Apple).
+- Masuk Super Admin: tulisan **Pengelola** di samping *Panduan*.
+- Pilihan model jadwal disembunyikan di tombol **Tampilan**; model bawaan diatur Super Admin di *Profil Dayah*.
+- **Penting:** folder `icons/` wajib ikut diunggah (logo memuat, ikon aplikasi, dan syarat tombol install).
 
 ## Baru di 3.1.0
 - Halaman depan baru: logo dayah, nama Arab, animasi memuat, petunjuk **Pasang aplikasi** (Android / iPhone / Komputer) di bawah kotak masuk.

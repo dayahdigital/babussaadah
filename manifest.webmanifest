@@ -3,6 +3,7 @@
   "short_name": "Babussa'adah",
   "description": "Absensi teungku, jadwal mengajar, mukafaah & kas Dayah Babussa'adah",
   "lang": "id",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -65,18 +65,12 @@
           </form>
         </div>
 
-        <!-- Pasang aplikasi (PWA) -->
-        <div class="pasang-kotak" id="pasangKotak">
-          <div class="pasang-kepala"><img src="icons/icon-192.png" alt="">
-            <div><b>Pasang aplikasi Dayah</b><small>Buka dari layar utama, lebih cepat & ringan</small></div></div>
-          <div class="pasang-tab" role="tablist">
-            <button data-os="android"></button><button data-os="ios"></button><button data-os="pc"></button>
-          </div>
-          <div id="pasangIsi"></div>
-          <button class="btn btn-emas btn-blok tombol-pasang" id="btnPasang" hidden style="margin-top:10px">Pasang sekarang</button>
-        </div>
-
-        <button class="tombol-pengelola" id="btnPengelola" type="button"></button>
+        <!-- Install aplikasi (PWA): satu tombol -->
+        <button class="tombol-install" id="btnInstall" type="button">
+          <img src="icons/icon-192.png" alt="">
+          <span><b>Install Aplikasi</b><small id="installKet">Android · iPhone · Komputer</small></span>
+          <i class="panah">↓</i>
+        </button>
         <div class="kiri-bawah" id="kakiKiri"></div>
       </div>
     </aside>
@@ -92,7 +86,8 @@
         <div><h1>Jadwal Mengajar & Kitab</h1><p class="muted" id="tanggalHariIni"></p></div>
         <div class="pub-sesi" id="pubSesi"></div>
       </div>
-      <div class="model-pilih" id="modelPilih"></div>
+      <div class="ganti-tampilan"><button type="button" id="btnTampilan" aria-expanded="false"></button></div>
+      <div class="model-pilih" id="modelPilih" hidden></div>
       <div id="isiJadwal"><div class="kerangka"></div><div class="kerangka"></div><div class="kerangka"></div></div>
     </main>
   </div>
@@ -102,6 +97,13 @@
     <div class="label"><span class="titik-hidup"></span><span class="teks">INFO</span></div>
     <div class="lajur"><div class="jalur" id="jalurBerjalan"></div></div>
   </div>
+
+  <!-- Petunjuk install (hanya bila browser tidak punya tombol install otomatis, mis. iPhone) -->
+  <div class="modal" id="modalInstall"><div class="box install-box">
+    <div class="install-kepala"><img src="icons/icon-192.png" alt=""><div><b>Install Aplikasi Dayah</b><small id="installSub"></small></div></div>
+    <div id="installIsi"></div>
+    <div class="modal-actions"><button class="btn btn-sec" id="btnSalinLink" type="button">Salin link</button><button class="btn" id="btnTutupInstall" type="button">Mengerti</button></div>
+  </div></div>
 
   <div class="modal" id="modalGambar"><div class="box" style="padding:8px;max-width:900px"><img id="gambarBesar" alt="" style="width:100%;border-radius:10px"></div></div>
   <script type="module" src="js/beranda.js"></script>
