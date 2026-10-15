@@ -1,66 +1,108 @@
-// Fungsi bersama: penjaga login & peran, navigasi, tampilan dayah, format rupiah, notifikasi
-import { auth, db, onAuthStateChanged, signOut, doc, getDoc, getDocs, collection, query, where } from "./firebase.js?v=2.0.2";
-import { LEMBAGA, EMAIL_DOMAIN, APP_VERSI, APP_BUILD, HAK_CIPTA } from "./pengaturan.js?v=2.0.2";
+// =====================================================================
+//  Modul bersama: login & peran, navigasi, jam server, pesan error,
+//  log aktivitas, notifikasi, format uang, status HISA, PWA.
+// =====================================================================
+import {
+  auth, db, onAuthStateChanged, signOut, doc, getDoc, getDocs, setDoc, addDoc, updateDoc,
+  collection, query, where, onSnapshot, serverTimestamp, arrayUnion
+} from "./firebase.js";
+import { LEMBAGA, EMAIL_DOMAIN, APP_VERSI, APP_BUILD, HAK_CIPTA, ISTILAH } from "./pengaturan.js";
+export { ISTILAH };
 
-// ---------- Peran & hak akses ----------
+// ---------------------------------------------------------------------
+// Peran & hak akses (harus sejalan dengan firestore.rules)
+// ---------------------------------------------------------------------
 export const PERAN = {
   superadmin: "Super Admin",
+  pimpinan: "Pimpinan Dayah",
   admin: "Admin",
   bendahara: "Bendahara",
   operator: "Operator Absensi",
-  guru: "Teungku / Guru"
+  guru: "Teungku"
 };
 
-// Halaman mana boleh dibuka oleh peran apa (harus sejalan dengan firestore.rules)
 export const AKSES = {
   dashboard: ["superadmin", "admin", "bendahara", "operator"],
-  guru: ["superadmin", "admin"],
+  teungku: ["superadmin", "admin"],
   absensi: ["superadmin", "admin", "operator"],
   absenSaya: ["guru"],
-  penggajian: ["superadmin", "admin", "bendahara"],
+  jadwal: ["superadmin", "admin", "guru"],
+  mukafaah: ["superadmin", "admin", "bendahara"],
   kas: ["superadmin", "admin", "bendahara"],
+  izin: ["pimpinan", "superadmin"],
+  pengumuman: ["superadmin", "admin"],
   pengguna: ["superadmin"],
   lembaga: ["superadmin"],
-  jadwal: ["superadmin", "admin", "guru"],       // atur jadwal mengajar (teungku: miliknya sendiri)
-  aturSesi: ["superadmin"]                       // jam & hari sesi Pagi / Malam
+  log: ["superadmin"],
+  backup: ["superadmin"],
+  aturSesi: ["superadmin"]
 };
-// Peran staf (bukan teungku)
 export const STAF = ["superadmin", "admin", "bendahara", "operator"];
+export const beranda = (role) => role === "guru" ? "absen-saya.html" : role === "pimpinan" ? "izin.html" : "dashboard.html";
 
-// Halaman awal tiap peran
-export const beranda = (role) => role === "guru" ? "absen-saya.html" : "dashboard.html";
+// ---------------------------------------------------------------------
+// Ikon (SVG garis sederhana)
+// ---------------------------------------------------------------------
+const P = {
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  cek: '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>',
+  kalender: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+  orang: '<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-6"/>',
+  absen: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  dompet: '<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M16 15h2"/>',
+  kas: '<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/>',
+  izin: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 15l2 2 4-4"/>',
+  toa: '<path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 8a5 5 0 0 1 0 8"/>',
+  pengguna: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  gedung: '<path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/>',
+  log: '<path d="M4 6h16M4 12h16M4 18h10"/>',
+  backup: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  bantuan: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/>',
+  akun: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.5c1.2-2 3.2-3 5.5-3s4.3 1 5.5 3"/>',
+  keluar: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>',
+  lonceng: '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  pasang: '<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+  pdf: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/>',
+  excel: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+  wa: '<path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.4-2-1-1 .8c-1-.5-1.8-1.3-2.3-2.3l.8-1-1-2z"/>',
+  kamera: '<path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/>'
+};
+export const ikon = (n, ukuran = 20) =>
+  `<svg class="ikon" width="${ukuran}" height="${ukuran}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ""}</svg>`;
 
 const MENU = [
-  { href: "dashboard.html", label: "Dashboard", roles: AKSES.dashboard },
-  { href: "absen-saya.html", label: "Absen Saya", roles: AKSES.absenSaya },
-  { href: "jadwal-mengajar.html", label: "Jadwal Mengajar", roles: AKSES.jadwal },
-  { href: "guru.html", label: "Data Guru", roles: AKSES.guru },
-  { href: "absensi.html", label: "Absensi", roles: AKSES.absensi },
-  { href: "penggajian.html", label: "Penggajian", roles: AKSES.penggajian },
-  { href: "kas.html", label: "Kas", roles: AKSES.kas },
-  { href: "pengguna.html", label: "Pengguna", roles: AKSES.pengguna },
-  { href: "lembaga.html", label: "Profil Dayah", roles: AKSES.lembaga },
-  { href: "akun.html", label: "Akun Saya" }
+  { href: "dashboard.html", label: "Beranda", ikon: "home", roles: AKSES.dashboard },
+  { href: "absen-saya.html", label: "Absen", ikon: "cek", roles: AKSES.absenSaya },
+  { href: "izin.html", label: "Izin & Sakit", ikon: "izin", roles: AKSES.izin },
+  { href: "absensi.html", label: "Absensi", ikon: "absen", roles: AKSES.absensi },
+  { href: "jadwal-mengajar.html", label: "Jadwal", ikon: "kalender", roles: AKSES.jadwal },
+  { href: "teungku.html", label: "Data Teungku", ikon: "orang", roles: AKSES.teungku },
+  { href: "mukafaah.html", label: "Mukafaah", ikon: "dompet", roles: AKSES.mukafaah },
+  { href: "kas.html", label: "Kas", ikon: "kas", roles: AKSES.kas },
+  { href: "pengumuman.html", label: "Pengumuman", ikon: "toa", roles: AKSES.pengumuman },
+  { href: "pengguna.html", label: "Pengguna", ikon: "pengguna", roles: AKSES.pengguna },
+  { href: "lembaga.html", label: "Profil Dayah", ikon: "gedung", roles: AKSES.lembaga },
+  { href: "log.html", label: "Log Aktivitas", ikon: "log", roles: AKSES.log },
+  { href: "backup.html", label: "Backup", ikon: "backup", roles: AKSES.backup },
+  { href: "panduan.html", label: "Panduan", ikon: "bantuan" },
+  { href: "akun.html", label: "Akun Saya", ikon: "akun" }
 ];
 
-// ---------- Penyimpanan lokal (aman bila diblokir browser) ----------
+// ---------------------------------------------------------------------
+// Penyimpanan lokal (aman bila diblokir browser)
+// ---------------------------------------------------------------------
 export const simpan = {
-  get(k, sesi = false) {
-    try { return JSON.parse((sesi ? sessionStorage : localStorage).getItem(k)); } catch { return null; }
-  },
-  set(k, v, sesi = false) {
-    try { (sesi ? sessionStorage : localStorage).setItem(k, JSON.stringify(v)); } catch { /* abaikan */ }
-  },
-  del(k, sesi = false) {
-    try { (sesi ? sessionStorage : localStorage).removeItem(k); } catch { /* abaikan */ }
-  }
+  get(k, sesi = false) { try { return JSON.parse((sesi ? sessionStorage : localStorage).getItem(k)); } catch { return null; } },
+  set(k, v, sesi = false) { try { (sesi ? sessionStorage : localStorage).setItem(k, JSON.stringify(v)); } catch { /* abaikan */ } },
+  del(k, sesi = false) { try { (sesi ? sessionStorage : localStorage).removeItem(k); } catch { /* abaikan */ } }
 };
 
-// ---------- Tampilan dayah (logo, foto, nama, alamat) ----------
-// Disimpan di config/tampilan oleh Super Admin (menu Profil Dayah), disalin ke localStorage
-// agar logo & nama langsung tampil tanpa menunggu server.
+// ---------------------------------------------------------------------
+// Tampilan dayah (logo, foto, nama, alamat, pejabat penanda tangan)
+// ---------------------------------------------------------------------
 export function tampilanCache() {
-  return { nama: LEMBAGA.nama, alamat: LEMBAGA.alamat, bendahara: LEMBAGA.bendahara, tagline: "", ...(simpan.get("tampilan") || {}) };
+  return { ...LEMBAGA, tagline: "", logo: "", foto: "", ...(simpan.get("tampilan") || {}) };
 }
 export async function ambilTampilan() {
   try {
@@ -68,28 +110,65 @@ export async function ambilTampilan() {
     const d = s.exists() ? s.data() : {};
     const t = {
       nama: d.nama || LEMBAGA.nama, alamat: d.alamat || LEMBAGA.alamat,
-      bendahara: d.bendahara || LEMBAGA.bendahara, tagline: d.tagline || "",
-      logo: d.logo || "", foto: d.foto || ""
+      bendahara: d.bendahara || LEMBAGA.bendahara, pimpinan: d.pimpinan || LEMBAGA.pimpinan,
+      tagline: d.tagline || "", logo: d.logo || "", foto: d.foto || ""
     };
     simpan.set("tampilan", t);
     return t;
   } catch { return tampilanCache(); }
 }
 
-// ---------- Username ----------
+// ---------------------------------------------------------------------
+// Username
+// ---------------------------------------------------------------------
 export const normUsername = (s) => String(s || "").trim().toLowerCase();
 export const usernameValid = (u) => /^[a-z0-9._]{3,20}$/.test(u);
-// Email internal unik per akun (akhiran acak agar username bisa dipakai ulang / direset)
 export const buatEmail = (u) => `${u}.${Math.random().toString(36).slice(2, 8)}@${EMAIL_DOMAIN}`;
 
-// ---------- Sesi mengajar: Pagi & Malam ----------
-// Jam & hari diatur Super Admin (config/absensi). Jam dalam WIB, format "HH:MM".
+// ---------------------------------------------------------------------
+// JAM SERVER — semua tanggal & jam memakai waktu server, bukan jam HP
+// ---------------------------------------------------------------------
+export const WIB_MS = 7 * 3600 * 1000;
+const HARI_MS = 86400000;
+let _offset = Number(simpan.get("offsetJam")) || 0;   // server - perangkat (ms)
+export const sekarang = () => Date.now() + _offset;
+export const selisihJamPerangkat = () => _offset;
+export const today = () => new Date(sekarang() + WIB_MS).toISOString().slice(0, 10);
+export const thisMonth = () => today().slice(0, 7);
+
+// Lewat header "Date" dari server situs (untuk pengunjung tanpa login)
+export async function sinkronJamHTTP() {
+  try {
+    const t0 = Date.now();
+    const r = await fetch(location.origin + location.pathname, { method: "HEAD", cache: "no-store" });
+    const t1 = Date.now();
+    const d = Date.parse(r.headers.get("date"));
+    if (!isNaN(d)) { _offset = d + 500 - (t0 + t1) / 2; simpan.set("offsetJam", _offset); }
+  } catch { /* tetap pakai offset lama */ }
+  return _offset;
+}
+// Lewat Firestore (paling akurat, sama dengan jam yang dipakai aturan database)
+export async function sinkronJamServer(uid) {
+  try {
+    const ref = doc(db, "jam", uid);
+    const t0 = Date.now();
+    await setDoc(ref, { t: serverTimestamp() });
+    const t1 = Date.now();
+    const s = await getDoc(ref);
+    const t = s.data()?.t?.toMillis?.();
+    if (t) { _offset = t - (t0 + t1) / 2; simpan.set("offsetJam", _offset); return _offset; }
+  } catch { /* lanjut ke cara HTTP */ }
+  return sinkronJamHTTP();
+}
+export let jamSiap = Promise.resolve(_offset);
+
+// ---------------------------------------------------------------------
+// Sesi mengajar: Pagi & Malam (nama, jam, hari, toleransi diatur Super Admin)
+// ---------------------------------------------------------------------
 export const SESI_BAWAAN = [
-  { id: "pagi",  nama: "Pagi",  mulai: "07:30", selesai: "11:30", hari: [0, 1, 2, 3, 4, 5, 6] },
+  { id: "pagi", nama: "Pagi", mulai: "07:30", selesai: "11:30", hari: [0, 1, 2, 3, 4, 5, 6] },
   { id: "malam", nama: "Malam", mulai: "20:00", selesai: "22:00", hari: [0, 1, 2, 3, 4, 5, 6] }
 ];
-// Teungku boleh menekan Hadir mulai 30 menit sebelum sesi sampai 30 menit setelah sesi selesai
-export const TOLERANSI_MENIT = 30;
 
 export async function ambilConfigAbsensi() {
   const s = await getDoc(doc(db, "config", "absensi")).catch(() => null);
@@ -100,37 +179,51 @@ export async function ambilConfigAbsensi() {
     if (!Array.isArray(x.hari)) x.hari = [...b.hari];
     return x;
   });
-  return { sesi, guruMandiri: d.guruMandiri !== false };
+  return {
+    sesi,
+    guruMandiri: d.guruMandiri !== false,
+    toleransiSebelum: Number.isFinite(d.toleransiSebelum) ? d.toleransiSebelum : 30,
+    toleransiSesudah: Number.isFinite(d.toleransiSesudah) ? d.toleransiSesudah : 30
+  };
 }
 
-const keMenit = (hhmm) => { const [h, m] = String(hhmm || "0:0").split(":").map(Number); return h * 60 + (m || 0); };
-const keJam = (menit) => {
-  const m = ((menit % 1440) + 1440) % 1440;
-  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const keMs = (hhmm) => { const [h, m] = String(hhmm || "0:0").split(":").map(Number); return (h * 60 + (m || 0)) * 60000; };
+const jamDariMs = (ms) => new Date(ms + WIB_MS).toISOString().slice(11, 16);
+export const lewatTengahMalam = (s) => keMs(s.selesai) <= keMs(s.mulai);
+export const jamSesi = (s) => `${s.mulai}–${s.selesai}${lewatTengahMalam(s) ? " (+1 hari)" : ""}`;
+
+// Jendela waktu sebuah sesi pada tanggal tertentu (ms, UTC)
+export function jendelaSesi(sesi, tgl, cfg) {
+  const [y, m, d] = tgl.split("-").map(Number);
+  const awal = Date.UTC(y, m - 1, d) - WIB_MS;
+  const mulai = awal + keMs(sesi.mulai);
+  const selesai = awal + keMs(sesi.selesai) + (lewatTengahMalam(sesi) ? HARI_MS : 0);
+  return {
+    mulai, selesai,
+    buka: mulai - (cfg?.toleransiSebelum ?? 30) * 60000,
+    tutup: selesai + (cfg?.toleransiSesudah ?? 30) * 60000
+  };
+}
+export const tambahHari = (tgl, n) => {
+  const [y, m, d] = tgl.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 };
-export const jamSesi = (s) => `${s.mulai}–${s.selesai}`;
 
-const menitWIB = () => { const d = new Date(Date.now() + WIB_MS); return d.getUTCHours() * 60 + d.getUTCMinutes(); };
-export const sesiSudahSelesai = (sesi) => menitWIB() > keMenit(sesi.selesai);
-
-// Apakah sekarang (WIB) masih dalam waktu absen sesi ini?
-export function waktuAbsen(sesi) {
-  const now = new Date(Date.now() + WIB_MS);
-  const menit = now.getUTCHours() * 60 + now.getUTCMinutes();
-  const buka = keMenit(sesi.mulai) - TOLERANSI_MENIT;
-  const tutup = keMenit(sesi.selesai) + TOLERANSI_MENIT;
-  if (menit < buka) return { boleh: false, pesan: `Bisa absen mulai pukul ${keJam(buka)}` };
-  if (menit > tutup) return { boleh: false, pesan: "Waktu absen sesi ini sudah lewat" };
-  return { boleh: true, pesan: "" };
+// Status tombol absen untuk sesi pada tanggal itu
+export function waktuAbsen(sesi, cfg, tgl = today()) {
+  const w = jendelaSesi(sesi, tgl, cfg), now = sekarang();
+  if (now < w.buka) return { boleh: false, pesan: `Absen dibuka pukul ${jamDariMs(w.buka)} WIB` };
+  if (now > w.tutup) return { boleh: false, pesan: `Waktu absen sudah lewat (ditutup ${jamDariMs(w.tutup)} WIB)` };
+  return { boleh: true, pesan: `Absen terbuka sampai pukul ${jamDariMs(w.tutup)} WIB` };
 }
+export const sesiSudahSelesai = (sesi, tgl, cfg) => sekarang() > jendelaSesi(sesi, tgl, cfg).selesai;
 
-// ---------- Jadwal mengajar ----------
-// Koleksi "mengajar": satu dokumen per teungku × sesi × hari,
-// id = "<guruId>_<sesiId>_<hari>", berisi kitab, materi, kelas. Dapat dilihat publik.
-// Hari memakai getDay(): 0 = Ahad, 1 = Senin, ... 6 = Sabtu
+// ---------------------------------------------------------------------
+// Jadwal mengajar & riwayatnya
+// ---------------------------------------------------------------------
 export const HARI = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 export const SEMUA_HARI = [0, 1, 2, 3, 4, 5, 6];
-export const hariDari = (tgl) => new Date(tgl + "T00:00:00").getDay();
+export const hariDari = (tgl) => { const [y, m, d] = tgl.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); };
 export const idJadwal = (guruId, sesiId, hari) => `${guruId}_${sesiId}_${hari}`;
 
 export async function ambilJadwal(guruId = null) {
@@ -138,184 +231,435 @@ export async function ambilJadwal(guruId = null) {
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
-// Set id jadwal untuk pengecekan cepat
+export async function ambilRiwayatJadwal(guruId = null) {
+  const q = guruId ? query(collection(db, "riwayat_jadwal"), where("guruId", "==", guruId)) : collection(db, "riwayat_jadwal");
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (b.waktu?.toMillis?.() || 0) - (a.waktu?.toMillis?.() || 0));
+}
 export const indeksJadwal = (entri) => new Set(entri.map(e => idJadwal(e.guruId, e.sesi, e.hari)));
-
-// Sesi dayah yang berjalan pada hari tertentu
 export const sesiPadaHari = (cfg, hari) => cfg.sesi.filter(s => s.hari.includes(hari));
+export const terjadwal = (idx, guruId, sesi, hari) => sesi.hari.includes(hari) && idx.has(idJadwal(guruId, sesi.id, hari));
 
-// Apakah teungku dijadwalkan mengajar sesi ini pada hari itu?
-export const terjadwal = (idx, guruId, sesi, hari) =>
-  sesi.hari.includes(hari) && idx.has(idJadwal(guruId, sesi.id, hari));
-
-// Jumlah sesi terjadwal seorang teungku dalam satu bulan (sampai hari ini)
-export function hitungJadwalBulan(cfg, idx, guruId, bln) {
+// Periode berlaku tiap slot jadwal (agar rekap bulan lalu tidak berubah saat jadwal diganti)
+export function buatPeriode(jadwal, riwayat) {
+  const per = {};
+  const tambah = (k, a, b) => (per[k] ??= []).push([a || "0000-00-00", b || null]);
+  jadwal.forEach(e => tambah(e.id, e.sejak, null));
+  riwayat.filter(r => r.aksi === "hapus").forEach(r => tambah(idJadwal(r.guruId, r.sesi, r.hari), r.sejak, r.tanggal));
+  return per;
+}
+export function jadwalPada(per, guruId, sesi, tgl) {
+  const h = hariDari(tgl);
+  if (!sesi.hari.includes(h)) return false;
+  return (per[idJadwal(guruId, sesi.id, h)] || []).some(([a, b]) => a <= tgl && (!b || tgl < b));
+}
+export function hitungJadwalBulan(cfg, per, guruId, bln) {
   const [y, m] = bln.split("-").map(Number);
-  const akhir = new Date(y, m, 0).getDate();
-  const sekarang = today();
+  const akhir = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const kini = today();
   let n = 0;
   for (let d = 1; d <= akhir; d++) {
     const tgl = `${bln}-${String(d).padStart(2, "0")}`;
-    if (tgl > sekarang) break;
-    const h = new Date(y, m - 1, d).getDay();
-    // Hari ini: hanya sesi yang sudah selesai (sesi malam belum dihitung saat siang hari)
-    n += cfg.sesi.filter(s => terjadwal(idx, guruId, s, h) && (tgl < sekarang || sesiSudahSelesai(s))).length;
+    if (tgl > kini) break;
+    n += cfg.sesi.filter(s => jadwalPada(per, guruId, s, tgl) && sesiSudahSelesai(s, tgl, cfg)).length;
   }
   return n;
 }
 
-// ---------- Login & profil ----------
+// ---------------------------------------------------------------------
+// Status absensi HISA (ikon + teks, tidak hanya warna)
+// ---------------------------------------------------------------------
+export const STATUS = {
+  H: { label: "Hadir", ikon: "✔", kelas: "st-h" },
+  I: { label: "Izin", ikon: "✉", kelas: "st-i" },
+  S: { label: "Sakit", ikon: "✚", kelas: "st-s" },
+  A: { label: "Alpa", ikon: "✖", kelas: "st-a" }
+};
+export const badgeStatus = (st) => {
+  const s = STATUS[st];
+  return s ? `<span class="badge ${s.kelas}"><b>${s.ikon}</b> ${st} · ${s.label}</span>` : "–";
+};
+
+// ---------------------------------------------------------------------
+// Pesan error yang menjelaskan penyebab
+// ---------------------------------------------------------------------
+export function pesanError(ex) {
+  const c = ex?.code || "";
+  const M = {
+    "permission-denied": "Ditolak server: akun Anda tidak berhak melakukan ini, atau data tidak memenuhi syarat (mis. di luar jam sesi, data sudah dikunci).",
+    "unavailable": "Tidak terhubung ke server. Periksa internet Anda lalu coba lagi.",
+    "failed-precondition": "Server menolak karena kondisi data belum sesuai. Muat ulang halaman lalu coba lagi.",
+    "not-found": "Data tidak ditemukan — mungkin sudah dihapus orang lain. Muat ulang halaman.",
+    "already-exists": "Data ini sudah ada.",
+    "resource-exhausted": "Kuota harian Firebase habis. Coba lagi besok atau hubungi Super Admin.",
+    "unauthenticated": "Sesi login berakhir. Silakan masuk lagi.",
+    "deadline-exceeded": "Server terlalu lama menjawab (sinyal lemah). Coba lagi.",
+    "invalid-argument": "Data tidak valid: " + (ex?.message || ""),
+    "auth/network-request-failed": "Tidak ada koneksi internet.",
+    "auth/too-many-requests": "Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.",
+    "auth/invalid-credential": "Username atau kata sandi salah.",
+    "auth/wrong-password": "Username atau kata sandi salah.",
+    "auth/user-not-found": "Username atau kata sandi salah.",
+    "auth/weak-password": "Kata sandi terlalu lemah (minimal 6 karakter).",
+    "auth/requires-recent-login": "Demi keamanan, keluar lalu masuk lagi sebelum mengganti kata sandi.",
+    "auth/email-already-in-use": "Akun dengan username ini sudah ada."
+  };
+  if (M[c]) return M[c];
+  if (ex instanceof Error && !c) return ex.message;
+  return "Terjadi kesalahan" + (c ? ` (${c})` : "") + (ex?.message ? `: ${ex.message}` : ".");
+}
+export function tampilError(ex, konteks = "") {
+  console.error(konteks, ex);
+  toast((konteks ? konteks + ": " : "") + pesanError(ex), "err");
+}
+// Jalankan aksi dengan tombol terkunci + pesan error jelas + peringatan sinyal lemah
+export async function aksi(tombol, fn, labelProses = "Menyimpan...") {
+  const label = tombol?.innerHTML;
+  if (tombol) { tombol.disabled = true; tombol.innerHTML = labelProses; }
+  const lambat = setTimeout(() => toast(navigator.onLine ? "Sinyal lemah, masih mencoba..." : "Offline — akan dikirim saat sinyal kembali", "info"), 8000);
+  try { return await fn(); }
+  catch (ex) {
+    tampilError(ex);
+    try { ex._sudahDitampilkan = true; } catch { /* abaikan */ }
+    return Promise.reject(ex);
+  }
+  finally { clearTimeout(lambat); if (tombol) { tombol.disabled = false; tombol.innerHTML = label; } }
+}
+function bannerError(teks) {
+  let el = document.getElementById("gangguan");
+  if (!el) { el = document.createElement("div"); el.id = "gangguan"; el.className = "gangguan"; document.body.prepend(el); }
+  el.innerHTML = `<span>⚠ ${esc(teks)}</span> <button class="btn btn-sm" onclick="location.reload()">Muat ulang</button>
+    <button class="btn btn-sm btn-sec" onclick="this.parentElement.remove()">Tutup</button>`;
+}
+let _errorTerpasang = false;
+export function pasangPenangkapError() {
+  if (_errorTerpasang) return;
+  _errorTerpasang = true;
+  window.addEventListener("unhandledrejection", (e) => { if (!e.reason?._sudahDitampilkan) bannerError(pesanError(e.reason)); });
+  window.addEventListener("error", (e) => { if (e.message && !/ResizeObserver/.test(e.message)) bannerError("Halaman bermasalah: " + e.message); });
+  window.addEventListener("offline", () => toast("Anda offline. Data yang tampil mungkin belum terbaru.", "info"));
+  window.addEventListener("online", () => toast("Kembali online"));
+}
+
+// ---------------------------------------------------------------------
+// Login & profil
+// ---------------------------------------------------------------------
+let _profil = null;
+export const profilAktif = () => _profil;
+
 export async function ambilProfil(uid) {
   const s = await getDoc(doc(db, "users", uid));
   return s.exists() ? { uid, ...s.data() } : null;
 }
-
 export async function keluar() {
   simpan.del("profil", true);
   await signOut(auth).catch(() => {});
   location.replace("./");
 }
 
-function pesanGangguan(teks) {
-  let el = document.getElementById("gangguan");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "gangguan";
-    el.className = "gangguan";
-    document.body.prepend(el);
-  }
-  el.innerHTML = `${esc(teks)} <button class="btn btn-sm" onclick="location.reload()">Muat ulang</button>`;
-}
-
-// Panggil di setiap halaman yang butuh login.
-// roles = daftar peran yang boleh membuka halaman (null = semua peran).
-// Mengembalikan Promise<{ user, profil }>.
+// Panggil di setiap halaman yang butuh login. roles = peran yang boleh membuka halaman.
 export function requireAuth(roles = null) {
-  // Header langsung digambar dari profil tersimpan sesi ini, supaya tidak "hilang" saat pindah menu
+  pasangPenangkapError();
+  pasangPWA();
+  pasangPengamat();
   const cache = simpan.get("profil", true);
   if (cache) renderNav(cache);
   pasangFooter();
 
   return new Promise((resolve) => {
-    let stop = null;
-    stop = onAuthStateChanged(auth, async (user) => {
-      if (stop) stop();
+    const stop = onAuthStateChanged(auth, async (user) => {
+      stop();
       if (!user) { simpan.del("profil", true); return location.replace("./"); }
-
       let profil;
-      try {
-        profil = await ambilProfil(user.uid);
-      } catch {
-        // Gangguan jaringan: jangan langsung logout. Pakai cache bila ada & masih milik user ini.
+      try { profil = await ambilProfil(user.uid); }
+      catch (ex) {
         if (cache?.uid === user.uid) profil = cache;
-        else { pesanGangguan("Tidak bisa terhubung ke server. Periksa internet Anda."); return; }
+        else { bannerError("Tidak bisa memuat akun Anda: " + pesanError(ex)); return; }
       }
-      if (!profil || !profil.aktif) {
+      if (!profil || !profil.aktif || profil.dihapus) {
         simpan.del("profil", true);
         await signOut(auth).catch(() => {});
         return location.replace("./?nonaktif=1");
       }
+      // Akun teungku tertutup otomatis bila data teungkunya sudah dihapus
+      if (profil.role === "guru") {
+        const g = await getDoc(doc(db, "guru", profil.guruId || "-")).catch(() => null);
+        if (g && !g.exists()) {
+          simpan.del("profil", true);
+          await signOut(auth).catch(() => {});
+          return location.replace("./?nonaktif=1");
+        }
+      }
       if (roles && !roles.includes(profil.role)) return location.replace(beranda(profil.role));
-
+      _profil = profil;
       simpan.set("profil", profil, true);
       if (!cache || JSON.stringify(cache) !== JSON.stringify(profil)) renderNav(profil);
-      // Hapus elemen bertanda data-roles="a,b" bila peran tidak cocok
       document.querySelectorAll("[data-roles]").forEach(el => {
         if (!el.dataset.roles.split(",").includes(profil.role)) el.remove();
       });
+      jamSiap = sinkronJamServer(user.uid);
+      mulaiNotifikasi(profil);
       resolve({ user, profil });
     });
   });
 }
 
+// ---------------------------------------------------------------------
+// Navigasi: atas (komputer) + bawah (HP, tanpa geser-geser)
+// ---------------------------------------------------------------------
 function renderNav(profil) {
   const el = document.getElementById("navbar");
   if (!el) return;
   const t = tampilanCache();
   const now = location.pathname.split("/").pop() || "dashboard.html";
+  const menu = MENU.filter(m => !m.roles || m.roles.includes(profil.role));
   el.innerHTML = `
     <div class="nav-atas">
       <a class="brand" href="${beranda(profil.role)}">
         ${t.logo ? `<img src="${t.logo}" alt="">` : `<span class="logo">☪</span>`}
-        <div><strong>${esc(t.nama)}</strong><small>Sistem Administrasi</small></div>
+        <div><strong>${esc(t.nama)}</strong><small>${esc(PERAN[profil.role] || "")} · ${esc(profil.nama)}</small></div>
       </a>
       <div class="nav-user">
-        <span class="user">${esc(profil.nama)}<br><b>${PERAN[profil.role] || profil.role}</b></span>
-        <button class="btn btn-ghost btn-sm" id="btnLogout">Keluar</button>
+        <button class="btn-ikon" id="btnLonceng" aria-label="Notifikasi">${ikon("lonceng", 22)}<span class="titik" id="jmlNotif" hidden></span></button>
+        <button class="btn btn-ghost btn-sm hanya-pc" id="btnLogout">${ikon("keluar", 16)} Keluar</button>
       </div>
     </div>
     <nav class="nav-tab">
-      ${MENU.filter(m => !m.roles || m.roles.includes(profil.role))
-        .map(m => `<a href="${m.href}" class="${m.href === now ? "active" : ""}">${m.label}</a>`).join("")}
-    </nav>`;
+      ${menu.map(m => `<a href="${m.href}" class="${m.href === now ? "active" : ""}">${ikon(m.ikon, 16)} ${m.label}</a>`).join("")}
+    </nav>
+    <div class="panel-notif" id="panelNotif" hidden></div>`;
   document.getElementById("btnLogout").onclick = keluar;
-  // Tab aktif digeser agar terlihat (di HP menu bisa digeser ke samping)
+  document.getElementById("btnLonceng").onclick = bukaPanelNotif;
+
+  // Navigasi bawah HP: 4 menu utama + "Menu" untuk sisanya
+  document.getElementById("navBawah")?.remove();
+  document.getElementById("lembarMenu")?.remove();
+  const utama = menu.filter(m => !["panduan.html", "akun.html"].includes(m.href)).slice(0, 4);
+  const nb = document.createElement("nav");
+  nb.id = "navBawah";
+  nb.className = "nav-bawah";
+  nb.innerHTML = utama.map(m => `<a href="${m.href}" class="${m.href === now ? "active" : ""}">${ikon(m.ikon, 22)}<span>${m.label}</span></a>`).join("")
+    + `<button id="btnMenuBawah" class="${utama.some(m => m.href === now) ? "" : "active"}">${ikon("menu", 22)}<span>Menu</span></button>`;
+  document.body.appendChild(nb);
+  const lm = document.createElement("div");
+  lm.id = "lembarMenu";
+  lm.className = "lembar";
+  lm.hidden = true;
+  lm.innerHTML = `<div class="lembar-isi">
+      <div class="lembar-pegangan"></div>
+      <div class="lembar-kepala"><b>${esc(profil.nama)}</b><small>${esc(PERAN[profil.role] || "")}</small></div>
+      <div class="lembar-grid">
+        ${menu.map(m => `<a href="${m.href}" class="${m.href === now ? "active" : ""}">${ikon(m.ikon, 24)}<span>${m.label}</span></a>`).join("")}
+        <button id="btnPasangLembar" class="tombol-pasang" hidden>${ikon("pasang", 24)}<span>Pasang Aplikasi</span></button>
+        <button id="btnKeluarLembar">${ikon("keluar", 24)}<span>Keluar</span></button>
+      </div>
+    </div>`;
+  document.body.appendChild(lm);
+  document.getElementById("btnMenuBawah").onclick = () => { lm.hidden = false; };
+  lm.addEventListener("click", (e) => { if (e.target === lm) lm.hidden = true; });
+  document.getElementById("btnKeluarLembar").onclick = keluar;
+  document.getElementById("btnPasangLembar").onclick = pasangAplikasi;
+  if (_promptPasang) document.getElementById("btnPasangLembar").hidden = false;
+  document.body.classList.add("ada-nav-bawah");
   el.querySelector(".nav-tab a.active")?.scrollIntoView({ block: "nearest", inline: "center" });
 }
 
-// Kaki halaman: versi & hak cipta (dipasang di semua halaman)
+// ---------------------------------------------------------------------
+// Kaki halaman: versi & hak cipta
+// ---------------------------------------------------------------------
+export const teksVersi = () => `Versi ${APP_VERSI}${APP_BUILD.startsWith("__") ? "" : " · build " + APP_BUILD}`;
 export function pasangFooter(target = document.body) {
   if (document.getElementById("kaki")) return;
   const f = document.createElement("footer");
   f.id = "kaki";
   f.className = "kaki";
-  const build = APP_BUILD.startsWith("__") ? "" : ` (${APP_BUILD})`;
-  const publik = /(^|\/)(index\.html)?$/.test(location.pathname) ? "" : ` · <a href="./">Jadwal mengajar</a>`;
-  f.innerHTML = `Versi ${APP_VERSI}${build} · ${HAK_CIPTA}${publik}`;
+  f.innerHTML = `${teksVersi()} · ${HAK_CIPTA} · <a href="panduan.html">Panduan</a>`;
   target.appendChild(f);
 }
-export const versiAplikasi = () => APP_VERSI;
 
-export const rupiah = (n) =>
-  "Rp " + Number(n || 0).toLocaleString("id-ID", { maximumFractionDigits: 0 });
-
-// Tanggal hari ini menurut WIB (UTC+7), apa pun zona waktu yang disetel di HP/komputer
-export const WIB_MS = 7 * 3600 * 1000;
-export const today = () => new Date(Date.now() + WIB_MS).toISOString().slice(0, 10);
-
-// Selisih jam perangkat dengan jam server (ms). Diambil dari header "Date" situs ini sendiri.
-export async function selisihJam() {
-  try {
-    const r = await fetch(location.href, { method: "HEAD", cache: "no-store" });
-    const tgl = r.headers.get("date");
-    return tgl ? Date.now() - Date.parse(tgl) : 0;
-  } catch { return 0; }
+// ---------------------------------------------------------------------
+// LOG AKTIVITAS — setiap perubahan dicatat (siapa, kapan, apa)
+// ---------------------------------------------------------------------
+export function catatLog(modul, aksiNama, detail = "") {
+  if (!_profil) return Promise.resolve();
+  return addDoc(collection(db, "log"), {
+    uid: _profil.uid, username: _profil.username || "", nama: _profil.nama || "", peran: _profil.role,
+    modul, aksi: aksiNama, detail: String(detail).slice(0, 600),
+    tanggal: today(), waktu: serverTimestamp()
+  }).catch(ex => console.warn("Log gagal", ex));
 }
 
-export const thisMonth = () => today().slice(0, 7);
+// ---------------------------------------------------------------------
+// NOTIFIKASI (di dalam aplikasi + notifikasi sistem saat aplikasi terbuka)
+// ---------------------------------------------------------------------
+export function kirimNotif({ untukUid = null, untukPeran = null, judul, isi = "", tautan = "" }) {
+  if (!untukUid && !untukPeran) return Promise.resolve();
+  return addDoc(collection(db, "notifikasi"), {
+    untukUid, untukPeran, judul: String(judul).slice(0, 120), isi: String(isi).slice(0, 400), tautan,
+    dari: _profil?.nama || "", dibacaOleh: [], waktu: serverTimestamp()
+  }).catch(ex => console.warn("Notifikasi gagal", ex));
+}
+let _notif = { a: [], b: [] }, _notifAwal = true, _uid = null;
+function mulaiNotifikasi(profil) {
+  _uid = profil.uid;
+  const gabung = () => {
+    const semua = [..._notif.a, ..._notif.b].sort((x, y) => (y.waktu?.toMillis?.() || 0) - (x.waktu?.toMillis?.() || 0));
+    const belum = semua.filter(n => !(n.dibacaOleh || []).includes(_uid));
+    const titik = document.getElementById("jmlNotif");
+    if (titik) { titik.hidden = !belum.length; titik.textContent = belum.length > 9 ? "9+" : belum.length; }
+    if (!_notifAwal && belum.length && "Notification" in window && Notification.permission === "granted") {
+      const n = belum[0];
+      if (!n._diumumkan) {
+        n._diumumkan = true;
+        navigator.serviceWorker?.ready.then(r => r.showNotification(n.judul, { body: n.isi, icon: "icons/icon-192.png", data: n.tautan }))
+          .catch(() => new Notification(n.judul, { body: n.isi }));
+      }
+    }
+    _notifAwal = false;
+    window.__notif = semua;
+    if (!document.getElementById("panelNotif")?.hidden) gambarPanelNotif();
+  };
+  const sub = (q, k) => onSnapshot(q, (s) => { _notif[k] = s.docs.map(d => ({ id: d.id, ...d.data() })); gabung(); }, () => {});
+  sub(query(collection(db, "notifikasi"), where("untukUid", "==", profil.uid)), "a");
+  sub(query(collection(db, "notifikasi"), where("untukPeran", "==", profil.role)), "b");
+}
+function gambarPanelNotif() {
+  const p = document.getElementById("panelNotif");
+  const list = (window.__notif || []).slice(0, 30);
+  const izinNotif = "Notification" in window && Notification.permission === "default";
+  p.innerHTML = `<div class="panel-kepala"><b>Notifikasi</b>
+      ${izinNotif ? `<button class="btn btn-sm btn-sec" id="btnIzinNotif">Aktifkan notifikasi HP</button>` : ""}</div>
+    ${list.length ? list.map(n => {
+      const dibaca = (n.dibacaOleh || []).includes(_uid);
+      return `<a class="notif ${dibaca ? "" : "baru"}" data-id="${n.id}" href="${esc(n.tautan || "#")}">
+        <b>${esc(n.judul)}</b><span>${esc(n.isi)}</span>
+        <small>${n.waktu?.toDate ? n.waktu.toDate().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : ""}${n.dari ? " · " + esc(n.dari) : ""}</small></a>`;
+    }).join("") : `<p class="empty">Belum ada notifikasi.</p>`}`;
+  document.getElementById("btnIzinNotif")?.addEventListener("click", async () => {
+    await Notification.requestPermission();
+    gambarPanelNotif();
+  });
+  p.querySelectorAll(".notif.baru").forEach(a => a.addEventListener("click", () => {
+    updateDoc(doc(db, "notifikasi", a.dataset.id), { dibacaOleh: arrayUnion(_uid) }).catch(() => {});
+  }));
+}
+function bukaPanelNotif(e) {
+  e.stopPropagation();
+  const p = document.getElementById("panelNotif");
+  p.hidden = !p.hidden;
+  if (!p.hidden) {
+    gambarPanelNotif();
+    const tutup = (ev) => { if (!p.contains(ev.target)) { p.hidden = true; document.removeEventListener("click", tutup); } };
+    setTimeout(() => document.addEventListener("click", tutup), 0);
+    // tandai semua terbaca setelah dibuka 2 detik
+    setTimeout(() => (window.__notif || []).filter(n => !(n.dibacaOleh || []).includes(_uid)).slice(0, 20)
+      .forEach(n => updateDoc(doc(db, "notifikasi", n.id), { dibacaOleh: arrayUnion(_uid) }).catch(() => {})), 2000);
+  }
+}
 
+// ---------------------------------------------------------------------
+// PWA: service worker + tombol pasang aplikasi
+// ---------------------------------------------------------------------
+let _promptPasang = null, _pwaTerpasang = false;
+export function pasangPWA() {
+  if (_pwaTerpasang) return;
+  _pwaTerpasang = true;
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    _promptPasang = e;
+    document.querySelectorAll(".tombol-pasang").forEach(b => b.hidden = false);
+  });
+}
+export async function pasangAplikasi() {
+  if (!_promptPasang) return toast("Buka menu browser lalu pilih 'Tambahkan ke Layar utama' / 'Install app'.", "info");
+  _promptPasang.prompt();
+  await _promptPasang.userChoice;
+  _promptPasang = null;
+  document.querySelectorAll(".tombol-pasang").forEach(b => b.hidden = true);
+}
+
+// ---------------------------------------------------------------------
+// Uang dengan pemisah ribuan titik (1.250.000)
+// ---------------------------------------------------------------------
+export const formatAngka = (n) => Number(n || 0).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+export const rupiah = (n) => "Rp " + formatAngka(n);
+export const nilaiUang = (el) => Number(String(el?.value || "").replace(/\D/g, "")) || 0;
+export const setUang = (el, n) => { el.value = n ? formatAngka(n) : ""; };
+function pasangInputUang(el) {
+  if (el.dataset.uangSiap) return;
+  el.dataset.uangSiap = "1";
+  el.type = "text";
+  el.inputMode = "numeric";
+  el.autocomplete = "off";
+  if (el.value) setUang(el, Number(String(el.value).replace(/\D/g, "")));
+  el.addEventListener("input", () => {
+    const dariKanan = el.value.length - (el.selectionStart ?? el.value.length);
+    const n = Number(el.value.replace(/\D/g, "")) || 0;
+    el.value = n ? formatAngka(n) : "";
+    const pos = Math.max(0, el.value.length - dariKanan);
+    try { el.setSelectionRange(pos, pos); } catch { /* abaikan */ }
+  });
+}
+
+// Tabel → kartu di HP: tiap sel diberi label dari judul kolom
+function labelTabel(tabel) {
+  const judul = [...tabel.querySelectorAll("thead th")].map(th => th.textContent.trim());
+  tabel.querySelectorAll("tbody tr").forEach(tr => {
+    [...tr.children].forEach((td, i) => { if (!td.hasAttribute("data-label") && judul[i]) td.setAttribute("data-label", judul[i]); });
+  });
+}
+let _pengamat = false;
+function pasangPengamat() {
+  if (_pengamat) return;
+  _pengamat = true;
+  const proses = (root) => {
+    root.querySelectorAll?.("input.uang").forEach(pasangInputUang);
+    root.querySelectorAll?.("table.kartu-hp").forEach(labelTabel);
+  };
+  const jalan = () => {
+    proses(document);
+    new MutationObserver((ms) => ms.forEach(m => {
+      const t = m.target.closest?.("table.kartu-hp");
+      if (t) labelTabel(t);
+      m.addedNodes.forEach(n => n.nodeType === 1 && proses(n));
+    })).observe(document.body, { childList: true, subtree: true });
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", jalan); else jalan();
+}
+export const siapkanHalamanPublik = () => { pasangPenangkapError(); pasangPWA(); pasangPengamat(); };
+
+// ---------------------------------------------------------------------
+// Format tanggal & lain-lain
+// ---------------------------------------------------------------------
 export const namaBulan = (ym) => {
   const [y, m] = ym.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("id-ID", { month: "long", year: "numeric", timeZone: "UTC" });
 };
-
-export const tglIndo = (s) =>
-  new Date(s + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+export const tglIndo = (s) => !s ? "" :
+  new Date(s + "T00:00:00Z").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+export const tglPanjang = (s) => !s ? "" :
+  new Date(s + "T00:00:00Z").toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+export const waktuIndo = (ts) => ts?.toDate ? ts.toDate().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : "";
 
 export function toast(msg, type = "ok") {
   const t = document.createElement("div");
   t.className = `toast toast-${type}`;
+  t.setAttribute("role", type === "err" ? "alert" : "status");
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.classList.add("show"), 10);
-  setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, type === "err" ? 6000 : 2800);
+  setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, type === "err" ? 7000 : 3000);
 }
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// Unduh array of arrays sebagai CSV (bisa dibuka di Excel)
-export function downloadCSV(filename, rows) {
-  const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-}
-
-// Perkecil gambar di browser sebelum disimpan (agar ringan & muat di database)
-export function perkecilGambar(file, maxSisi, kualitas = 0.82, tipe = "image/jpeg") {
+// Perkecil gambar sebelum disimpan (agar ringan & muat di Firestore)
+export function perkecilGambar(file, maxSisi, kualitas = 0.8, tipe = "image/jpeg") {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -333,3 +677,21 @@ export function perkecilGambar(file, maxSisi, kualitas = 0.82, tipe = "image/jpe
     img.src = URL.createObjectURL(file);
   });
 }
+// Perkecil sampai di bawah batas ukuran (karakter base64)
+export async function gambarKecil(file, maxSisi, batas, tipe = "image/jpeg") {
+  for (const [f, q] of [[1, 0.78], [0.8, 0.7], [0.6, 0.62], [0.45, 0.55], [0.32, 0.5]]) {
+    const url = await perkecilGambar(file, Math.round(maxSisi * f), q, tipe);
+    if (url.length <= batas) return url;
+  }
+  throw new Error("Gambar terlalu besar, coba foto lain.");
+}
+
+// Nomor WhatsApp Indonesia → format 62xxxx
+export const nomorWA = (hp) => {
+  let n = String(hp || "").replace(/\D/g, "");
+  if (n.startsWith("0")) n = "62" + n.slice(1);
+  else if (n.startsWith("8")) n = "62" + n;
+  return n;
+};
+
+export { LEMBAGA };

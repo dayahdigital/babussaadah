@@ -1,10 +1,11 @@
 // Membuat Super Admin pertama. Aturan Firestore hanya mengizinkan ini selama config/setup belum ada.
-import {
-  auth, db, createUserWithEmailAndPassword, signOut, doc, getDoc, writeBatch, serverTimestamp
-} from "./firebase.js?v=2.0.2";
-import { normUsername, usernameValid, buatEmail, pasangFooter } from "./common.js?v=2.0.2";
+import { auth, db, createUserWithEmailAndPassword, signOut, doc, getDoc, writeBatch, serverTimestamp } from "./firebase.js";
+import { normUsername, usernameValid, buatEmail, pasangFooter, pesanError, siapkanHalamanPublik, tampilanCache, simpan } from "./common.js";
 
+siapkanHalamanPublik();
 pasangFooter();
+const t = tampilanCache();
+if (t.logo) document.getElementById("logo").innerHTML = `<img src="${t.logo}" alt="">`;
 
 const form = document.getElementById("formSetup");
 const err = document.getElementById("err");
@@ -27,22 +28,18 @@ form.addEventListener("submit", async (e) => {
     const email = buatEmail(u);
     akun = (await createUserWithEmailAndPassword(auth, email, form.password.value)).user;
     const b = writeBatch(db);
-    b.set(doc(db, "users", akun.uid), {
-      uid: akun.uid, username: u, nama: form.nama.value.trim(), role: "superadmin",
-      aktif: true, email, dibuat: serverTimestamp(), dibuatOleh: "setup"
-    });
-    b.set(doc(db, "usernames", u), {
-      uid: akun.uid, email, nama: form.nama.value.trim(), role: "superadmin", aktif: true
-    });
-    b.set(doc(db, "config", "setup"), { selesai: true, oleh: u, waktu: serverTimestamp() });
+    const profil = { uid: akun.uid, username: u, nama: form.nama.value.trim(), role: "superadmin", aktif: true, email };
+    b.set(doc(db, "users", akun.uid), { ...profil, dibuat: serverTimestamp(), dibuatOleh: "setup" });
+    b.set(doc(db, "usernames", u), { uid: akun.uid, email });
+    b.set(doc(db, "config", "setup"), { selesai: true, waktu: serverTimestamp() });
     await b.commit();
-    location.replace("dashboard.html");
+    simpan.set("profil", profil, true);
+    form.hidden = true;
+    document.getElementById("selesai").hidden = false;
+    document.getElementById("l2").classList.add("aktif");
   } catch (ex) {
-    // Gagal menulis profil (mis. setup sudah dilakukan orang lain) → hapus akun yang terlanjur dibuat
     if (akun) { await akun.delete().catch(() => {}); await signOut(auth).catch(() => {}); }
-    err.textContent = ex.code === "permission-denied"
-      ? "Setup sudah pernah dilakukan."
-      : "Gagal: " + (ex.code || ex.message);
+    err.textContent = ex.code === "permission-denied" ? "Setup sudah pernah dilakukan." : pesanError(ex);
     btn.disabled = false; btn.textContent = "Buat Super Admin";
   }
 });

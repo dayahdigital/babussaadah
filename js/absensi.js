@@ -1,15 +1,14 @@
-// Absensi oleh Operator/Admin: per tanggal, per sesi.
-// Hanya sesi yang berjalan pada hari itu, dan hanya teungku yang terjadwal di sesi itu.
-// Insentif = tarif "insentif per kehadiran" teungku (disimpan saat absensi dicatat).
-import { db, collection, getDocs, doc, setDoc, query, where, writeBatch, serverTimestamp } from "./firebase.js?v=2.0.2";
+// Absensi oleh Operator/Admin per tanggal & sesi. Jadwal yang berlaku pada tanggal itu menentukan daftar teungku.
+import { db, collection, getDocs, getDoc, doc, setDoc, query, where, writeBatch, serverTimestamp } from "./firebase.js";
 import {
-  requireAuth, AKSES, today, thisMonth, namaBulan, toast, esc, rupiah, downloadCSV,
-  ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, sesiPadaHari, terjadwal, hitungJadwalBulan,
-  ambilJadwal, indeksJadwal, idJadwal, jamSesi
-} from "./common.js?v=2.0.2";
+  requireAuth, AKSES, today, thisMonth, namaBulan, toast, esc, rupiah, aksi, tampilError, catatLog,
+  ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, sesiPadaHari, ambilJadwal, ambilRiwayatJadwal, buatPeriode, jadwalPada,
+  hitungJadwalBulan, idJadwal, jamSesi, jamSiap, STATUS, tglIndo
+} from "./common.js";
 
 const { profil } = await requireAuth(AKSES.absensi);
-const bolehAtur = AKSES.aturSesi.includes(profil.role);   // jam & hari sesi: Super Admin
+const bolehAtur = AKSES.aturSesi.includes(profil.role);
+await jamSiap;
 
 const inTanggal = document.getElementById("tanggal");
 const selSesi = document.getElementById("sesi");
@@ -18,18 +17,14 @@ const cbSemua = document.getElementById("tampilSemua");
 const tbAbsen = document.getElementById("tbAbsen");
 const tbRekap = document.getElementById("tbRekap");
 inTanggal.value = today();
+inTanggal.max = today();
 inBulan.value = thisMonth();
 
-const STATUS = ["H", "I", "S", "A"];
-let guru = [];
+let guru = [], awal = {}, rekapRows = [];
 let cfg = await ambilConfigAbsensi();
-// Jadwal mengajar (dipilih teungku / diatur admin) menentukan siapa yang muncul di tiap sesi
-const jadwal = await ambilJadwal();
-const idx = indeksJadwal(jadwal);
-const entriJadwal = Object.fromEntries(jadwal.map(e => [e.id, e]));
-let awal = {};       // absensi tersimpan untuk tanggal+sesi terpilih
-let rekapRows = [];
-
+const [jadwalAktif, riwayatJadwal] = await Promise.all([ambilJadwal(), ambilRiwayatJadwal()]);
+const per = buatPeriode(jadwalAktif, riwayatJadwal);
+const entriJadwal = Object.fromEntries(jadwalAktif.map(e => [e.id, e]));
 const sesiTerpilih = () => cfg.sesi.find(s => s.id === selSesi.value);
 const insentifUntuk = (g, st) => st === "H" ? Number(g.honorHadir) || 0 : 0;
 
@@ -38,177 +33,203 @@ function isiSesi() {
   document.getElementById("namaHari").textContent = "· " + HARI[h];
   const list = sesiPadaHari(cfg, h);
   const pilih = selSesi.value;
-  selSesi.innerHTML = list.length
-    ? list.map(s => `<option value="${s.id}">${esc(s.nama)} (${jamSesi(s)})</option>`).join("")
+  selSesi.innerHTML = list.length ? list.map(s => `<option value="${s.id}">${esc(s.nama)} (${jamSesi(s)})</option>`).join("")
     : `<option value="">— tidak ada sesi hari ${HARI[h]} —</option>`;
   if (list.some(s => s.id === pilih)) selSesi.value = pilih;
 }
 
 async function muatGuru() {
-  const snap = await getDocs(query(collection(db, "guru"), where("aktif", "==", true)));
-  guru = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nama.localeCompare(b.nama));
+  try {
+    const snap = await getDocs(query(collection(db, "guru"), where("aktif", "==", true)));
+    guru = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nama.localeCompare(b.nama));
+  } catch (ex) { tampilError(ex, "Gagal memuat data teungku"); }
 }
 
 async function muatHarian() {
   const tgl = inTanggal.value, s = sesiTerpilih(), h = hariDari(tgl);
-  if (!s) {
-    tbAbsen.innerHTML = `<tr><td colspan="6" class="empty">Tidak ada sesi pengajian pada hari ${HARI[h]}.
-      ${bolehAtur ? "Atur hari sesi di bagian Pengaturan sesi." : ""}</td></tr>`;
-    hitungTotalSesi();
-    return;
-  }
-  const snap = await getDocs(query(collection(db, "absensi"), where("tanggal", "==", tgl)));
-  awal = {};
-  snap.docs.forEach(d => { const a = d.data(); if ((a.sesi || "harian") === s.id) awal[a.guruId] = a; });
-
-  const tampil = guru.filter(g => terjadwal(idx, g.id, s, h) || awal[g.id] || cbSemua.checked);
-  const disembunyikan = guru.length - tampil.length;
-
-  tbAbsen.innerHTML = tampil.length ? tampil.map((g, i) => {
-    const a = awal[g.id];
-    const luar = !terjadwal(idx, g.id, s, h);
-    return `<tr data-id="${g.id}">
-      <td>${i + 1}</td>
-      <td>${esc(g.nama)}<br><small style="color:#6b7770">${rupiah(g.honorHadir)}/hadir</small>
-        ${luar ? '<br><span class="badge b-belum">di luar jadwal</span>'
-          : (e => e?.kitab ? `<br><small style="color:#0f5132">📖 ${esc(e.kitab)}${e.kelas ? " · " + esc(e.kelas) : ""}</small>` : "")(entriJadwal[idJadwal(g.id, s.id, h)])}</td>
-      <td><div class="status-group">${STATUS.map(st => `
-        <label><input type="radio" name="st_${g.id}" value="${st}" ${a?.status === st ? "checked" : ""}><span class="${st}">${st}</span></label>`).join("")}
-      </div></td>
-      <td class="num ins">–</td>
-      <td><input class="ket" value="${esc(a?.keterangan || "")}" placeholder="${luar ? "mis. badal Tgk. ..." : "opsional"}"></td>
-      <td>${a?.sumber === "mandiri" ? '<span class="badge b-in">mandiri</span>' : ""}</td></tr>`;
-  }).join("") + (disembunyikan && !cbSemua.checked
-      ? `<tr><td colspan="6" class="empty">${disembunyikan} teungku tidak terjadwal di sesi ini disembunyikan.</td></tr>` : "")
-    : `<tr><td colspan="6" class="empty">Tidak ada teungku terjadwal di sesi ini.
-        Centang "Tampilkan juga teungku yang tidak terjadwal" untuk badal.</td></tr>`;
-  hitungTotalSesi();
+  if (!s) { tbAbsen.innerHTML = `<tr><td colspan="6" class="empty">Tidak ada sesi pada hari ${HARI[h]}.</td></tr>`; hitungTotal(); return; }
+  try {
+    const snap = await getDocs(query(collection(db, "absensi"), where("tanggal", "==", tgl)));
+    awal = {};
+    snap.docs.forEach(d => { const a = d.data(); if (a.sesi === s.id) awal[a.guruId] = a; });
+    const tampil = guru.filter(g => jadwalPada(per, g.id, s, tgl) || awal[g.id] || cbSemua.checked);
+    const sembunyi = guru.length - tampil.length;
+    tbAbsen.innerHTML = tampil.length ? tampil.map(g => {
+      const a = awal[g.id];
+      const luar = !jadwalPada(per, g.id, s, tgl);
+      const e = entriJadwal[idJadwal(g.id, s.id, h)];
+      return `<tr data-id="${g.id}">
+        <td class="utama">${esc(g.nama)}${luar ? ' <span class="badge b-belum">di luar jadwal</span>' : ""}</td>
+        <td>${esc(a?.kitab || e?.kitab || "–")}${(a?.materi || e?.materi) ? `<br><small class="muted">${esc(a?.materi || e?.materi)}</small>` : ""}</td>
+        <td><div class="status-group">${Object.entries(STATUS).map(([k, v]) => `
+          <label><input type="radio" name="st_${g.id}" value="${k}" ${a?.status === k ? "checked" : ""}><span class="${k}" title="${v.label}">${v.ikon} ${k}</span></label>`).join("")}</div></td>
+        <td class="num ins">–</td>
+        <td><input class="ket" value="${esc(a?.keterangan || "")}" placeholder="${luar ? "mis. badal Tgk. ..." : "opsional"}"></td>
+        <td>${a?.adaSelfie ? `<button class="btn btn-sm btn-sec" data-selfie="${tgl}_${s.id}_${g.id}">📷 Lihat</button>` : a?.sumber === "izin" ? '<span class="kecil muted">dari izin</span>' : "–"}</td></tr>`;
+    }).join("") + (sembunyi && !cbSemua.checked ? `<tr><td colspan="6" class="empty">${sembunyi} teungku tidak terjadwal di sesi ini disembunyikan.</td></tr>` : "")
+      : `<tr><td colspan="6" class="empty">Tidak ada teungku terjadwal di sesi ini.</td></tr>`;
+    hitungTotal();
+  } catch (ex) { tampilError(ex, "Gagal memuat absensi"); }
 }
 
-// Insentif per baris & total saat status dipilih
-function hitungTotalSesi() {
+function hitungTotal() {
   let tot = 0;
   tbAbsen.querySelectorAll("tr[data-id]").forEach(tr => {
     const g = guru.find(x => x.id === tr.dataset.id);
     const st = tr.querySelector("input[type=radio]:checked")?.value;
     const a = awal[g.id];
-    // Catatan lama yang tidak diubah memakai insentif yang tersimpan (tarif saat itu)
     const n = !st ? 0 : (a && a.status === st && a.insentif != null) ? Number(a.insentif) : insentifUntuk(g, st);
     tr.querySelector(".ins").textContent = st ? rupiah(n) : "–";
     tot += n;
   });
   document.getElementById("totSesi").textContent = rupiah(tot);
 }
-tbAbsen.addEventListener("change", (e) => { if (e.target.type === "radio") hitungTotalSesi(); });
+tbAbsen.addEventListener("change", (e) => { if (e.target.type === "radio") hitungTotal(); });
+tbAbsen.addEventListener("click", async (e) => {
+  const id = e.target.dataset.selfie;
+  if (!id) return;
+  try {
+    const s = await getDoc(doc(db, "selfie", id));
+    if (!s.exists()) return toast("Foto selfie tidak ditemukan", "err");
+    document.getElementById("fotoSelfie").src = s.data().foto;
+    document.getElementById("ketSelfie").textContent = `${s.data().nama} · ${tglIndo(s.data().tanggal)} · ${s.data().waktu?.toDate?.().toLocaleTimeString("id-ID") || ""}`;
+    document.getElementById("modalSelfie").classList.add("open");
+  } catch (ex) { tampilError(ex); }
+});
+document.getElementById("modalSelfie").onclick = (e) => e.currentTarget.classList.remove("open");
 
-async function simpan() {
+function simpan() {
   const tgl = inTanggal.value, s = sesiTerpilih();
   if (!s) return toast("Tidak ada sesi pada tanggal ini", "err");
-  const batch = writeBatch(db);
-  let n = 0;
+  const b = writeBatch(db);
+  const ubah = [];
   tbAbsen.querySelectorAll("tr[data-id]").forEach(tr => {
     const id = tr.dataset.id;
     const st = tr.querySelector(`input[name="st_${id}"]:checked`)?.value;
     const ket = tr.querySelector(".ket").value.trim();
     const a = awal[id];
-    if (!st || (a && a.status === st && (a.keterangan || "") === ket)) return; // tidak berubah
+    if (!st || (a && a.status === st && (a.keterangan || "") === ket)) return;
     const g = guru.find(x => x.id === id);
-    batch.set(doc(db, "absensi", `${tgl}_${s.id}_${id}`), {
-      tanggal: tgl, bulan: tgl.slice(0, 7), sesi: s.id, sesiNama: s.nama,
-      guruId: id, nama: g.nama, status: st, insentif: insentifUntuk(g, st),
-      terjadwal: terjadwal(idx, g.id, s, hariDari(tgl)),
-      keterangan: ket, sumber: "operator", dicatatOleh: profil.username, waktu: serverTimestamp()
+    const e = entriJadwal[idJadwal(id, s.id, hariDari(tgl))];
+    b.set(doc(db, "absensi", `${tgl}_${s.id}_${id}`), {
+      ...(a || {}),
+      tanggal: tgl, bulan: tgl.slice(0, 7), hari: hariDari(tgl), sesi: s.id, sesiNama: s.nama,
+      guruId: id, nama: g.nama, status: st, insentif: (a && a.status === st) ? a.insentif : insentifUntuk(g, st),
+      kitab: a?.kitab || e?.kitab || "", materi: a?.materi || e?.materi || "", kelas: a?.kelas || e?.kelas || "",
+      terjadwal: jadwalPada(per, id, s, tgl), keterangan: ket,
+      sumber: a?.sumber === "mandiri" && st === "H" ? "mandiri" : "operator",
+      dicatatOleh: profil.username, waktu: serverTimestamp()
     });
-    n++;
+    ubah.push(`${g.nama}: ${a?.status ? a.status + "→" : ""}${st}`);
   });
-  if (!n) return toast("Tidak ada perubahan untuk disimpan", "err");
-  try {
-    await batch.commit();
-    toast(`Absensi ${n} teungku tersimpan`);
+  if (!ubah.length) return toast("Tidak ada perubahan untuk disimpan", "info");
+  aksi(document.getElementById("btnSimpan"), async () => {
+    await b.commit();
+    catatLog("Absensi", "Simpan absensi", `${tgl} ${s.nama}: ${ubah.join(", ")}`);
+    toast(`Absensi ${ubah.length} teungku tersimpan`);
     await muatHarian();
     if (tgl.startsWith(inBulan.value)) muatRekap();
-  } catch (ex) { toast("Gagal menyimpan: " + ex.code, "err"); }
+  });
 }
 
+let absenBulan = [];
 async function muatRekap() {
   const bln = inBulan.value;
-  const snap = await getDocs(query(collection(db, "absensi"), where("bulan", "==", bln)));
-  const r = {};
-  const baru = (id, nama) => {
-    const g = guru.find(x => x.id === id);
-    return { nama, jadwal: g ? hitungJadwalBulan(cfg, idx, g.id, bln) : 0, H: 0, I: 0, S: 0, A: 0, tercatat: 0, insentif: 0 };
-  };
-  snap.docs.forEach(d => {
-    const a = d.data();
-    r[a.guruId] ??= baru(a.guruId, a.nama);
-    r[a.guruId][a.status]++;
-    r[a.guruId].insentif += Number(a.insentif) || 0;
-    // hitung sesi terjadwal yang sudah punya catatan (badal di luar jadwal tidak mengurangi "belum diabsen")
-    const g = guru.find(x => x.id === a.guruId);
-    const s = cfg.sesi.find(x => x.id === (a.sesi || "harian"));
-    if (g && s && terjadwal(idx, g.id, s, hariDari(a.tanggal))) r[a.guruId].tercatat++;
-  });
-  guru.forEach(g => { r[g.id] ??= baru(g.id, g.nama); });
-  rekapRows = Object.values(r).sort((a, b) => a.nama.localeCompare(b.nama));
-  const total = rekapRows.reduce((s, x) => s + x.insentif, 0);
-  tbRekap.innerHTML = rekapRows.length ? rekapRows.map(x => {
-    const belum = Math.max(0, x.jadwal - x.tercatat);
-    return `<tr>
-      <td>${esc(x.nama)}</td><td class="num">${x.jadwal}</td><td class="num">${x.H}</td><td class="num">${x.I}</td>
-      <td class="num">${x.S}</td><td class="num">${x.A}</td>
-      <td class="num">${belum ? `<span class="badge b-belum">${belum}</span>` : 0}</td>
-      <td class="num">${x.jadwal ? Math.round(x.H / x.jadwal * 100) + "%" : "–"}</td>
-      <td class="num">${rupiah(x.insentif)}</td></tr>`;
-  }).join("")
-    + `<tr><td colspan="8"><b>Total insentif ${namaBulan(bln)}</b></td><td class="num"><b>${rupiah(total)}</b></td></tr>`
-    : `<tr><td colspan="9" class="empty">Tidak ada data.</td></tr>`;
+  try {
+    const snap = await getDocs(query(collection(db, "absensi"), where("bulan", "==", bln)));
+    absenBulan = snap.docs.map(d => d.data());
+    const r = {};
+    const baru = (id, nama) => ({ id, nama, jadwal: hitungJadwalBulan(cfg, per, id, bln), H: 0, I: 0, S: 0, A: 0, tercatat: 0, insentif: 0 });
+    absenBulan.forEach(a => {
+      r[a.guruId] ??= baru(a.guruId, a.nama);
+      r[a.guruId][a.status]++;
+      r[a.guruId].insentif += Number(a.insentif) || 0;
+      const s = cfg.sesi.find(x => x.id === a.sesi);
+      if (s && jadwalPada(per, a.guruId, s, a.tanggal)) r[a.guruId].tercatat++;
+    });
+    guru.forEach(g => { r[g.id] ??= baru(g.id, g.nama); });
+    rekapRows = Object.values(r).sort((a, b) => a.nama.localeCompare(b.nama));
+    const total = rekapRows.reduce((s, x) => s + x.insentif, 0);
+    tbRekap.innerHTML = rekapRows.length ? rekapRows.map(x => {
+      const belum = Math.max(0, x.jadwal - x.tercatat);
+      return `<tr><td class="utama">${esc(x.nama)}</td><td class="num">${x.jadwal}</td><td class="num">${x.H}</td><td class="num">${x.I}</td>
+        <td class="num">${x.S}</td><td class="num">${x.A}</td><td class="num">${belum ? `<span class="badge b-belum">${belum}</span>` : 0}</td>
+        <td class="num">${x.jadwal ? Math.round(x.H / x.jadwal * 100) + "%" : "–"}</td><td class="num">${rupiah(x.insentif)}</td></tr>`;
+    }).join("") + `<tr class="total"><td colspan="8">Total ${namaBulan(bln)}</td><td class="num">${rupiah(total)}</td></tr>`
+      : `<tr><td colspan="9" class="empty">Tidak ada data.</td></tr>`;
+  } catch (ex) { tampilError(ex, "Gagal memuat rekap"); }
 }
 
-// ---------- Pengaturan sesi Pagi & Malam (Super Admin) ----------
+// ---------- Laporan PDF & Excel ----------
+const L = () => import("./laporan.js");
+const dataRekap = () => ({
+  judul: "REKAP ABSENSI TEUNGKU", sub: `Bulan ${namaBulan(inBulan.value)}`,
+  kolom: ["No", "Nama Teungku", "Jadwal", "Hadir", "Izin", "Sakit", "Alpa", "Belum diabsen", "% Hadir", "Mukafaah Kehadiran"],
+  baris: rekapRows.map((x, i) => [i + 1, x.nama, x.jadwal, x.H, x.I, x.S, x.A, Math.max(0, x.jadwal - x.tercatat),
+    x.jadwal ? Math.round(x.H / x.jadwal * 100) + "%" : "-", { uang: x.insentif }]),
+  total: ["", "JUMLAH", ...["jadwal", "H", "I", "S", "A"].map(k => rekapRows.reduce((s, x) => s + x[k], 0)), "", "", { uang: rekapRows.reduce((s, x) => s + x.insentif, 0) }],
+  namaFile: `rekap-absensi-${inBulan.value}`, ttd: true
+});
+const dataRinci = () => {
+  const rows = [...absenBulan].sort((a, b) => (a.tanggal + a.sesi + a.nama).localeCompare(b.tanggal + b.sesi + b.nama));
+  return {
+    judul: "DAFTAR ABSENSI TEUNGKU", sub: `Bulan ${namaBulan(inBulan.value)}`, lanskap: true,
+    kolom: ["No", "Tanggal", "Hari", "Sesi", "Nama Teungku", "Kitab", "Materi Ajar", "Status", "Keterangan", "Mukafaah"],
+    baris: rows.map((a, i) => [i + 1, tglIndo(a.tanggal), HARI[hariDari(a.tanggal)], a.sesiNama || a.sesi, a.nama, a.kitab || "-", a.materi || "-",
+      `${a.status} - ${STATUS[a.status]?.label || ""}`, a.keterangan || "", { uang: a.insentif || 0 }]),
+    total: ["", "", "", "", "", "", "", "", "JUMLAH", { uang: rows.reduce((s, a) => s + (Number(a.insentif) || 0), 0) }],
+    namaFile: `absensi-${inBulan.value}`, ttd: true
+  };
+};
+document.getElementById("btnPdfRekap").onclick = (e) => aksi(e.target, async () => (await L()).pdfTabel(dataRekap()), "Membuat PDF...");
+document.getElementById("btnPdfRinci").onclick = (e) => aksi(e.target, async () => (await L()).pdfTabel(dataRinci()), "Membuat PDF...");
+document.getElementById("btnExcel").onclick = (e) => aksi(e.target, async () => (await L()).excelBuku(`absensi-${inBulan.value}`, [dataRekap(), dataRinci()]), "Membuat Excel...");
+
+// ---------- Pengaturan sesi (Super Admin) ----------
 function tampilAtur() {
   document.getElementById("daftarSesi").innerHTML = cfg.sesi.map(s => `
-    <tr data-sesi="${s.id}">
-      <td><input class="namaSesi" value="${esc(s.nama)}" style="min-width:90px"></td>
-      <td><input type="time" class="mulai" value="${esc(s.mulai)}" required></td>
-      <td><input type="time" class="selesai" value="${esc(s.selesai)}" required></td>
-      ${SEMUA_HARI.map(h => `<td><input type="checkbox" class="hariSesi" value="${h}" ${s.hari.includes(h) ? "checked" : ""}></td>`).join("")}
-    </tr>`).join("");
+    <div class="sesi-atur" data-sesi="${s.id}">
+      <div class="grid grid-3" style="margin-bottom:8px">
+        <div class="field"><label>${s.id === "pagi" ? "🌅 Sesi pertama" : "🌙 Sesi kedua"} — nama</label><input class="namaSesi" value="${esc(s.nama)}" maxlength="30"></div>
+        <div class="field"><label>Jam mulai</label><input type="time" class="mulai" value="${esc(s.mulai)}" required></div>
+        <div class="field"><label>Jam selesai</label><input type="time" class="selesai" value="${esc(s.selesai)}" required></div>
+      </div>
+      <div class="hari-cek">${SEMUA_HARI.map(h => `<label><input type="checkbox" class="hariSesi" value="${h}" ${s.hari.includes(h) ? "checked" : ""}><span>${HARI[h]}</span></label>`).join("")}</div>
+    </div>`).join("");
+  document.getElementById("tolSebelum").value = cfg.toleransiSebelum;
+  document.getElementById("tolSesudah").value = cfg.toleransiSesudah;
   document.getElementById("guruMandiri").checked = cfg.guruMandiri;
 }
-const bacaFormSesi = () => [...document.querySelectorAll("[data-sesi]")].map(tr => ({
-  id: tr.dataset.sesi,
-  nama: tr.querySelector(".namaSesi").value.trim() || (tr.dataset.sesi === "pagi" ? "Pagi" : "Malam"),
-  mulai: tr.querySelector(".mulai").value,
-  selesai: tr.querySelector(".selesai").value,
-  hari: [...tr.querySelectorAll(".hariSesi:checked")].map(c => Number(c.value))
-}));
-
 if (bolehAtur) {
   tampilAtur();
-  document.getElementById("btnSimpanAtur").onclick = async () => {
-    const sesi = bacaFormSesi();
-    if (sesi.some(s => !s.mulai || !s.selesai)) return toast("Isi jam mulai dan selesai setiap sesi", "err");
-    if (sesi.some(s => s.selesai <= s.mulai)) return toast("Jam selesai harus setelah jam mulai", "err");
-    cfg = { sesi, guruMandiri: document.getElementById("guruMandiri").checked };
-    try {
-      await setDoc(doc(db, "config", "absensi"), { ...cfg, diubah: serverTimestamp(), oleh: profil.username });
+  document.getElementById("btnSimpanAtur").onclick = (e) => {
+    const sesi = [...document.querySelectorAll("[data-sesi].sesi-atur")].map(el => ({
+      id: el.dataset.sesi, nama: el.querySelector(".namaSesi").value.trim() || (el.dataset.sesi === "pagi" ? "Pagi" : "Malam"),
+      mulai: el.querySelector(".mulai").value, selesai: el.querySelector(".selesai").value,
+      hari: [...el.querySelectorAll(".hariSesi:checked")].map(c => Number(c.value))
+    }));
+    if (sesi.some(s => !/^\d{2}:\d{2}$/.test(s.mulai) || !/^\d{2}:\d{2}$/.test(s.selesai))) return toast("Isi jam mulai dan selesai setiap sesi", "err");
+    if (sesi.some(s => s.mulai === s.selesai)) return toast("Jam mulai dan selesai tidak boleh sama", "err");
+    if (sesi.some(s => !s.hari.length)) return toast("Setiap sesi harus punya minimal satu hari", "err");
+    const tolSeb = Math.min(240, Math.max(0, parseInt(document.getElementById("tolSebelum").value) || 0));
+    const tolSes = Math.min(240, Math.max(0, parseInt(document.getElementById("tolSesudah").value) || 0));
+    const data = {
+      sesi, guruMandiri: document.getElementById("guruMandiri").checked, toleransiSebelum: tolSeb, toleransiSesudah: tolSes,
+      jam: Object.fromEntries(sesi.map(s => [s.id, { mulai: s.mulai, selesai: s.selesai }])),   // dipakai aturan server
+      diubah: serverTimestamp(), oleh: profil.username
+    };
+    aksi(e.target, async () => {
+      await setDoc(doc(db, "config", "absensi"), data);
+      catatLog("Pengaturan", "Ubah sesi", sesi.map(s => `${s.nama} ${s.mulai}-${s.selesai} [${s.hari.map(h => HARI[h].slice(0, 3)).join(",")}]`).join("; ") + ` · toleransi ${tolSeb}/${tolSes} mnt · mandiri ${data.guruMandiri ? "ya" : "tidak"}`);
+      cfg = await ambilConfigAbsensi();
       toast("Pengaturan sesi tersimpan");
       isiSesi(); tampilAtur(); muatHarian(); muatRekap();
-    } catch (ex) { toast("Gagal: " + ex.code, "err"); }
+    });
   };
 }
 
-document.getElementById("btnSemuaHadir").onclick = () => {
-  tbAbsen.querySelectorAll('input[value="H"]').forEach(r => r.checked = true);
-  hitungTotalSesi();
-};
+document.getElementById("btnSemuaHadir").onclick = () => { tbAbsen.querySelectorAll('input[value="H"]').forEach(r => r.checked = true); hitungTotal(); };
 document.getElementById("btnSimpan").onclick = simpan;
-document.getElementById("btnExport").onclick = () =>
-  downloadCSV(`rekap-absensi-${inBulan.value}.csv`, [
-    [`Rekap Absensi & Insentif ${namaBulan(inBulan.value)}`], [],
-    ["Nama", "Jadwal", "Hadir", "Izin", "Sakit", "Alpa", "Belum diabsen", "Total Insentif"],
-    ...rekapRows.map(x => [x.nama, x.jadwal, x.H, x.I, x.S, x.A, Math.max(0, x.jadwal - x.tercatat), x.insentif])
-  ]);
 inTanggal.onchange = () => { isiSesi(); muatHarian(); };
 selSesi.onchange = muatHarian;
 cbSemua.onchange = muatHarian;

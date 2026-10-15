@@ -5,14 +5,24 @@ import {
   createUserWithEmailAndPassword, updatePassword, reauthenticateWithCredential, EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc,
-  deleteDoc, query, where, orderBy, serverTimestamp, writeBatch
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore,
+  collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, limit,
+  serverTimestamp, writeBatch, onSnapshot, increment, deleteField, arrayUnion, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js?v=2.0.2";
+import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Cache lokal di HP/komputer: data tetap tampil & perubahan tersimpan sementara saat sinyal hilang,
+// lalu otomatis terkirim begitu internet kembali.
+let _db;
+try {
+  _db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+} catch {
+  _db = getFirestore(app);
+}
+export const db = _db;
 
 // Membuat akun login baru TANPA mengeluarkan Super Admin yang sedang login.
 // Caranya: memakai instance Firebase kedua yang terpisah, lalu dibuang.
@@ -31,6 +41,6 @@ export async function buatAkunAuth(email, password) {
 export {
   onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword,
   updatePassword, reauthenticateWithCredential, EmailAuthProvider,
-  collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp, writeBatch
+  collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, limit,
+  serverTimestamp, writeBatch, onSnapshot, increment, deleteField, arrayUnion, Timestamp
 };
