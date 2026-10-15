@@ -21,7 +21,7 @@ function kartu(z, menunggu) {
     <div class="kepala"><b>${j.ikon || ""} ${j.label || z.jenis} · ${esc(z.nama)}</b>
       ${menunggu ? `<span class="badge b-belum">⏳ Menunggu</span>`
         : `<span class="badge ${z.status === "disetujui" ? "b-in" : "b-out"}">${z.status === "disetujui" ? "✔ Disetujui" : "✖ Ditolak"}</span>`}</div>
-    <div class="kecil">📅 ${tglIndo(z.dari)}${z.sampai !== z.dari ? " – " + tglIndo(z.sampai) : ""} (${lama} hari) ·
+    <div class="kecil">${tglIndo(z.dari)}${z.sampai !== z.dari ? " – " + tglIndo(z.sampai) : ""} (${lama} hari) ·
       Sesi: ${(z.sesi || []).map(x => cfg.sesi.find(s => s.id === x)?.nama || x).join(", ")}</div>
     <div style="margin:6px 0">${esc(z.alasan)}</div>
     ${z.lampiran ? `<img src="${z.lampiran}" alt="Lampiran" data-gambar>` : ""}

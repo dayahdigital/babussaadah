@@ -115,7 +115,7 @@ function simpan() {
       ...(a || {}),
       tanggal: tgl, bulan: tgl.slice(0, 7), hari: hariDari(tgl), sesi: s.id, sesiNama: s.nama,
       guruId: id, nama: g.nama, status: st, insentif: (a && a.status === st) ? a.insentif : insentifUntuk(g, st),
-      kitab: a?.kitab || e?.kitab || "", materi: a?.materi || e?.materi || "", kelas: a?.kelas || e?.kelas || "",
+      kitab: a?.kitab || e?.kitab || "", materi: a?.materi || e?.materi || "", kelas: a?.kelas || e?.kelas || "", tempat: a?.tempat || e?.tempat || "",
       terjadwal: jadwalPada(per, id, s, tgl), keterangan: ket,
       sumber: a?.sumber === "mandiri" && st === "H" ? "mandiri" : "operator",
       dicatatOleh: profil.username, waktu: serverTimestamp()

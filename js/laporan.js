@@ -3,7 +3,7 @@
 //  nomor urut, total, tanda tangan, nomor halaman. Slip mukafaah islami.
 //  Pustaka (jsPDF, AutoTable, ExcelJS) ada di js/vendor — tetap jalan tanpa CDN.
 // =====================================================================
-import { ambilTampilan, rupiah, tglPanjang, today, namaBulan, teksVersi, ISTILAH } from "./common.js";
+import { ambilTampilan, LOGO_BAWAAN, rupiah, tglPanjang, today, namaBulan, teksVersi, ISTILAH } from "./common.js";
 import { HAK_CIPTA } from "./pengaturan.js";
 
 const _muat = {};
@@ -35,6 +35,18 @@ export function unduhBlob(blob, nama) {
 
 const sel = (v) => (v && typeof v === "object" && "uang" in v) ? rupiah(v.uang) : String(v ?? "");
 const bersih = (s) => String(s ?? "").replace(/[−–—]/g, "-").replace(/[^\x00-\xFF]/g, "");   // font PDF standar
+
+// Logo bawaan (icons/logo-dayah.png) dipakai bila pengelola belum mengunggah logo
+async function tampilanPdf() {
+  const t = await ambilTampilan();
+  if (!t.logo) {
+    try {
+      const b = await (await fetch(LOGO_BAWAAN)).blob();
+      t.logo = await new Promise((ok, gagal) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = gagal; r.readAsDataURL(b); });
+    } catch { /* tanpa logo */ }
+  }
+  return t;
+}
 
 // ---------- Kop surat ----------
 function kop(pdf, t, lebar) {
@@ -82,7 +94,7 @@ function tandaTangan(pdf, t, y, kiriLabel = "Mengetahui,\nPimpinan Dayah", kiriN
 // data: { judul, sub, kolom:[], baris:[[...]], total?:[...], lanskap?, namaFile, ttd? }  sel uang: {uang:n}
 export async function pdfTabel(data, { blob = false } = {}) {
   const jsPDF = await siapPdf();
-  const t = await ambilTampilan();
+  const t = await tampilanPdf();
   const pdf = new jsPDF({ orientation: data.lanskap ? "landscape" : "portrait", unit: "mm", format: "a4" });
   const w = pdf.internal.pageSize.getWidth();
   let y = kop(pdf, t, w);
@@ -190,7 +202,7 @@ export function terbilang(n) {
 // ---------- Slip mukafaah bertemplate islami ----------
 export async function slipMukafaah(g, { unduh = false, blob = false } = {}) {
   const jsPDF = await siapPdf();
-  const t = await ambilTampilan();
+  const t = await tampilanPdf();
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const w = pdf.internal.pageSize.getWidth();
   const N = (v) => Number(v) || 0;

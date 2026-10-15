@@ -5,7 +5,7 @@ import {
   requireAuth, AKSES, today, thisMonth, namaBulan, tglIndo, tglPanjang, toast, esc, rupiah, aksi, tampilError,
   ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, terjadwal, ambilJadwal, indeksJadwal, idJadwal, jamSesi,
   waktuAbsen, jamSiap, sekarang, WIB_MS, lewatTengahMalam, tambahHari, badgeStatus, STATUS, catatLog, kirimNotif,
-  gambarKecil, pesanError
+  gambarKecil, pesanError, ikon
 } from "./common.js";
 import { ambilSelfie } from "./kamera.js";
 
@@ -38,7 +38,7 @@ const dijadwal = (s, t) => terjadwal(idx, profil.guruId, s, hariDari(t));
 // Jam server berjalan
 const jamEl = document.getElementById("jamServer");
 const putarJam = () => {
-  jamEl.textContent = "🕒 " + new Date(sekarang() + WIB_MS).toISOString().slice(11, 16) + " WIB (jam server)";
+  jamEl.innerHTML = ikon("jam", 15) + " " + new Date(sekarang() + WIB_MS).toISOString().slice(11, 16) + " WIB (jam server)";
   if (today() !== tgl) { tgl = today(); muat(); }
 };
 putarJam(); setInterval(putarJam, 15000);
@@ -87,12 +87,12 @@ function tampil() {
       const e = entri[idJadwal(profil.guruId, s.id, hariDari(t))];
       const w = waktuAbsen(s, cfg, t);
       return `<div class="sesi-item">
-        <div><b>${s.id === "pagi" ? "🌅" : "🌙"} ${esc(s.nama)}</b> <small>${jamSesi(s)}${t !== tgl ? " · sesi " + tglIndo(t) : ""}</small>
-          ${e?.kitab ? `<br><small>📖 ${esc(e.kitab)}${e.materi ? " · " + esc(e.materi) : ""}</small>` : ""}
+        <div><b>${ikon(s.id === "pagi" ? "matahari" : "bulan", 16)} ${esc(s.nama)}</b> <small>${jamSesi(s)}${t !== tgl ? " · sesi " + tglIndo(t) : ""}</small>
+          ${e?.kitab ? `<br><small>Kitab: <b>${esc(e.kitab)}</b>${e.materi ? " · Materi: " + esc(e.materi) : ""}${e.tempat ? " · Tempat: " + esc(e.tempat) : ""}${e.kelas ? " · Kelas: " + esc(e.kelas) : ""}</small>` : ""}
           ${a ? `<br><small>${a.sumber === "mandiri" ? "dicatat sendiri" : a.sumber === "izin" ? "dari pengajuan izin" : "dicatat operator"}${a.status === "H" ? " · " + rupiah(a.insentif) : ""}</small>` : ""}
           ${!a && cfg.guruMandiri ? `<br><small class="${w.boleh ? "" : "teks-peringatan"}">${w.pesan}</small>` : ""}</div>
         ${a ? badgeStatus(a.status)
-          : cfg.guruMandiri && guru?.aktif !== false ? `<button class="btn" data-sesi="${s.id}" data-tgl="${t}" ${w.boleh ? "" : "disabled"}>📷 Hadir</button>`
+          : cfg.guruMandiri && guru?.aktif !== false ? `<button class="btn" data-sesi="${s.id}" data-tgl="${t}" ${w.boleh ? "" : "disabled"}>${ikon("kamera", 16)} Hadir</button>`
           : `<span class="muted kecil">belum diabsen</span>`}
       </div>`;
     }).join("");
@@ -124,7 +124,7 @@ document.getElementById("daftarSesi").addEventListener("click", async (e) => {
   const foto = await ambilSelfie({ judul: `Selfie hadir · ${s.nama}`, keterangan: "Pastikan wajah terlihat jelas. Foto ini wajib dan disimpan bersama absen." });
   if (!foto) return;
   const e2 = entri[idJadwal(profil.guruId, s.id, hariDari(t))];
-  hadirKini = { s, t, foto, kitab: e2?.kitab || "", kelas: e2?.kelas || "" };
+  hadirKini = { s, t, foto, kitab: e2?.kitab || "", kelas: e2?.kelas || "", tempat: e2?.tempat || "" };
   document.getElementById("judulHadir").textContent = `Hadir · ${s.nama} · ${tglIndo(t)}`;
   document.getElementById("pvSelfie").src = foto;
   formHadir.kitab.value = e2?.kitab || "";
@@ -135,7 +135,7 @@ document.getElementById("btnBatalHadir").onclick = () => modalHadir.classList.re
 
 formHadir.addEventListener("submit", (e) => {
   e.preventDefault();
-  const { s, t, foto, kitab, kelas } = hadirKini;
+  const { s, t, foto, kitab, kelas, tempat } = hadirKini;
   aksi(document.getElementById("btnKirimHadir"), async () => {
     guru = (await getDoc(doc(db, "guru", profil.guruId))).data() || guru;   // nilai terbaru (dicek server)
     const id = `${t}_${s.id}_${profil.guruId}`;
@@ -144,7 +144,7 @@ formHadir.addEventListener("submit", (e) => {
     b.set(doc(db, "absensi", id), {
       tanggal: t, bulan: t.slice(0, 7), hari: hariDari(t), sesi: s.id, sesiNama: s.nama,
       guruId: profil.guruId, nama: guru.nama, status: "H", insentif: guru.honorHadir ?? 0,
-      kitab, kelas, materi: formHadir.materi.value.trim(), adaSelfie: true, keterangan: "",
+      kitab, kelas, tempat, materi: formHadir.materi.value.trim(), adaSelfie: true, keterangan: "",
       sumber: "mandiri", dicatatOleh: profil.username, waktu: serverTimestamp()
     });
     try { await b.commit(); }
@@ -265,7 +265,7 @@ document.getElementById("daftarIzin").addEventListener("click", (e) => {
   document.getElementById("tbMukafaah").innerHTML = rows.map(g => `<tr>
     <td class="utama">${namaBulan(g.periode)}</td><td class="num"><b>${rupiah(g.total)}</b></td>
     <td><span class="badge ${g.dibayar ? "b-lunas" : "b-belum"}">${g.dibayar ? "✔ Diserahkan " + tglIndo(g.tglBayar) : "⏳ Belum diserahkan"}</span></td>
-    <td class="aksi-sel">${g.dibayar ? `<button class="btn btn-sm btn-sec" data-slip="${g.id}">📄 Slip PDF</button>` : ""}</td></tr>`).join("");
+    <td class="aksi-sel">${g.dibayar ? `<button class="btn btn-sm btn-sec" data-slip="${g.id}">${ikon("pdf", 15)} Slip PDF</button>` : ""}</td></tr>`).join("");
   document.getElementById("tbMukafaah").addEventListener("click", async (e) => {
     const id = e.target.dataset.slip;
     if (!id) return;

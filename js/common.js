@@ -66,7 +66,26 @@ const P = {
   pdf: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/>',
   excel: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
   wa: '<path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.4-2-1-1 .8c-1-.5-1.8-1.3-2.3-2.3l.8-1-1-2z"/>',
-  kamera: '<path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/>'
+  kamera: '<path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/>',
+  matahari: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  bulan: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  buku: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M19 19v2H6"/>',
+  lokasi: '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  kelas: '<rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/>',
+  jam: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  pin: '<path d="M9 3h6l-1 6 4 4H6l4-4z"/><path d="M12 13v8"/>',
+  roster: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11M15 9v11"/>',
+  kartu: '<rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/>',
+  papan: '<rect x="3" y="3" width="18" height="13" rx="1.5"/><path d="M7 21l3-5M17 21l-3-5M7 8h10M7 11h6"/>',
+  tabel: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
+  riwayat: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+  android: '<path d="M6 10a6 6 0 0 1 12 0v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/><path d="M8 4l1.5 2.5M16 4l-1.5 2.5M10 10h.01M14 10h.01"/>',
+  apel: '<path d="M16 3c-1.5.2-3 1.5-3 3 1.6.1 3-1.3 3-3z"/><path d="M12 8c-1-.6-2-.9-3-.9-2.5 0-4 2.2-4 5 0 3.6 2.4 8 4.4 8 1 0 1.6-.6 2.6-.6s1.6.6 2.6.6c2 0 4.4-4.4 4.4-8 0-2.8-1.6-5-4-5-1 0-2 .3-3 .9z"/>',
+  monitor: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/>',
+  kunci: '<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/>',
+  layarPenuh: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  mata: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>'
 };
 export const ikon = (n, ukuran = 20) =>
   `<svg class="ikon" width="${ukuran}" height="${ukuran}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ""}</svg>`;
@@ -101,8 +120,23 @@ export const simpan = {
 // ---------------------------------------------------------------------
 // Tampilan dayah (logo, foto, nama, alamat, pejabat penanda tangan)
 // ---------------------------------------------------------------------
+export const LOGO_BAWAAN = "icons/logo-dayah.png";
 export function tampilanCache() {
-  return { ...LEMBAGA, tagline: "", logo: "", foto: "", ...(simpan.get("tampilan") || {}) };
+  return { ...LEMBAGA, tagline: "", logo: "", foto: "", tema: "hijau", namaArab: "داية باب السعادة", ...(simpan.get("tampilan") || {}) };
+}
+export const logoDayah = (t) => t?.logo || LOGO_BAWAAN;
+export function pasangTema(tema) {
+  if (tema && tema !== "hijau") document.documentElement.dataset.tema = tema;
+  else delete document.documentElement.dataset.tema;
+  const warna = { hijau: "#145a32", biru: "#1e3a5f", krem: "#3f5f2a" }[tema || "hijau"];
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", warna);
+}
+pasangTema(tampilanCache().tema);
+
+// Layar loading (dipasang di HTML, disembunyikan saat halaman siap)
+export function sembunyikanPemuat() {
+  const p = document.getElementById("pemuat");
+  if (p && !p.classList.contains("hilang")) { p.classList.add("hilang"); setTimeout(() => p.remove(), 500); }
 }
 export async function ambilTampilan() {
   try {
@@ -111,9 +145,11 @@ export async function ambilTampilan() {
     const t = {
       nama: d.nama || LEMBAGA.nama, alamat: d.alamat || LEMBAGA.alamat,
       bendahara: d.bendahara || LEMBAGA.bendahara, pimpinan: d.pimpinan || LEMBAGA.pimpinan,
-      tagline: d.tagline || "", logo: d.logo || "", foto: d.foto || ""
+      tagline: d.tagline || "", logo: d.logo || "", foto: d.foto || "",
+      tema: d.tema || "hijau", namaArab: d.namaArab ?? "داية باب السعادة"
     };
     simpan.set("tampilan", t);
+    pasangTema(t.tema);
     return t;
   } catch { return tampilanCache(); }
 }
@@ -316,7 +352,7 @@ export function tampilError(ex, konteks = "") {
 // Jalankan aksi dengan tombol terkunci + pesan error jelas + peringatan sinyal lemah
 export async function aksi(tombol, fn, labelProses = "Menyimpan...") {
   const label = tombol?.innerHTML;
-  if (tombol) { tombol.disabled = true; tombol.innerHTML = labelProses; }
+  if (tombol) { tombol.disabled = true; tombol.innerHTML = `<span class="putar"></span>${labelProses}`; }
   const lambat = setTimeout(() => toast(navigator.onLine ? "Sinyal lemah, masih mencoba..." : "Offline — akan dikirim saat sinyal kembali", "info"), 8000);
   try { return await fn(); }
   catch (ex) {
@@ -327,6 +363,7 @@ export async function aksi(tombol, fn, labelProses = "Menyimpan...") {
   finally { clearTimeout(lambat); if (tombol) { tombol.disabled = false; tombol.innerHTML = label; } }
 }
 function bannerError(teks) {
+  sembunyikanPemuat();
   let el = document.getElementById("gangguan");
   if (!el) { el = document.createElement("div"); el.id = "gangguan"; el.className = "gangguan"; document.body.prepend(el); }
   el.innerHTML = `<span>⚠ ${esc(teks)}</span> <button class="btn btn-sm" onclick="location.reload()">Muat ulang</button>
@@ -374,7 +411,7 @@ export function requireAuth(roles = null) {
       let profil;
       try { profil = await ambilProfil(user.uid); }
       catch (ex) {
-        if (cache?.uid === user.uid) profil = cache;
+        if (cache?.uid === user.uid) profil = cache;   // sinyal lemah: pakai data sesi
         else { bannerError("Tidak bisa memuat akun Anda: " + pesanError(ex)); return; }
       }
       if (!profil || !profil.aktif || profil.dihapus) {
@@ -400,6 +437,7 @@ export function requireAuth(roles = null) {
       });
       jamSiap = sinkronJamServer(user.uid);
       mulaiNotifikasi(profil);
+      setTimeout(sembunyikanPemuat, 150);
       resolve({ user, profil });
     });
   });
@@ -417,7 +455,7 @@ function renderNav(profil) {
   el.innerHTML = `
     <div class="nav-atas">
       <a class="brand" href="${beranda(profil.role)}">
-        ${t.logo ? `<img src="${t.logo}" alt="">` : `<span class="logo">☪</span>`}
+        <img src="${logoDayah(t)}" alt="" class="${t.logo ? "" : "bulat"}">
         <div><strong>${esc(t.nama)}</strong><small>${esc(PERAN[profil.role] || "")} · ${esc(profil.nama)}</small></div>
       </a>
       <div class="nav-user">

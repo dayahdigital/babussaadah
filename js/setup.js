@@ -1,11 +1,11 @@
 // Membuat Super Admin pertama. Aturan Firestore hanya mengizinkan ini selama config/setup belum ada.
 import { auth, db, createUserWithEmailAndPassword, signOut, doc, getDoc, writeBatch, serverTimestamp } from "./firebase.js";
-import { normUsername, usernameValid, buatEmail, pasangFooter, pesanError, siapkanHalamanPublik, tampilanCache, simpan } from "./common.js";
+import { normUsername, usernameValid, buatEmail, pasangFooter, pesanError, siapkanHalamanPublik, tampilanCache, simpan, logoDayah, sembunyikanPemuat } from "./common.js";
 
 siapkanHalamanPublik();
 pasangFooter();
 const t = tampilanCache();
-if (t.logo) document.getElementById("logo").innerHTML = `<img src="${t.logo}" alt="">`;
+document.getElementById("logo").innerHTML = `<img src="${logoDayah(t)}" alt="">`;
 
 const form = document.getElementById("formSetup");
 const err = document.getElementById("err");
@@ -14,6 +14,7 @@ const btn = document.getElementById("btnBuat");
 const setup = await getDoc(doc(db, "config", "setup")).catch(() => null);
 if (setup?.exists()) document.getElementById("sudah").hidden = false;
 else form.hidden = false;
+sembunyikanPemuat();
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();

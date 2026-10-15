@@ -4,7 +4,7 @@
 import { db, collection, getDocs, getDoc, doc, query, where, writeBatch, serverTimestamp } from "./firebase.js";
 import {
   requireAuth, AKSES, toast, esc, ambilConfigAbsensi, ambilJadwal, ambilRiwayatJadwal, idJadwal, HARI, SEMUA_HARI,
-  jamSesi, today, aksi, tampilError, catatLog, kirimNotif, waktuIndo
+  jamSesi, today, aksi, ikon, tampilError, catatLog, kirimNotif, waktuIndo
 } from "./common.js";
 
 const { profil } = await requireAuth(AKSES.jadwal);
@@ -16,8 +16,8 @@ const form = document.getElementById("formJadwal");
 const cfg = await ambilConfigAbsensi();
 const [pagi, malam] = cfg.sesi;
 const sesiById = Object.fromEntries(cfg.sesi.map(s => [s.id, s]));
-document.getElementById("thPagi").textContent = `🌅 ${pagi.nama} (${jamSesi(pagi)})`;
-document.getElementById("thMalam").textContent = `🌙 ${malam.nama} (${jamSesi(malam)})`;
+document.getElementById("thPagi").innerHTML = `${ikon("matahari", 16)} ${esc(pagi.nama)} (${jamSesi(pagi)})`;
+document.getElementById("thMalam").innerHTML = `${ikon("bulan", 16)} ${esc(malam.nama)} (${jamSesi(malam)})`;
 
 let guruList = [], guruId = null, entri = {}, edit = null;
 
@@ -61,12 +61,12 @@ function sel_(s, h) {
   const e = entri[idJadwal(guruId, s.id, h)];
   return e
     ? `<td><div class="slot isi" data-sesi="${s.id}" data-hari="${h}" role="button" tabindex="0">
-         <b>📖 ${esc(e.kitab)}</b>${e.materi ? `<span>${esc(e.materi)}</span>` : ""}${e.kelas ? `<small>${esc(e.kelas)}</small>` : ""}</div></td>`
+         <b>${esc(e.kitab)}</b>${e.materi ? `<span>${esc(e.materi)}</span>` : ""}${(e.tempat || e.kelas) ? `<small>${[e.tempat, e.kelas].filter(Boolean).map(esc).join(" · ")}</small>` : ""}</div></td>`
     : `<td><button class="slot kosong" data-sesi="${s.id}" data-hari="${h}">+ Pilih</button></td>`;
 }
 function itemRiwayat(r) {
   const t = { tambah: ["+", "tambah", "Menambah"], ubah: ["✎", "ubah", "Mengubah"], hapus: ["−", "hapus", "Menghapus"] }[r.aksi] || ["•", "ubah", "Mengubah"];
-  const fmt = (x) => x ? `${esc(x.kitab)}${x.materi ? " · " + esc(x.materi) : ""}${x.kelas ? " · " + esc(x.kelas) : ""}` : "";
+  const fmt = (x) => x ? `${esc(x.kitab)}${x.materi ? " · " + esc(x.materi) : ""}${x.tempat ? " · " + esc(x.tempat) : ""}${x.kelas ? " · " + esc(x.kelas) : ""}` : "";
   return `<li><span class="tanda ${t[1]}">${t[0]}</span><div>
     ${t[2]} <b>${HARI[r.hari] || ""} · ${esc(sesiById[r.sesi]?.nama || r.sesi)}</b><br>
     ${r.aksi === "ubah" ? `<del>${fmt(r.sebelum)}</del> → <ins>${fmt(r.sesudah)}</ins>` : r.aksi === "hapus" ? `<del>${fmt(r.sebelum)}</del>` : `<ins>${fmt(r.sesudah)}</ins>`}
@@ -81,6 +81,7 @@ function buka(sesiId, hari) {
   form.kitab.value = e?.kitab || "";
   form.materi.value = e?.materi || "";
   form.kelas.value = e?.kelas || "";
+  form.tempat.value = e?.tempat || "";
   document.getElementById("btnHapus").hidden = !e;
   modal.classList.add("open");
   setTimeout(() => form.kitab.focus(), 50);
@@ -93,8 +94,8 @@ function tulis(b, aksiNama, sebelum, sesudah) {
   const id = idJadwal(guruId, edit.sesi, edit.hari);
   b.set(doc(collection(db, "riwayat_jadwal")), {
     guruId, namaGuru: guruNow()?.nama || profil.nama, sesi: edit.sesi, hari: edit.hari, aksi: aksiNama,
-    sebelum: sebelum ? { kitab: sebelum.kitab || "", materi: sebelum.materi || "", kelas: sebelum.kelas || "" } : null,
-    sesudah: sesudah ? { kitab: sesudah.kitab, materi: sesudah.materi, kelas: sesudah.kelas } : null,
+    sebelum: sebelum ? { kitab: sebelum.kitab || "", materi: sebelum.materi || "", tempat: sebelum.tempat || "", kelas: sebelum.kelas || "" } : null,
+    sesudah: sesudah ? { kitab: sesudah.kitab, materi: sesudah.materi, tempat: sesudah.tempat, kelas: sesudah.kelas } : null,
     sejak: sebelum?.sejak || today(), tanggal: today(),
     oleh: profil.uid, olehNama: profil.nama, waktu: serverTimestamp()
   });
@@ -104,8 +105,8 @@ function tulis(b, aksiNama, sebelum, sesudah) {
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   const lama = entri[idJadwal(guruId, edit.sesi, edit.hari)];
-  const baru = { kitab: form.kitab.value.trim(), materi: form.materi.value.trim(), kelas: form.kelas.value.trim() };
-  if (lama && lama.kitab === baru.kitab && (lama.materi || "") === baru.materi && (lama.kelas || "") === baru.kelas) { modal.classList.remove("open"); return; }
+  const baru = { kitab: form.kitab.value.trim(), materi: form.materi.value.trim(), tempat: form.tempat.value.trim(), kelas: form.kelas.value.trim() };
+  if (lama && ["kitab", "materi", "tempat", "kelas"].every(k => (lama[k] || "") === baru[k])) { modal.classList.remove("open"); return; }
   aksi(document.getElementById("btnSimpan"), async () => {
     const b = writeBatch(db);
     const id = tulis(b, lama ? "ubah" : "tambah", lama, baru);
@@ -144,15 +145,8 @@ document.getElementById("btnBatal").onclick = () => modal.classList.remove("open
 
 // Laporan semua jadwal
 async function dataLaporan() {
-  const semua = (await ambilJadwal()).filter(e => e.aktifGuru !== false)
-    .sort((a, b) => a.hari - b.hari || cfg.sesi.findIndex(s => s.id === a.sesi) - cfg.sesi.findIndex(s => s.id === b.sesi) || (a.namaGuru || "").localeCompare(b.namaGuru || ""));
-  return {
-    judul: "JADWAL MENGAJAR TEUNGKU",
-    sub: `Sesi ${pagi.nama} ${jamSesi(pagi)} · Sesi ${malam.nama} ${jamSesi(malam)} WIB`,
-    kolom: ["No", "Hari", "Sesi", "Nama Teungku", "Kitab", "Materi / Bab", "Kelas"],
-    baris: semua.map((e, i) => [i + 1, HARI[e.hari], sesiById[e.sesi]?.nama || e.sesi, e.namaGuru, e.kitab, e.materi || "-", e.kelas || "-"]),
-    namaFile: "jadwal-mengajar"
-  };
+  const { dataLaporanJadwal } = await import("./jadwal-tampil.js");
+  return dataLaporanJadwal(cfg, (await ambilJadwal()).filter(e => e.aktifGuru !== false));
 }
 document.getElementById("btnPdf")?.addEventListener("click", (e) => aksi(e.target, async () => (await import("./laporan.js")).pdfTabel(await dataLaporan()), "Membuat PDF..."));
 document.getElementById("btnExcel")?.addEventListener("click", (e) => aksi(e.target, async () => (await import("./laporan.js")).excelTabel(await dataLaporan()), "Membuat Excel..."));

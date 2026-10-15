@@ -1,7 +1,7 @@
 // Pengaturan lembaga, istilah & versi aplikasi (aman masuk repo GitHub)
 
 // Nomor versi. BUILD diisi otomatis oleh GitHub Actions (nomor build), mis. "3.0.0 · build 57".
-export const APP_VERSI = "3.0.0";
+export const APP_VERSI = "3.1.0";
 export const APP_BUILD = "__BUILD__";
 export const HAK_CIPTA = "©SRISP 2026";
 
