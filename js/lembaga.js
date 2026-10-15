@@ -1,6 +1,7 @@
 // Profil Dayah (Super Admin): nama, alamat, pejabat penanda tangan, logo & foto.
 // Gambar diperkecil di browser lalu disimpan di Firestore (config/tampilan).
 import { db, doc, setDoc, serverTimestamp } from "./firebase.js";
+import { MODEL } from "./jadwal-tampil.js";
 import { requireAuth, AKSES, ambilTampilan, simpan, toast, aksi, catatLog, gambarKecil, tampilError, logoDayah, pasangTema } from "./common.js";
 
 await requireAuth(AKSES.lembaga);
@@ -13,6 +14,8 @@ function pratinjau() {
   document.getElementById("pvFoto").style.backgroundImage = data.foto ? `url("${data.foto}")` : "";
 }
 TEKS.forEach(k => form[k].value = data[k] || "");
+form.modelJadwal.innerHTML = MODEL.map(m => `<option value="${m.id}">${m.label}</option>`).join("");
+form.modelJadwal.value = data.modelJadwal || "roster";
 pratinjau();
 (form.querySelector(`input[name=tema][value="${data.tema || "hijau"}"]`) || form.tema[0]).checked = true;
 form.querySelectorAll("input[name=tema]").forEach(r => r.onchange = () => pasangTema(r.value));
@@ -32,6 +35,7 @@ document.getElementById("hapusFoto").onclick = () => { data.foto = ""; pratinjau
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   TEKS.forEach(k => data[k] = form[k].value.trim());
+  data.modelJadwal = form.modelJadwal.value;
   data.tema = form.querySelector("input[name=tema]:checked")?.value || "hijau";
   aksi(document.getElementById("btnSimpan"), async () => {
     await setDoc(doc(db, "config", "tampilan"), { ...data, diubah: serverTimestamp() });

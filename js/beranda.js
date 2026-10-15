@@ -1,16 +1,18 @@
 // Halaman depan (publik)
-// Kiri : identitas dayah, login (cukup kata sandi setelah pertama kali), tombol Pengelola, petunjuk pasang aplikasi.
+// Kiri : identitas dayah, login (cukup kata sandi setelah pertama kali), tombol Install, tulisan Pengelola di kaki.
 // Kanan: mading, jadwal mengajar dengan pilihan model tampilan. Kaki: teks berjalan.
 import { auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut, doc, getDoc, getDocs, collection } from "./firebase.js";
 import {
   ambilProfil, ambilTampilan, tampilanCache, logoDayah, beranda, simpan, esc, PERAN, pasangFooter, pesanError,
   ambilConfigAbsensi, ambilJadwal, ambilRiwayatJadwal, jamSesi, today, tglPanjang, normUsername, usernameValid,
-  siapkanHalamanPublik, sinkronJamHTTP, pasangAplikasi, ikon, sembunyikanPemuat, tampilError, aksi
+  siapkanHalamanPublik, sinkronJamHTTP, pasangAplikasi, bisaInstallLangsung, sudahTerpasang, toast, ikon, sembunyikanPemuat, tampilError, aksi
 } from "./common.js";
 import { MODEL, render, dataLaporanJadwal } from "./jadwal-tampil.js";
 
 siapkanHalamanPublik();
 pasangFooter(document.getElementById("kakiKiri"));
+// Pintu Super Admin: tulisan kecil di samping "Panduan"
+document.querySelector("#kakiKiri .kaki")?.insertAdjacentHTML("beforeend", ` · <a class="lnk-pengelola" id="btnPengelola" href="#" role="button">Pengelola</a>`);
 const $ = (id) => document.getElementById(id);
 
 // ===================== Identitas dayah =====================
@@ -41,7 +43,6 @@ const form = $("formLogin"), err = $("err"), btn = $("btnMasuk");
 let mode = "biasa", sedangLogin = false;
 $("lihatSandi").innerHTML = ikon("mata", 18);
 $("lihatSandi").onclick = () => form.password.type = form.password.type === "password" ? "text" : "password";
-$("btnPengelola").innerHTML = `${ikon("kunci", 15)} Pengelola`;
 if (new URLSearchParams(location.search).has("nonaktif")) err.textContent = "Akun Anda nonaktif. Hubungi pengelola dayah.";
 
 const akunTersimpan = () => simpan.get("akunTersimpan");
@@ -60,7 +61,6 @@ function tampilLogin() {
     form.username.value = a.u;
   } else if (mode === "pengelola") form.username.value = "";
   $("btnBatalPengelola").hidden = mode !== "pengelola";
-  $("btnPengelola").hidden = mode === "pengelola";
   $("kotakLogin").hidden = false;
   $("sudahMasuk").hidden = true;
   form.password.value = "";
@@ -68,7 +68,7 @@ function tampilLogin() {
 }
 tampilLogin();
 $("btnGantiAkun").onclick = () => { simpan.del("akunTersimpan"); form.username.value = ""; tampilLogin(); form.username.focus(); };
-$("btnPengelola").onclick = () => { mode = "pengelola"; tampilLogin(); form.username.focus(); $("kotakLogin").scrollIntoView({ behavior: "smooth", block: "center" }); };
+$("btnPengelola").onclick = (e) => { e.preventDefault(); mode = "pengelola"; tampilLogin(); form.username.focus(); $("kotakLogin").scrollIntoView({ behavior: "smooth", block: "center" }); };
 $("btnBatalPengelola").onclick = () => { mode = "biasa"; tampilLogin(); };
 
 getDoc(doc(db, "config", "setup")).then(s => { if (!s.exists()) $("infoSetup").hidden = false; }).catch(() => {});
@@ -116,31 +116,54 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-// ===================== Pasang aplikasi (PWA) =====================
-const OS = {
-  android: { label: "Android", ikon: "android", langkah: [
-    "Buka situs ini di <b>Chrome</b>.", "Ketuk tombol <b>Pasang sekarang</b> di bawah, atau menu <b>⋮</b> → <b>Instal aplikasi</b> / <b>Tambahkan ke layar utama</b>.",
-    "Ikon logo dayah muncul di layar utama HP."] },
-  ios: { label: "iPhone", ikon: "apel", langkah: [
-    "Buka situs ini di <b>Safari</b>.", "Ketuk tombol <b>Bagikan</b> (kotak dengan panah ke atas) di bawah layar.",
-    "Pilih <b>Tambah ke Layar Utama</b> → <b>Tambah</b>."] },
-  pc: { label: "Komputer", ikon: "monitor", langkah: [
-    "Buka situs ini di <b>Chrome</b> atau <b>Edge</b>.", "Klik tombol <b>Pasang sekarang</b>, atau ikon <b>⊕ Instal</b> di ujung kanan kolom alamat.",
-    "Aplikasi bisa dibuka dari menu Start / desktop."] }
-};
+// ===================== Install aplikasi (PWA) =====================
+// Android & komputer (Chrome/Edge/Samsung Internet): tombol langsung membuka dialog install bawaan browser.
+// iPhone/iPad: Apple tidak mengizinkan tombol install, jadi ditampilkan 2 langkah singkat.
 const ua = navigator.userAgent;
-let os = /android/i.test(ua) ? "android" : /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "ios" : "pc";
-function tampilPasang() {
-  document.querySelectorAll(".pasang-tab button").forEach(b => {
-    b.innerHTML = `${ikon(OS[b.dataset.os].ikon, 15)} ${OS[b.dataset.os].label}`;
-    b.classList.toggle("aktif", b.dataset.os === os);
-  });
-  $("pasangIsi").innerHTML = `<ol class="pasang-langkah">${OS[os].langkah.map(l => `<li>${l}</li>`).join("")}</ol>`;
+const isIOS = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+const isAndroid = /android/i.test(ua);
+const dalamAplikasiLain = /FBAN|FBAV|Instagram|Line\/|WhatsApp|; wv\)|TikTok|Telegram/i.test(ua);
+const btnInstall = $("btnInstall"), modalInstall = $("modalInstall");
+$("installKet").textContent = isIOS ? "Untuk iPhone / iPad" : isAndroid ? "Ketuk sekali, langsung terpasang" : "Klik sekali, langsung terpasang";
+if (sudahTerpasang()) btnInstall.hidden = true;
+const simbol = (n) => `<span class="simbol">${ikon(n, 16)}</span>`;
+function tampilPetunjuk() {
+  let sub, langkah;
+  if (isIOS) {
+    sub = "Di iPhone, Apple hanya mengizinkan lewat tombol Bagikan Safari.";
+    langkah = [`Ketuk tombol <b>Bagikan</b> ${simbol("bagikan")} di bawah layar Safari.`,
+      `Gulir, pilih <b>Tambah ke Layar Utama</b> ${simbol("tambahKotak")}.`, "Ketuk <b>Tambah</b>. Logo dayah muncul di layar utama."];
+  } else if (dalamAplikasiLain) {
+    sub = "Anda membuka link dari aplikasi lain (WhatsApp/Facebook/dll.).";
+    langkah = [`Ketuk menu ${simbol("titikTiga")} di pojok kanan atas.`, "Pilih <b>Buka di Chrome</b> / <b>Buka di browser</b>.",
+      "Di Chrome, ketuk lagi tombol <b>Install Aplikasi</b>."];
+  } else {
+    sub = "Browser ini belum menampilkan tombol install otomatis.";
+    langkah = [isAndroid ? `Ketuk menu ${simbol("titikTiga")} Chrome di pojok kanan atas.` : `Klik ikon install ${simbol("unduh")} di ujung kanan kolom alamat, atau menu ${simbol("titikTiga")}.`,
+      "Pilih <b>Instal aplikasi</b> / <b>Tambahkan ke layar utama</b>.",
+      "Bila tidak ada pilihan itu, buka situs ini di <b>Chrome</b> atau <b>Edge</b>. Bila aplikasi sudah terpasang, buka dari layar utama."];
+  }
+  $("installSub").textContent = sub;
+  $("installIsi").innerHTML = `<ol class="install-langkah">${langkah.map(l => `<li><div>${l}</div></li>`).join("")}</ol>`;
+  modalInstall.classList.add("open");
 }
-document.querySelector(".pasang-tab").onclick = (e) => { const b = e.target.closest("[data-os]"); if (b) { os = b.dataset.os; tampilPasang(); } };
-$("btnPasang").onclick = pasangAplikasi;
-tampilPasang();
-if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) $("pasangKotak").hidden = true;
+btnInstall.onclick = async () => {
+  if (!isIOS && bisaInstallLangsung()) { await pasangAplikasi(); return; }
+  if (!isIOS && !dalamAplikasiLain) {
+    // Dialog install kadang baru siap 1–2 detik setelah halaman dibuka
+    btnInstall.disabled = true;
+    await new Promise(r => { const t = setTimeout(r, 1500); document.addEventListener("bisa-install", () => { clearTimeout(t); r(); }, { once: true }); });
+    btnInstall.disabled = false;
+    if (bisaInstallLangsung()) { await pasangAplikasi(); return; }
+  }
+  tampilPetunjuk();
+};
+$("btnTutupInstall").onclick = () => modalInstall.classList.remove("open");
+modalInstall.addEventListener("click", (e) => { if (e.target === modalInstall) modalInstall.classList.remove("open"); });
+$("btnSalinLink").onclick = async () => {
+  try { await navigator.clipboard.writeText(location.origin + location.pathname.replace(/index\.html$/, "")); toast("Link disalin. Tempel di Chrome / Safari."); }
+  catch { toast(location.origin, "info"); }
+};
 
 // ===================== Pengumuman: mading & teks berjalan =====================
 $("judulMading").innerHTML = `${ikon("pin", 20)} Mading Dayah`;
@@ -176,21 +199,32 @@ getDocs(collection(db, "pengumuman")).then(snap => {
 
 // ===================== Jadwal (pilihan model) =====================
 const ctx = { cfg: null, jadwal: [], hari: null, cari: "", namaDayah: tampilan.nama, riwayat: null };
-let model = simpan.get("modelJadwal") || "roster";
-if (!MODEL.some(m => m.id === model)) model = "roster";
+// Tampilan bawaan diatur Super Admin (Profil Dayah). Pilihan pengunjung hanya berlaku selama halaman dibuka.
+const modelValid = (m) => MODEL.some(x => x.id === m) ? m : "roster";
+let model = modelValid(simpan.get("modelJadwal", true) || tampilan.modelJadwal);
+ambilTampilan().then(t => { if (!simpan.get("modelJadwal", true) && modelValid(t.modelJadwal) !== model) { model = modelValid(t.modelJadwal); gambarModel(); if (ctx.cfg) gambarJadwal(); } }).catch(() => {});
 
 function gambarModel() {
+  const m = MODEL.find(x => x.id === model);
+  $("btnTampilan").innerHTML = `${ikon(m.ikon, 16)} Tampilan: ${m.label} <span aria-hidden="true">${$("modelPilih").hidden ? "▾" : "▴"}</span>`;
   $("modelPilih").innerHTML = MODEL.map(m => `<button class="${m.id === model ? "aktif" : ""}" data-model="${m.id}">${ikon(m.ikon, 20)}${m.label}</button>`).join("");
 }
 function gambarJadwal() {
   ctx.namaDayah = tampilan.nama;
   $("isiJadwal").innerHTML = render(model, ctx);
 }
+$("btnTampilan").onclick = () => {
+  const buka = $("modelPilih").hidden;
+  $("modelPilih").hidden = !buka;
+  $("btnTampilan").setAttribute("aria-expanded", String(buka));
+  gambarModel();
+};
 $("modelPilih").onclick = async (e) => {
   const b = e.target.closest("[data-model]");
   if (!b) return;
   model = b.dataset.model;
-  simpan.set("modelJadwal", model);
+  simpan.set("modelJadwal", model, true);
+  $("modelPilih").hidden = true; $("btnTampilan").setAttribute("aria-expanded", "false");
   gambarModel(); gambarJadwal();
   if (model === "riwayat" && ctx.riwayat === null) {
     try { ctx.riwayat = await ambilRiwayatJadwal(); } catch (ex) { ctx.riwayat = []; tampilError(ex, "Gagal memuat riwayat"); }

@@ -85,7 +85,11 @@ const P = {
   kunci: '<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/>',
   layarPenuh: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
   mata: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>'
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+  bagikan: '<path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/>',
+  tambahKotak: '<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>',
+  titikTiga: '<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>',
+  unduh: '<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>'
 };
 export const ikon = (n, ukuran = 20) =>
   `<svg class="ikon" width="${ukuran}" height="${ukuran}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ""}</svg>`;
@@ -122,7 +126,7 @@ export const simpan = {
 // ---------------------------------------------------------------------
 export const LOGO_BAWAAN = "icons/logo-dayah.png";
 export function tampilanCache() {
-  return { ...LEMBAGA, tagline: "", logo: "", foto: "", tema: "hijau", namaArab: "داية باب السعادة", ...(simpan.get("tampilan") || {}) };
+  return { ...LEMBAGA, tagline: "", logo: "", foto: "", tema: "hijau", modelJadwal: "roster", namaArab: "داية باب السعادة", ...(simpan.get("tampilan") || {}) };
 }
 export const logoDayah = (t) => t?.logo || LOGO_BAWAAN;
 export function pasangTema(tema) {
@@ -146,7 +150,7 @@ export async function ambilTampilan() {
       nama: d.nama || LEMBAGA.nama, alamat: d.alamat || LEMBAGA.alamat,
       bendahara: d.bendahara || LEMBAGA.bendahara, pimpinan: d.pimpinan || LEMBAGA.pimpinan,
       tagline: d.tagline || "", logo: d.logo || "", foto: d.foto || "",
-      tema: d.tema || "hijau", namaArab: d.namaArab ?? "داية باب السعادة"
+      tema: d.tema || "hijau", modelJadwal: d.modelJadwal || "roster", namaArab: d.namaArab ?? "داية باب السعادة"
     };
     simpan.set("tampilan", t);
     pasangTema(t.tema);
@@ -610,14 +614,25 @@ export function pasangPWA() {
     e.preventDefault();
     _promptPasang = e;
     document.querySelectorAll(".tombol-pasang").forEach(b => b.hidden = false);
+    document.dispatchEvent(new Event("bisa-install"));
+  });
+  window.addEventListener("appinstalled", () => {
+    _promptPasang = null;
+    document.querySelectorAll(".tombol-pasang,.tombol-install").forEach(b => b.hidden = true);
+    toast("Aplikasi terpasang. Buka dari layar utama / desktop.");
   });
 }
+export const bisaInstallLangsung = () => !!_promptPasang;
+export const sudahTerpasang = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+// Menampilkan dialog install bawaan browser. Mengembalikan false bila browser tidak menyediakannya.
 export async function pasangAplikasi() {
-  if (!_promptPasang) return toast("Buka menu browser lalu pilih 'Tambahkan ke Layar utama' / 'Install app'.", "info");
-  _promptPasang.prompt();
-  await _promptPasang.userChoice;
+  if (!_promptPasang) { toast("Buka menu browser lalu pilih 'Tambahkan ke Layar utama' / 'Install app'.", "info"); return false; }
+  const p = _promptPasang;
+  p.prompt();
+  const { outcome } = await p.userChoice.catch(() => ({}));
   _promptPasang = null;
-  document.querySelectorAll(".tombol-pasang").forEach(b => b.hidden = true);
+  if (outcome === "accepted") document.querySelectorAll(".tombol-pasang,.tombol-install").forEach(b => b.hidden = true);
+  return true;
 }
 
 // ---------------------------------------------------------------------
