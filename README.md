@@ -1,4 +1,4 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 3.1.1
+# Sistem Administrasi Dayah Babussa'adah — Versi 3.1.2
 
 ©SRISP 2026 · Situs: `dayahbabussaadah.web.id` · GitHub Pages + Firebase (Authentication + Firestore)
 
@@ -21,6 +21,10 @@
 | `setup.html` | Sekali | Super Admin pertama |
 
 Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/laporan.js` (PDF/Excel), `js/kamera.js` (selfie), `js/cadangan.js` (backup). Pustaka PDF/Excel ada di `js/vendor/` (MIT). PWA: `manifest.webmanifest`, `sw.js`, `icons/`.
+
+## Baru di 3.1.2
+- Tombol **Keluar** menampilkan kotak konfirmasi dulu.
+- Tombol **Kembali (Back)** di HP tidak langsung menutup aplikasi: menutup jendela/menu yang terbuka → kembali ke beranda → dialog "Keluar dari aplikasi?".
 
 ## Baru di 3.1.1
 - Satu tombol **Install Aplikasi** (Android/PC langsung muncul dialog install; iPhone menampilkan 2 langkah karena aturan Apple).
