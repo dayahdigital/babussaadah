@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>Kas — Dayah Babussa'adah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="pemuat" id="pemuat"><div class="wadah"><img src="icons/logo-dayah.png" alt=""></div><small>Memuat...</small></div>
   <header id="navbar"></header>
   <main>
     <h1>Kas Pemasukan & Pengeluaran</h1>
@@ -57,7 +61,7 @@
       </div>
       <table class="kartu-hp">
         <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Jenis</th><th class="num">Jumlah</th><th>Bukti</th><th></th></tr></thead>
-        <tbody id="tbKas"><tr><td colspan="7" class="empty">Memuat...</td></tr></tbody>
+        <tbody id="tbKas"><tr><td colspan="7" class="empty"><span class="putar"></span>Memuat...</td></tr></tbody>
       </table>
     </div>
 

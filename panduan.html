@@ -5,36 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>Panduan — Dayah Babussa'adah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="pemuat" id="pemuat"><div class="wadah"><img src="icons/logo-dayah.png" alt=""></div><small>Memuat...</small></div>
   <header style="background:var(--hijau);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px">
     <div style="max-width:860px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <b>📘 Panduan Aplikasi</b>
+      <b id="judulPanduan">Panduan Aplikasi</b>
       <a class="btn btn-sm btn-ghost" href="javascript:history.length>1?history.back():location.assign('./')">← Kembali</a>
     </div>
   </header>
   <main class="panduan" style="max-width:860px">
-    <p class="muted">Pilih bagian sesuai peran Anda. Ketuk judul untuk membuka.</p>
+    <div class="info" id="infoPeran">Memuat panduan sesuai akun Anda...</div>
 
-    <details open><summary>📱 Memasang aplikasi di HP & laptop</summary><div class="isi">
+    <details open data-untuk="semua"><summary>📱 Memasang aplikasi di HP & laptop</summary><div class="isi">
       <ol>
         <li><b>HP Android (Chrome):</b> buka situs dayah → ketuk menu ⋮ → <b>Tambahkan ke layar utama / Instal aplikasi</b>.</li>
         <li><b>iPhone (Safari):</b> ketuk tombol Bagikan → <b>Tambah ke Layar Utama</b>.</li>
-        <li><b>Laptop/PC (Chrome/Edge):</b> klik ikon ⊕ / "Instal" di ujung kanan bilah alamat, atau tombol <b>Pasang aplikasi</b> di halaman depan.</li>
+        <li><b>Laptop/PC (Chrome/Edge):</b> klik ikon ⊕ / "Instal" di ujung kanan bilah alamat, atau tombol <b>Pasang sekarang</b> di bawah kotak masuk halaman depan.</li>
         <li>Setelah terpasang, aplikasi terbuka penuh seperti aplikasi biasa dan tetap bisa menampilkan data terakhir saat sinyal lemah.</li>
       </ol></div></details>
 
-    <details><summary>🔑 Masuk & kata sandi</summary><div class="isi">
+    <details data-untuk="semua"><summary>🔑 Masuk & kata sandi</summary><div class="isi">
       <ul>
-        <li>Masuk di halaman depan dengan <b>username</b> dan <b>kata sandi</b> yang diberikan pengelola.</li>
+        <li>Pertama kali di perangkat ini: isi <b>username</b> dan <b>kata sandi</b> dari pengelola. Berikutnya cukup <b>kata sandi</b> saja, karena nama akun diingat.</li>
+        <li>Perangkat dipakai bergantian? Ketuk <b>Ganti akun</b> lalu masuk dengan username Anda.</li>
         <li>Lupa kata sandi? Hubungi pengelola (Super Admin) untuk direset, lalu ganti sendiri di menu <b>Akun Saya</b>.</li>
-        <li>Pengelola (Super Admin) masuk lewat <b>Pintu Pengelola</b> yang hanya diketahui pengelola.</li>
+        <li data-untuk="superadmin">Super Admin masuk lewat tombol <b>Pengelola</b> di bawah halaman depan (username + kata sandi).</li>
       </ul></div></details>
 
-    <details><summary>👳 Teungku: absen dengan selfie</summary><div class="isi">
+    <details data-untuk="guru"><summary>👳 Absen dengan selfie</summary><div class="isi">
       <ol>
         <li>Buka menu <b>Absen</b>. Sesi hari ini sesuai jadwal Anda muncul beserta kitabnya.</li>
         <li>Tombol <b>📷 Hadir</b> aktif mulai beberapa menit sebelum sesi sampai beberapa menit setelah sesi selesai (diatur pengelola). Jam yang dipakai adalah <b>jam server</b>, bukan jam HP.</li>
@@ -45,50 +50,57 @@
       <p class="kecil">Status: <span class="badge st-h"><b>✔</b> H · Hadir</span> <span class="badge st-i"><b>✉</b> I · Izin</span> <span class="badge st-s"><b>✚</b> S · Sakit</span> <span class="badge st-a"><b>✖</b> A · Alpa</span></p>
     </div></details>
 
-    <details><summary>📅 Teungku: mengatur jadwal mengajar</summary><div class="isi">
+    <details data-untuk="guru admin superadmin"><summary>📅 Mengatur jadwal mengajar</summary><div class="isi">
       <ol>
         <li>Menu <b>Jadwal</b> → ketuk kotak <b>+ Pilih</b> pada hari & sesi yang Anda ajar.</li>
-        <li>Isi <b>kitab</b>, <b>materi/bab</b>, dan <b>kelas</b> → Simpan. Ketuk kotak yang sudah terisi untuk mengubah atau menghapus.</li>
-        <li>Jadwal tampil untuk umum di halaman depan. Setiap perubahan tercatat di <b>Riwayat perubahan</b> (bisa dilihat siapa saja).</li>
+        <li>Isi <b>kitab</b>, <b>materi/bab</b>, <b>tempat</b>, dan <b>kelas</b> → Simpan. Ketuk kotak yang sudah terisi untuk mengubah atau menghapus.</li>
+        <li>Jadwal tampil untuk umum di halaman depan (model roster, kartu, papan, tabel, dll.). Setiap perubahan tercatat di <b>Riwayat perubahan</b> (bisa dilihat siapa saja).</li>
       </ol></div></details>
 
-    <details><summary>✉ Teungku: izin & sakit</summary><div class="isi">
+    <details data-untuk="guru"><summary>✉ Izin & sakit</summary><div class="isi">
       <ol>
         <li>Menu <b>Absen</b> → <b>+ Ajukan izin / sakit</b>.</li>
         <li>Pilih jenis, tanggal, sesi, tulis alasan; lampirkan surat dokter/foto bila ada → <b>Kirim</b>.</li>
         <li>Pimpinan Dayah menerima notifikasi dan memutuskan. Hasilnya muncul di daftar pengajuan Anda dan sebagai notifikasi 🔔.</li>
       </ol></div></details>
 
-    <details><summary>🏛 Pimpinan Dayah: menyetujui izin</summary><div class="isi">
+    <details data-untuk="pimpinan superadmin"><summary>🏛 Pimpinan Dayah: menyetujui izin</summary><div class="isi">
       <ol><li>Menu <b>Izin & Sakit</b> menampilkan pengajuan yang menunggu.</li>
         <li>Periksa alasan & lampiran, isi catatan bila perlu, lalu <b>Setujui</b> atau <b>Tolak</b>.</li>
         <li>Bila disetujui, absensi sesi terjadwal pada tanggal tersebut otomatis tercatat Izin/Sakit.</li></ol></div></details>
 
-    <details><summary>🗂 Operator: mengisi absensi</summary><div class="isi">
+    <details data-untuk="operator admin superadmin"><summary>🗂 Mengisi: mengisi absensi</summary><div class="isi">
       <ol><li>Menu <b>Absensi</b> → pilih tanggal & sesi. Yang tampil hanya teungku yang terjadwal.</li>
         <li>Pilih status H / I / S / A tiap teungku (atau <b>✔ Semua Hadir</b>), isi keterangan bila perlu → <b>Simpan Absensi</b>.</li>
         <li>Untuk badal, centang <b>Tampilkan teungku yang tidak terjadwal</b>.</li>
         <li>Rekap bulanan bisa diunduh <b>PDF</b> (rekap / rincian lengkap dengan kitab & materi) atau <b>Excel</b>.</li></ol></div></details>
 
-    <details><summary>💰 Bendahara: mukafaah & kas</summary><div class="isi">
+    <details data-untuk="bendahara superadmin"><summary>💰 Bendahara: mukafaah & kas</summary><div class="isi">
       <ol><li>Menu <b>Mukafaah</b> → pilih periode → <b>Hitung dari Absensi</b>.</li>
         <li>Tambah bonus/potongan bila ada → <b>Serahkan</b>. Mukafaah otomatis tercatat di Kas dan <b>terkunci</b>.</li>
         <li><b>📄 Slip</b> mengunduh slip PDF; <b>WhatsApp</b> mengirim slip ke teungku.</li>
         <li>Menu <b>Kas</b>: catat pemasukan/pengeluaran (angka otomatis bertitik), lampirkan foto nota bila ada. Kategori bisa diatur lewat <b>⚙ Kelola kategori</b>.</li>
         <li>Laporan kas bulanan/tahunan tersedia dalam PDF & Excel bergaris dengan tanda tangan.</li></ol></div></details>
 
-    <details><summary>🛠 Super Admin: pengaturan</summary><div class="isi">
+    <details data-untuk="superadmin"><summary>🛠 Super Admin: pengaturan</summary><div class="isi">
       <ul>
         <li><b>Pengguna</b>: buat akun (teungku ditautkan ke datanya), reset sandi, nonaktifkan, hapus. Buatlah minimal <b>2 Super Admin</b>.</li>
         <li><b>Absensi → Pengaturan sesi</b>: nama & jam sesi, hari, batas buka/tutup absen, izinkan absen mandiri.</li>
-        <li><b>Pengumuman</b>: teks berjalan & mading di halaman depan.</li>
-        <li><b>Profil Dayah</b>: logo, foto, alamat, nama pimpinan & bendahara (dipakai di laporan).</li>
+        <li><b>Pengumuman</b>: teks berjalan di kaki halaman depan & papan mading.</li>
+        <li><b>Profil Dayah</b>: logo, nama Arab, tema warna (hijau/biru/krem), alamat, nama pimpinan & bendahara (dipakai di laporan).</li>
         <li><b>Log Aktivitas</b>: semua perubahan tercatat dan tidak bisa dihapus.</li>
         <li><b>Backup</b>: unduh/pulihkan data; backup otomatis berkala saat membuka Beranda.</li>
         <li>Hanya Super Admin yang bisa mengubah atau membatalkan mukafaah yang sudah diserahkan.</li>
       </ul></div></details>
 
-    <details><summary>⚠ Bila ada masalah</summary><div class="isi">
+    <details data-untuk="admin"><summary>🗃 Admin: data teungku & pengumuman</summary><div class="isi">
+      <ul>
+        <li><b>Teungku</b>: tambah, ubah, nonaktifkan data teungku. Menghapus teungku juga menutup akun loginnya.</li>
+        <li><b>Pengumuman</b>: teks berjalan di kaki halaman depan & papan mading.</li>
+        <li>Jadwal setiap teungku bisa diatur dari menu <b>Jadwal</b>.</li>
+      </ul></div></details>
+
+    <details data-untuk="semua"><summary>⚠ Bila ada masalah</summary><div class="isi">
       <ul>
         <li>Pesan merah menjelaskan penyebabnya (internet, hak akses, jam sesi, dll.).</li>
         <li>Tampilan aneh setelah pembaruan? Tutup lalu buka lagi aplikasi, atau tarik ke bawah untuk memuat ulang.</li>
@@ -96,8 +108,27 @@
       </ul></div></details>
   </main>
   <script type="module">
-    import { pasangFooter, siapkanHalamanPublik } from "./js/common.js";
+    import { auth, onAuthStateChanged } from "./js/firebase.js";
+    import { pasangFooter, siapkanHalamanPublik, ambilProfil, sembunyikanPemuat, PERAN, simpan } from "./js/common.js";
     siapkanHalamanPublik(); pasangFooter();
+    const info = document.getElementById("infoPeran");
+    function terapkan(role) {
+      document.querySelectorAll("[data-untuk]").forEach(el => {
+        const untuk = el.dataset.untuk.split(" ");
+        el.hidden = !(untuk.includes("semua") || (role && untuk.includes(role)));
+      });
+      info.innerHTML = role
+        ? `Panduan untuk peran <b>${PERAN[role] || role}</b>. Hanya bagian yang sesuai akun Anda yang ditampilkan.`
+        : `Anda belum masuk. Setelah masuk, panduan menyesuaikan peran Anda (Teungku, Bendahara, Pimpinan, dll.).`;
+    }
+    const tersimpan = simpan.get("profil", true);
+    if (tersimpan?.role) terapkan(tersimpan.role);
+    onAuthStateChanged(auth, async (u) => {
+      try { terapkan(u ? (await ambilProfil(u.uid))?.role : null); }
+      catch { terapkan(tersimpan?.role || null); }
+      finally { sembunyikanPemuat(); }
+    });
+    setTimeout(sembunyikanPemuat, 4000);
   </script>
 </body>
 </html>

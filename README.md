@@ -1,4 +1,4 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 3.0.0
+# Sistem Administrasi Dayah Babussa'adah — Versi 3.1.0
 
 ©SRISP 2026 · Situs: `dayahbabussaadah.web.id` · GitHub Pages + Firebase (Authentication + Firestore)
 
@@ -22,6 +22,17 @@
 
 Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/laporan.js` (PDF/Excel), `js/kamera.js` (selfie), `js/cadangan.js` (backup). Pustaka PDF/Excel ada di `js/vendor/` (MIT). PWA: `manifest.webmanifest`, `sw.js`, `icons/`.
 
+## Baru di 3.1.0
+- Halaman depan baru: logo dayah, nama Arab, animasi memuat, petunjuk **Pasang aplikasi** (Android / iPhone / Komputer) di bawah kotak masuk.
+- **Masuk cukup kata sandi**: username diisi sekali per perangkat, lalu diingat. *Ganti akun* untuk perangkat bersama.
+- Super Admin masuk lewat tombol **Pengelola** di bawah halaman depan (tidak lagi ketuk 5×).
+- Jadwal publik punya 7 model tampilan: **Roster** (bawaan), Kartu, Papan pengumuman (bisa layar penuh untuk TV), Tabel ala Excel (+PDF/Excel), Per kitab, Per teungku, Riwayat. Setiap entri menulis Tanggal, Kitab, Materi/Bab, Tempat, Kelas.
+- Kolom baru **Tempat** pada jadwal mengajar.
+- Teks berjalan pindah ke kaki halaman, selalu terlihat saat digulir.
+- Panduan hanya menampilkan bagian sesuai peran yang masuk.
+- **Tema warna** (Hijau Zamrud / Biru Malam / Krem Kitab) dan nama Arab diatur di *Profil Dayah*.
+- Perbaikan tampilan terpotong saat digulir; ikon gambar menggantikan emoji (rapi di Windows 7).
+
 ## Peran
 
 | Peran | Akses |
@@ -41,7 +52,7 @@ Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/
 4. **Super Admin → Pengguna**: buka sekali (merapikan data login lama), buat akun **Pimpinan Dayah**, dan **Super Admin kedua** sebagai cadangan.
 5. Isi **Profil Dayah** (logo, alamat, nama pimpinan & bendahara — dipakai di laporan).
 
-**Nomor build otomatis (opsional, disarankan):** Settings → Pages → Source: **GitHub Actions**. Workflow `.github/workflows/deploy.yml` mengisi nomor build (tampil di kaki halaman: `Versi 3.0.0 · build 12`). Tanpa ini tetap jalan dengan "Deploy from a branch".
+**Nomor build otomatis (opsional, disarankan):** Settings → Pages → Source: **GitHub Actions**. Workflow `.github/workflows/deploy.yml` mengisi nomor build (tampil di kaki halaman: `Versi 3.1.0 · build 12`). Tanpa ini tetap jalan dengan "Deploy from a branch".
 
 Pembaruan file otomatis sampai ke HP: service worker selalu mengambil file terbaru saat online (tidak perlu `?v=`).
 

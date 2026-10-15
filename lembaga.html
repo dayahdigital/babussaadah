@@ -5,17 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>Profil Dayah — Dayah Babussa'adah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="pemuat" id="pemuat"><div class="wadah"><img src="icons/logo-dayah.png" alt=""></div><small>Memuat...</small></div>
   <header id="navbar"></header>
   <main style="max-width:860px">
     <h1>Profil Dayah</h1>
     <form class="card" id="formLembaga">
       <h2>Identitas</h2>
       <div class="field"><label>Nama dayah</label><input name="nama" required maxlength="80"></div>
+      <div class="field"><label>Nama dalam tulisan Arab (halaman depan)</label><input name="namaArab" class="arab" dir="rtl" maxlength="60" placeholder="داية باب السعادة" style="font-size:20px"></div>
       <div class="field"><label>Alamat</label><input name="alamat" maxlength="160"></div>
       <div class="field"><label>Slogan / keterangan singkat (halaman depan)</label><input name="tagline" maxlength="120" placeholder="mis. Pondok Pesantren Salafiyah"></div>
       <div class="grid grid-2" style="margin-bottom:0">
@@ -23,11 +28,19 @@
         <div class="field"><label>Nama Bendahara (tanda tangan slip & kas)</label><input name="bendahara" maxlength="80"></div>
       </div>
 
+      <h2 style="margin-top:12px">Tema warna</h2>
+      <p class="muted kecil">Berlaku untuk halaman depan dan seluruh aplikasi.</p>
+      <div class="tema-pilih">
+        <label><input type="radio" name="tema" value="hijau"><div class="tema-contoh" style="background:linear-gradient(135deg,#0b3d22,#145a32 55%,#c9a227)"></div><b>Hijau Zamrud</b><br><small class="muted">Klasik pesantren</small></label>
+        <label><input type="radio" name="tema" value="biru"><div class="tema-contoh" style="background:linear-gradient(135deg,#122540,#1e3a5f 55%,#c9a227)"></div><b>Biru Malam</b><br><small class="muted">Tenang & resmi</small></label>
+        <label><input type="radio" name="tema" value="krem"><div class="tema-contoh" style="background:linear-gradient(135deg,#33281a,#3f5f2a 55%,#f6f0e2)"></div><b>Krem Kitab</b><br><small class="muted">Hangat seperti kertas kuning</small></label>
+      </div>
+
       <h2 style="margin-top:12px">Logo</h2>
       <div class="unggah">
-        <div class="pratinjau-logo" id="pvLogo"><span>☪</span></div>
+        <div class="pratinjau-logo" id="pvLogo"><img src="icons/logo-dayah.png" alt=""></div>
         <div><input type="file" id="fileLogo" accept="image/*"><small class="muted">Sebaiknya persegi. Otomatis diperkecil. Dipakai juga di kop laporan PDF.</small>
-          <button type="button" class="btn btn-sm btn-sec" id="hapusLogo">Hapus logo</button></div>
+          <button type="button" class="btn btn-sm btn-sec" id="hapusLogo">Pakai logo bawaan</button></div>
       </div>
 
       <h2 style="margin-top:16px">Foto dayah (latar bilah kiri halaman depan)</h2>

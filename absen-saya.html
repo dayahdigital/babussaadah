@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>Absen — Dayah Babussa'adah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="pemuat" id="pemuat"><div class="wadah"><img src="icons/logo-dayah.png" alt=""></div><small>Memuat...</small></div>
   <header id="navbar"></header>
   <main style="max-width:720px">
     <h1>Assalamu'alaikum, <span id="nama"></span></h1>
@@ -17,7 +21,7 @@
     <div class="card">
       <div class="card-judul"><h2 id="judulHariIni">Absen hari ini</h2><span class="jam-server" id="jamServer"></span></div>
       <p id="pesan" class="kecil muted" style="margin-top:0"></p>
-      <div id="daftarSesi" class="sesi-list"><p class="empty">Memuat...</p></div>
+      <div id="daftarSesi" class="sesi-list"><p class="empty"><span class="putar"></span>Memuat...</p></div>
     </div>
 
     <div class="grid grid-3">
@@ -29,7 +33,7 @@
     <div class="card">
       <div class="card-judul"><h2>Izin & sakit</h2><button class="btn btn-sm" id="btnAjukan">+ Ajukan izin / sakit</button></div>
       <p class="kecil muted" style="margin-top:0">Pengajuan diperiksa dan disetujui oleh Pimpinan Dayah.</p>
-      <div id="daftarIzin"><p class="empty">Memuat...</p></div>
+      <div id="daftarIzin"><p class="empty"><span class="putar"></span>Memuat...</p></div>
     </div>
 
     <div class="card" id="kartuMukafaah" hidden>
@@ -46,7 +50,7 @@
       <h2>Riwayat absen <span class="jam" id="bulanIni"></span></h2>
       <table class="kartu-hp">
         <thead><tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th>Materi</th><th class="num">Mukafaah</th></tr></thead>
-        <tbody id="tbRiwayat"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+        <tbody id="tbRiwayat"><tr><td colspan="5" class="empty"><span class="putar"></span>Memuat...</td></tr></tbody>
       </table>
     </div>
   </main>

@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f5132">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>Jadwal Mengajar — Dayah Babussa'adah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <div class="pemuat" id="pemuat"><div class="wadah"><img src="icons/logo-dayah.png" alt=""></div><small>Memuat...</small></div>
   <header id="navbar"></header>
   <main style="max-width:920px">
     <h1>Jadwal Mengajar</h1>
@@ -17,8 +21,8 @@
     <div class="card">
       <div class="toolbar" id="pilihGuruWrap" hidden>
         <div class="field"><label>Teungku</label><select id="pilihGuru"></select></div>
-        <button class="btn btn-sec" id="btnPdf" data-roles="superadmin,admin">📄 PDF semua jadwal</button>
-        <button class="btn btn-sec" id="btnExcel" data-roles="superadmin,admin">📊 Excel</button>
+        <button class="btn btn-sec" id="btnPdf" data-roles="superadmin,admin">PDF semua jadwal</button>
+        <button class="btn btn-sec" id="btnExcel" data-roles="superadmin,admin">Excel</button>
       </div>
       <p id="keterangan" class="kecil muted" style="margin:8px 0 0"></p>
     </div>
@@ -28,16 +32,16 @@
       <div class="table-wrap">
         <table class="tabel-jadwal">
           <thead><tr><th>Hari</th><th id="thPagi">Pagi</th><th id="thMalam">Malam</th></tr></thead>
-          <tbody id="tbJadwal"><tr><td colspan="3" class="empty">Memuat...</td></tr></tbody>
+          <tbody id="tbJadwal"><tr><td colspan="3" class="empty"><span class="putar"></span>Memuat...</td></tr></tbody>
         </table>
       </div>
       <p class="kecil muted" style="margin-bottom:0">Jadwal menentukan sesi yang bisa diabsen, dan tampil untuk umum di halaman depan
-        (nama teungku, kitab, materi, kelas — tanpa data mukafaah). Setiap perubahan tercatat di riwayat.</p>
+        (nama teungku, kitab, materi, tempat, kelas — tanpa data mukafaah). Setiap perubahan tercatat di riwayat.</p>
     </div>
 
     <div class="card">
-      <h2>🕘 Riwayat perubahan</h2>
-      <ul class="riwayat" id="daftarRiwayat"><li class="empty">Memuat...</li></ul>
+      <h2>Riwayat perubahan</h2>
+      <ul class="riwayat" id="daftarRiwayat"><li class="empty"><span class="putar"></span>Memuat...</li></ul>
     </div>
   </main>
 
@@ -50,7 +54,10 @@
         <datalist id="daftarKitab"></datalist>
       </div>
       <div class="field"><label>Materi / bab</label><input name="materi" maxlength="200" placeholder="mis. Bab Thaharah"></div>
-      <div class="field"><label>Kelas / tingkat / tempat</label><input name="kelas" maxlength="80" placeholder="mis. Kelas 2 Ula, Balee 3"></div>
+      <div class="grid grid-2" style="margin-bottom:0">
+        <div class="field"><label>Tempat</label><input name="tempat" maxlength="60" placeholder="mis. Balee 3, Mushalla"></div>
+        <div class="field"><label>Kelas / tingkat</label><input name="kelas" maxlength="60" placeholder="mis. Kelas 2 Ula"></div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-red" id="btnHapus" style="margin-right:auto">Hapus</button>
         <button type="button" class="btn btn-sec" id="btnBatal">Batal</button>

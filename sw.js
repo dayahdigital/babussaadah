@@ -7,8 +7,8 @@ const CACHE = "babussaadah-" + VERSI;
 const INTI = [
   "./", "index.html", "dashboard.html", "absen-saya.html", "absensi.html", "jadwal-mengajar.html", "izin.html",
   "teungku.html", "mukafaah.html", "kas.html", "pengumuman.html", "pengguna.html", "lembaga.html", "log.html",
-  "backup.html", "akun.html", "panduan.html", "css/style.css", "manifest.webmanifest", "icons/icon-192.png",
-  "js/common.js", "js/firebase.js", "js/firebase-config.js", "js/pengaturan.js", "js/beranda.js", "js/kamera.js"
+  "backup.html", "akun.html", "panduan.html", "css/style.css", "manifest.webmanifest", "icons/icon-192.png", "icons/logo-dayah.png", "icons/favicon-48.png", "icons/apple-touch-icon.png",
+  "js/common.js", "js/firebase.js", "js/firebase-config.js", "js/pengaturan.js", "js/beranda.js", "js/jadwal-tampil.js", "js/kamera.js"
 ];
 
 self.addEventListener("install", (e) => {
@@ -25,7 +25,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   const sendiri = url.origin === self.location.origin;
-  const pustaka = (sendiri && url.pathname.includes("/js/vendor/")) || url.hostname === "www.gstatic.com";
+  const pustaka = (sendiri && url.pathname.includes("/js/vendor/")) || url.hostname === "www.gstatic.com" || url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (!sendiri && !pustaka) return;      // Firestore, Google API, dll. langsung ke jaringan
 
   if (pustaka) {
