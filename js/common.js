@@ -393,6 +393,14 @@ export async function ambilProfil(uid) {
   const s = await getDoc(doc(db, "users", uid));
   return s.exists() ? { uid, ...s.data() } : null;
 }
+// Tombol "Keluar" di menu: tanya dulu, baru keluar dari akun
+export async function keluarDenganKonfirmasi() {
+  const ok = await konfirmasi({
+    judul: "Keluar dari akun?", ikonNama: "keluar", bahaya: true, ya: "Ya, keluar", tidak: "Batal",
+    isi: "Untuk masuk lagi, Anda perlu memasukkan kata sandi."
+  });
+  if (ok) keluar();
+}
 export async function keluar() {
   simpan.del("profil", true);
   await signOut(auth).catch(() => {});
@@ -471,7 +479,7 @@ function renderNav(profil) {
       ${menu.map(m => `<a href="${m.href}" class="${m.href === now ? "active" : ""}">${ikon(m.ikon, 16)} ${m.label}</a>`).join("")}
     </nav>
     <div class="panel-notif" id="panelNotif" hidden></div>`;
-  document.getElementById("btnLogout").onclick = keluar;
+  document.getElementById("btnLogout").onclick = keluarDenganKonfirmasi;
   document.getElementById("btnLonceng").onclick = bukaPanelNotif;
 
   // Navigasi bawah HP: 4 menu utama + "Menu" untuk sisanya
@@ -500,7 +508,7 @@ function renderNav(profil) {
   document.body.appendChild(lm);
   document.getElementById("btnMenuBawah").onclick = () => { lm.hidden = false; };
   lm.addEventListener("click", (e) => { if (e.target === lm) lm.hidden = true; });
-  document.getElementById("btnKeluarLembar").onclick = keluar;
+  document.getElementById("btnKeluarLembar").onclick = () => { lm.hidden = true; keluarDenganKonfirmasi(); };
   document.getElementById("btnPasangLembar").onclick = pasangAplikasi;
   if (_promptPasang) document.getElementById("btnPasangLembar").hidden = false;
   document.body.classList.add("ada-nav-bawah");
@@ -616,6 +624,7 @@ export function pasangPWA() {
     document.querySelectorAll(".tombol-pasang").forEach(b => b.hidden = false);
     document.dispatchEvent(new Event("bisa-install"));
   });
+  jagaTombolKembali();
   window.addEventListener("appinstalled", () => {
     _promptPasang = null;
     document.querySelectorAll(".tombol-pasang,.tombol-install").forEach(b => b.hidden = true);
@@ -623,6 +632,111 @@ export function pasangPWA() {
   });
 }
 export const bisaInstallLangsung = () => !!_promptPasang;
+
+// ---------------------------------------------------------------------
+// Kotak dialog konfirmasi (pengganti confirm() bawaan browser)
+// ---------------------------------------------------------------------
+export function konfirmasi({ judul, isi = "", ya = "Ya", tidak = "Batal", bahaya = false, ikonNama = "info" }) {
+  return new Promise((resolve) => {
+    document.querySelector(".dialog-konfirmasi")?.querySelector("[data-tidak]")?.click();
+    const m = document.createElement("div");
+    m.className = "modal open dialog-konfirmasi";
+    m.setAttribute("role", "alertdialog");
+    m.innerHTML = `<div class="box">
+      <div class="dk-ikon ${bahaya ? "bahaya" : ""}">${ikon(ikonNama, 30)}</div>
+      <h2>${esc(judul)}</h2>${isi ? `<p>${esc(isi)}</p>` : ""}
+      <div class="dk-tombol"><button type="button" class="btn btn-sec" data-tidak>${esc(tidak)}</button>
+        <button type="button" class="btn ${bahaya ? "btn-red" : ""}" data-ya>${esc(ya)}</button></div></div>`;
+    const tutup = (v) => { document.removeEventListener("keydown", kunci); m.classList.add("keluar-anim"); setTimeout(() => m.remove(), 150); resolve(v); };
+    const kunci = (e) => { if (e.key === "Escape") tutup(false); };
+    m.querySelector("[data-ya]").onclick = () => tutup(true);
+    m.querySelector("[data-tidak]").onclick = () => tutup(false);
+    m.addEventListener("click", (e) => { if (e.target === m) tutup(false); });
+    document.addEventListener("keydown", kunci);
+    document.body.appendChild(m);
+    setTimeout(() => m.querySelector("[data-tidak]").focus(), 30);
+  });
+}
+
+// ---------------------------------------------------------------------
+// Tombol Kembali (Back) di HP: jangan langsung keluar dari aplikasi.
+// - Ada jendela/menu terbuka  -> Back menutupnya dulu.
+// - Di halaman selain beranda -> Back kembali ke beranda.
+// - Di beranda                -> muncul dialog "Keluar dari aplikasi?".
+// Berlaku di aplikasi terpasang (PWA), dan di browser bila halaman ini
+// adalah halaman pertama di tab (Back berikutnya akan meninggalkan situs).
+// ---------------------------------------------------------------------
+let _jaga = false;
+function tutupLapisanTerbuka() {
+  const dialog = document.querySelector(".dialog-konfirmasi");
+  if (dialog) { dialog.querySelector("[data-tidak]").click(); return true; }
+  const modal = [...document.querySelectorAll(".modal.open")].pop();
+  if (modal) {
+    const batal = modal.querySelector("#kmBatal, [id^=btnBatal], [id^=btnTutup], [data-tutup]");
+    if (batal) batal.click(); else modal.classList.remove("open");
+    return true;
+  }
+  const lembar = document.getElementById("lembarMenu");
+  if (lembar && !lembar.hidden) { lembar.hidden = true; return true; }
+  const notif = document.getElementById("panelNotif");
+  if (notif && !notif.hidden) { notif.hidden = true; return true; }
+  return false;
+}
+function halamanUtama() {
+  const role = _profil?.role || simpan.get("profil", true)?.role;
+  return role ? beranda(role) : "index.html";
+}
+export function jagaTombolKembali() {
+  if (_jaga) return;
+  _jaga = true;
+  const terpasang = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (!terpasang && history.length > 1 && !history.state?.jaga) return;   // browser biasa: Back berjalan normal
+
+  // Di aplikasi terpasang, pindah halaman tidak menumpuk riwayat, jadi Back selalu tertangani di sini.
+  if (terpasang) document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href]");
+    if (!a || a.target || a.hasAttribute("download") || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || url.href === location.href || a.getAttribute("href").startsWith("#") || a.href.startsWith("javascript:")) return;
+    e.preventDefault();
+    pindahTanpaRiwayat(url.href);
+  });
+  // Turun dulu dari entri penjaga, lalu ganti halaman: riwayat tetap 1 halaman + 1 penjaga
+  let sedangPindah = false;
+  function pindahTanpaRiwayat(href) {
+    if (!history.state?.jaga) return location.replace(href);
+    sedangPindah = true;
+    window.addEventListener("popstate", () => location.replace(href), { once: true });
+    history.back();
+    setTimeout(() => location.replace(href), 400);   // cadangan
+  }
+
+  const pasangPenjaga = () => history.pushState({ jaga: 1 }, "");
+  if (!history.state?.jaga) pasangPenjaga();
+  let tanyaKeluar = false, bolehKeluar = false;
+  window.addEventListener("popstate", async (e) => {
+    if (e.state?.jaga || bolehKeluar || sedangPindah) return;
+    if (tutupLapisanTerbuka()) { pasangPenjaga(); return; }
+    const kini = location.pathname.split("/").pop() || "index.html";
+    const utama = halamanUtama();
+    if (kini !== utama && kini !== "index.html") { sedangPindah = true; location.replace(utama); return; }
+    if (tanyaKeluar) return;
+    tanyaKeluar = true;
+    pasangPenjaga();
+    const ok = await konfirmasi({
+      judul: "Keluar dari aplikasi?", ikonNama: "keluar", ya: "Keluar", tidak: "Tetap di sini",
+      isi: "Anda tetap masuk (login). Saat dibuka lagi, langsung ke halaman Anda."
+    });
+    tanyaKeluar = false;
+    if (!ok) return;
+    window.close();   // berhasil di sebagian HP; bila tidak, Back sekali lagi akan menutup aplikasi
+    bolehKeluar = true;
+    setTimeout(() => {
+      history.back();
+      toast("Tekan tombol Kembali sekali lagi untuk menutup aplikasi.", "info");
+    }, 250);
+  });
+}
 export const sudahTerpasang = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 // Menampilkan dialog install bawaan browser. Mengembalikan false bila browser tidak menyediakannya.
 export async function pasangAplikasi() {
