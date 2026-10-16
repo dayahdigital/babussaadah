@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <title>Jadwal Teungku — Dayah Babussa'adah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="pemuat" id="pemuat"><div class="wadah"><img src="icons/logo-dayah.png" alt=""></div><small>Memuat...</small></div>
+  <header id="navbar"></header>
+  <main style="max-width:1180px">
+    <div class="kanan-judul">
+      <div><h1>Jadwal Teungku</h1><p class="muted" id="tanggalHariIni"></p></div>
+      <div class="pub-sesi" id="pubSesi"></div>
+    </div>
+    <div class="info-hijau kecil">Jadwal ini hanya untuk internal dayah (Pimpinan, Super Admin & Teungku), tidak tampil di halaman web.
+      Lampu hijau berkedip menandakan pengajian sedang berlangsung.</div>
+    <div class="ganti-tampilan"><button type="button" id="btnTampilan" aria-expanded="false"></button></div>
+    <div class="model-pilih" id="modelPilih" hidden></div>
+    <div id="langsung"></div>
+    <div id="isiJadwal"><div class="kerangka"></div><div class="kerangka"></div><div class="kerangka"></div></div>
+  </main>
+  <script type="module" src="js/jadwal-teungku.js"></script>
+</body>
+</html>

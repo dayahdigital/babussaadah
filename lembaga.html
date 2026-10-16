@@ -36,9 +36,26 @@
         <label><input type="radio" name="tema" value="krem"><div class="tema-contoh" style="background:linear-gradient(135deg,#33281a,#3f5f2a 55%,#f6f0e2)"></div><b>Krem Kitab</b><br><small class="muted">Hangat seperti kertas kuning</small></label>
       </div>
 
-      <h2 style="margin-top:16px">Tampilan jadwal di halaman depan</h2>
-      <div class="field"><label>Model bawaan yang dilihat pengunjung</label><select name="modelJadwal" id="pilihModel"></select>
-        <small class="muted">Pengunjung tetap bisa mengganti lewat tombol <b>Tampilan</b> (tersembunyi), tetapi saat dibuka lagi kembali ke pilihan ini.</small></div>
+      <h2 style="margin-top:16px">Jadwal sholat di halaman depan</h2>
+      <p class="muted kecil" style="margin-top:0">Dihitung otomatis dengan kriteria Kemenag RI dari titik lokasi dayah. Lampu hijau berkedip saat waktu sholat fardhu tiba.</p>
+      <div class="grid grid-3" style="margin-bottom:0">
+        <div class="field"><label>Nama lokasi (tampil di web)</label><input id="shKota" maxlength="60" placeholder="mis. Dayah Babussa'adah, Aceh Besar"></div>
+        <div class="field"><label>Lintang (latitude)</label><input id="shLat" inputmode="decimal" placeholder="bawaan: Banda Aceh 5.5483"></div>
+        <div class="field"><label>Bujur (longitude)</label><input id="shLng" inputmode="decimal" placeholder="bawaan: 95.3238"></div>
+      </div>
+      <div class="toolbar" style="margin:0 0 10px">
+        <button type="button" class="btn btn-sm btn-sec" id="shLokasiSaya">Pakai lokasi saya sekarang</button>
+        <button type="button" class="btn btn-sm btn-sec" id="shSamakan">Samakan dengan lokasi GPS absen</button>
+        <span class="kecil muted" id="shInfo"></span>
+      </div>
+      <div class="field" style="max-width:320px"><label>Lampu berkedip selama (menit setelah waktu sholat tiba)</label><input type="number" id="shLampu" min="1" max="60"></div>
+      <details class="koreksi-sholat"><summary>Koreksi menit per waktu (bila ingin disamakan dengan masjid setempat)</summary>
+        <div class="grid grid-4" id="shKoreksi"></div></details>
+      <div class="pratinjau-sholat" id="shPratinjau"></div>
+
+      <h2 style="margin-top:16px">Tampilan menu "Jadwal Teungku" (internal)</h2>
+      <div class="field"><label>Model tampilan bawaan</label><select name="modelJadwal" id="pilihModel"></select>
+        <small class="muted">Jadwal mengajar hanya dilihat Pimpinan, Super Admin & Teungku. Mereka tetap bisa mengganti lewat tombol <b>Tampilan</b>.</small></div>
 
       <h2 style="margin-top:12px">Logo</h2>
       <div class="unggah">

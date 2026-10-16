@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#145a32">
-  <meta name="description" content="Pengumuman, jadwal mengajar, kitab & materi di Dayah Babussa'adah">
+  <meta name="description" content="Jadwal sholat, pengumuman & mading Dayah Babussa'adah">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon-48.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -77,18 +77,20 @@
 
     <!-- ================= KANAN: mading & jadwal (publik) ================= -->
     <main class="beranda-kanan">
+
+      <section class="sholat" id="sholat" aria-live="polite">
+        <div class="sholat-kepala">
+          <div><h1>Jadwal Sholat</h1><p id="tanggalHariIni"></p><p class="lokasi-sholat" id="lokasiSholat"></p></div>
+          <div class="jam-besar"><b id="jamSekarang">--.--</b><small>WIB</small></div>
+        </div>
+        <div class="sholat-sorot" id="sholatSorot"></div>
+        <div class="sholat-grid" id="sholatGrid"><div class="kerangka"></div></div>
+        <p class="sholat-ket">Perhitungan kriteria Kemenag RI (Subuh 20°, Isya 18°). Bisa berbeda 1–2 menit dengan masjid setempat.</p>
+      </section>
       <section id="madingWrap" hidden>
         <h2 class="judul-bagian" id="judulMading"></h2>
         <div class="mading" id="mading"></div>
       </section>
-
-      <div class="kanan-judul">
-        <div><h1>Jadwal Mengajar & Kitab</h1><p class="muted" id="tanggalHariIni"></p></div>
-        <div class="pub-sesi" id="pubSesi"></div>
-      </div>
-      <div class="ganti-tampilan"><button type="button" id="btnTampilan" aria-expanded="false"></button></div>
-      <div class="model-pilih" id="modelPilih" hidden></div>
-      <div id="isiJadwal"><div class="kerangka"></div><div class="kerangka"></div><div class="kerangka"></div></div>
     </main>
   </div>
 

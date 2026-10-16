@@ -17,14 +17,15 @@
   <header id="navbar"></header>
   <main>
     <h1>Absensi Teungku</h1>
+    <div class="pita-lihat">ⓘ Mode lihat untuk Pimpinan Dayah: semua data dapat dilihat dan diunduh, tetapi tidak diubah.</div>
 
     <div class="card">
       <h2>Input absensi per sesi</h2>
       <div class="toolbar">
         <div class="field"><label>Tanggal <span id="namaHari"></span></label><input type="date" id="tanggal"></div>
         <div class="field"><label>Sesi</label><select id="sesi"></select></div>
-        <button class="btn btn-sec" id="btnSemuaHadir">✔ Semua Hadir</button>
-        <button class="btn" id="btnSimpan">Simpan Absensi</button>
+        <button class="btn btn-sec tulis" id="btnSemuaHadir">✔ Semua Hadir</button>
+        <button class="btn tulis" id="btnSimpan">Simpan Absensi</button>
       </div>
       <label class="cek"><input type="checkbox" id="tampilSemua"> Tampilkan juga teungku yang tidak terjadwal (badal / pengganti)</label>
       <div class="legenda"><span class="badge st-h"><b>✔</b> H · Hadir</span><span class="badge st-i"><b>✉</b> I · Izin</span>
@@ -51,13 +52,35 @@
 
     <div class="card" data-roles="superadmin">
       <h2>⚙ Pengaturan sesi</h2>
-      <p class="kecil muted" style="margin-top:0">Nama dan jam sesi bebas diatur. Bila jam selesai lebih awal dari jam mulai, sesi dianggap berakhir keesokan hari (lewat tengah malam).
+      <p class="kecil muted" style="margin-top:0">Nama dan <b>rentang jam sesi</b> bebas diatur. Teungku memilih jam mengajarnya sendiri di dalam rentang ini (mis. sesi Pagi 08.00–17.00, teungku mengajar 09.00–11.00). Tombol Hadir mengikuti jam mengajar teungku. Bila jam selesai lebih awal dari jam mulai, sesi dianggap berakhir keesokan hari (lewat tengah malam).
         Jam absen diperiksa oleh server, bukan jam HP.</p>
       <div id="daftarSesi"></div>
       <div class="grid grid-2">
-        <div class="field"><label>Absen dibuka (menit sebelum sesi mulai)</label><input type="number" id="tolSebelum" min="0" max="240"></div>
-        <div class="field"><label>Absen ditutup (menit setelah sesi selesai)</label><input type="number" id="tolSesudah" min="0" max="240"></div>
+        <div class="field"><label>Absen dibuka (menit sebelum jam mengajar)</label><input type="number" id="tolSebelum" min="0" max="240"></div>
+        <div class="field"><label>Absen ditutup (menit setelah jam mengajar selesai)</label><input type="number" id="tolSesudah" min="0" max="240"></div>
       </div>
+      <h3 class="sub-judul">Absen pulang (selfie selesai mengajar)</h3>
+      <div class="grid grid-2">
+        <div class="field"><label>Absen pulang dibuka (menit sebelum jam mengajar selesai)</label><input type="number" id="pulangSebelum" min="0" max="240"></div>
+        <div class="field"><label>Absen pulang ditutup (menit setelah jam mengajar selesai)</label><input type="number" id="pulangSesudah" min="0" max="600"></div>
+      </div>
+      <p class="kecil muted" style="margin-top:-4px">Bila lewat batas tanpa absen pulang, muncul keterangan <b>"Tidak absen pulang"</b> di aplikasi (internal saja, tidak tampil di halaman web).</p>
+
+      <h3 class="sub-judul">Lokasi dayah (GPS)</h3>
+      <label class="cek"><input type="checkbox" id="gpsAktif"> Wajib berada di lokasi dayah saat absen hadir & pulang</label>
+      <div class="grid grid-3" style="margin-top:8px">
+        <div class="field"><label>Lintang (latitude)</label><input id="gpsLat" inputmode="decimal" placeholder="mis. 5.548290"></div>
+        <div class="field"><label>Bujur (longitude)</label><input id="gpsLng" inputmode="decimal" placeholder="mis. 95.323753"></div>
+        <div class="field"><label>Radius absen (meter)</label><input type="number" id="gpsRadius" min="10" max="5000" step="5"></div>
+      </div>
+      <div class="toolbar" style="margin:0 0 10px">
+        <button type="button" class="btn btn-sec btn-sm" id="btnLokasiSaya">Pakai lokasi saya sekarang</button>
+        <a class="btn btn-sec btn-sm" id="lnkPeta" target="_blank" rel="noopener" hidden>Buka di Google Maps</a>
+        <span class="kecil muted" id="infoGps"></span>
+      </div>
+      <div class="peta-wrap" id="petaWrap" hidden><iframe id="petaLokasi" title="Peta lokasi dayah" loading="lazy"></iframe></div>
+      <p class="kecil muted">Tips: berdiri di tengah area dayah lalu tekan <b>Pakai lokasi saya sekarang</b>. Radius 50–150 m biasanya cukup; GPS di dalam bangunan bisa meleset 20–50 m.</p>
+
       <label class="cek"><input type="checkbox" id="guruMandiri"> Teungku boleh absen sendiri (dengan selfie wajib)</label>
       <div style="margin-top:14px"><button class="btn" id="btnSimpanAtur">Simpan Pengaturan</button></div>
     </div>

@@ -17,18 +17,22 @@
   <header id="navbar"></header>
   <main>
     <h1>Mukafaah Teungku</h1>
+    <div class="pita-lihat">ⓘ Pimpinan Dayah: periksa lalu tekan <b>Setujui</b>. Bendahara baru bisa menyerahkan mukafaah yang sudah disetujui.</div>
 
     <div class="card">
       <div class="toolbar">
         <div class="field" style="max-width:220px"><label>Periode</label><input type="month" id="periode"></div>
-        <button class="btn" id="btnHitung">🧮 Hitung dari Absensi</button>
+        <button class="btn tulis" id="btnHitung">🧮 Hitung dari Absensi</button>
         <button class="btn btn-sec" id="btnPdf">📄 PDF</button>
         <button class="btn btn-sec" id="btnExcel">📊 Excel</button>
+        <button class="btn btn-emas" id="btnSetujuiSemua" data-roles="pimpinan" hidden>✔ Setujui semua</button>
       </div>
-      <label class="cek"><input type="checkbox" id="alpaOtomatis"> Hitung sesi terjadwal yang <b>tidak diabsen sama sekali</b> sebagai Alpa</label>
+      <label class="cek tulis"><input type="checkbox" id="alpaOtomatis"> Hitung sesi terjadwal yang <b>tidak diabsen sama sekali</b> sebagai Alpa</label>
       <p class="kecil muted" style="margin-bottom:0">
         Rumus: Mukafaah pokok + Tunjangan + Mukafaah kehadiran + Bonus − (Potongan per alpa × Alpa) − Potongan lain.
+        Alur: Bendahara menghitung → <b>Pimpinan Dayah menyetujui</b> → Bendahara menyerahkan. Mengubah bonus/potongan atau menghitung ulang membatalkan persetujuan.
         Saat <b>diserahkan</b>, otomatis tercatat di Kas dan dikunci (hanya Super Admin yang bisa mengubah/membatalkan).</p>
+      <label class="cek" data-roles="superadmin"><input type="checkbox" id="wajibSetuju"> Mukafaah wajib disetujui Pimpinan Dayah sebelum diserahkan</label>
     </div>
 
     <div class="grid grid-3">

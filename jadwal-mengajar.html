@@ -35,8 +35,7 @@
           <tbody id="tbJadwal"><tr><td colspan="3" class="empty"><span class="putar"></span>Memuat...</td></tr></tbody>
         </table>
       </div>
-      <p class="kecil muted" style="margin-bottom:0">Jadwal menentukan sesi yang bisa diabsen, dan tampil untuk umum di halaman depan
-        (nama teungku, kitab, materi, tempat, kelas — tanpa data mukafaah). Setiap perubahan tercatat di riwayat.</p>
+      <p class="kecil muted" style="margin-bottom:0">Teungku memilih jam mengajar di dalam rentang sesi yang ditetapkan Super Admin. Tombol Hadir terbuka mengikuti jam ini. Jadwal tampil di menu <b>Jadwal Teungku</b> untuk internal dayah (nama teungku, jam, durasi, kitab, materi, tempat, kelas — tanpa data mukafaah). Setiap perubahan tercatat di riwayat.</p>
     </div>
 
     <div class="card">
@@ -48,6 +47,14 @@
   <div class="modal" id="modal">
     <form class="box" id="formJadwal">
       <h2 id="judulModal">Jadwal</h2>
+      <div class="jam-ajar">
+        <p class="kecil muted" id="infoRentang" style="margin:0 0 8px"></p>
+        <div class="grid grid-2" style="margin-bottom:0">
+          <div class="field"><label for="jamMulai">Jam mulai</label><select id="jamMulai" name="jamMulai" required></select></div>
+          <div class="field"><label for="jamSelesai">Jam selesai</label><select id="jamSelesai" name="jamSelesai" required></select></div>
+        </div>
+        <div class="durasi-info" id="infoDurasi"></div>
+      </div>
       <div class="field">
         <label>Kitab yang diajarkan</label>
         <input name="kitab" required maxlength="120" list="daftarKitab" placeholder="mis. Matan Taqrib, Jurumiyah">

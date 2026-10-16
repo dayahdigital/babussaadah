@@ -8,7 +8,7 @@ const INTI = [
   "./", "index.html", "dashboard.html", "absen-saya.html", "absensi.html", "jadwal-mengajar.html", "izin.html",
   "teungku.html", "mukafaah.html", "kas.html", "pengumuman.html", "pengguna.html", "lembaga.html", "log.html",
   "backup.html", "akun.html", "panduan.html", "css/style.css", "manifest.webmanifest", "icons/icon-192.png", "icons/logo-dayah.png", "icons/favicon-48.png", "icons/apple-touch-icon.png",
-  "js/common.js", "js/firebase.js", "js/firebase-config.js", "js/pengaturan.js", "js/beranda.js", "js/jadwal-tampil.js", "js/kamera.js"
+  "js/common.js", "js/firebase.js", "js/firebase-config.js", "js/pengaturan.js", "js/beranda.js", "js/jadwal-tampil.js", "js/jadwal-teungku.js", "js/sholat.js", "jadwal-teungku.html", "js/kamera.js"
 ];
 
 self.addEventListener("install", (e) => {

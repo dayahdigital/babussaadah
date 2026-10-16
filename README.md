@@ -1,4 +1,4 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 3.1.2
+# Sistem Administrasi Dayah Babussa'adah — Versi 3.4.0
 
 ©SRISP 2026 · Situs: `dayahbabussaadah.web.id` · GitHub Pages + Firebase (Authentication + Firestore)
 
@@ -21,6 +21,27 @@
 | `setup.html` | Sekali | Super Admin pertama |
 
 Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/laporan.js` (PDF/Excel), `js/kamera.js` (selfie), `js/cadangan.js` (backup). Pustaka PDF/Excel ada di `js/vendor/` (MIT). PWA: `manifest.webmanifest`, `sw.js`, `icons/`.
+
+## Baru di 3.4.0
+- **Halaman web umum** kini menampilkan **Jadwal Sholat** (kriteria Kemenag RI, dihitung otomatis tanpa internet) dengan jam besar, hitung mundur ke waktu berikutnya, dan **lampu hijau berkedip** saat waktu sholat fardhu tiba. Lokasi, lama lampu & koreksi menit diatur di *Profil Dayah*.
+- **Jadwal mengajar tidak lagi publik.** Pindah ke menu internal **Jadwal Teungku** (Pimpinan, Super Admin, Teungku) lengkap dengan 7 model tampilan, lampu "sedang berlangsung" & tanda "Teungku hadir". Database juga hanya mengizinkan pengguna yang masuk.
+- **Pimpinan Dayah = pengawas & pemberi persetujuan**: melihat semua data (Absensi, Data Teungku, Mukafaah, Kas, Log, Jadwal), menyetujui izin, **menyetujui mukafaah sebelum diserahkan**, dan membuat pengumuman. Tidak bisa mengubah/menghapus data atau pengaturan.
+- Alur mukafaah: Bendahara hitung → Pimpinan setujui → Bendahara serahkan. Super Admin bisa mematikan kewajiban persetujuan (mis. bila belum ada akun Pimpinan).
+- **Wajib publish ulang `firestore.rules` (versi 3.4.0).**
+
+## Baru di 3.3.0
+- ~~Pimpinan setara Super Admin~~ (diganti di 3.4.0 menjadi pengawas & pemberi persetujuan).
+- **Absen dengan GPS**: Super Admin/Pimpinan mengatur titik lokasi dayah & radius (meter) di *Absensi → Pengaturan sesi*. Absen hadir & pulang di luar radius ditolak, juga diperiksa server.
+- **Absen pulang** dengan selfie, dibuka X menit sebelum jam mengajar selesai dan ditutup Y menit sesudahnya (bisa diatur). Lewat batas → "Tidak absen pulang", hanya tampil di aplikasi (absensi, beranda staf, laporan rincian, halaman teungku).
+- **Halaman web**: lampu hijau berkedip + "Pengajian sedang berlangsung" saat jam mengajar; "Pengajian selesai" (lampu diam) sesudahnya; lencana "Teungku hadir" setelah teungku absen. Kotak "Sedang berlangsung" di atas jadwal. Diperbarui otomatis tanpa memuat ulang.
+- **Wajib publish ulang `firestore.rules` (versi 3.3.0).**
+
+## Baru di 3.2.0
+- **Jam mengajar teungku.** Super Admin menetapkan rentang sesi (mis. Pagi 08.00–17.00) di *Absensi → Pengaturan sesi*. Teungku memilih jam mulai & selesai di dalam rentang itu (kelipatan 15 menit); durasi dihitung otomatis (mis. 2 jam / 120 menit).
+- Tombol **Hadir** terbuka mengikuti jam mengajar teungku (± toleransi), diperiksa server.
+- Jam & durasi tampil di halaman depan (semua model), dashboard, absensi, laporan PDF/Excel, dan riwayat.
+- Peringatan bila kelas/tempat yang sama dipakai teungku lain pada jam yang bertabrakan.
+- **Wajib publish ulang `firestore.rules` (versi 3.2.0).** Jadwal lama tanpa jam tetap berlaku (memakai jam sesi penuh) sampai teungku mengatur jamnya.
 
 ## Baru di 3.1.2
 - Tombol **Keluar** menampilkan kotak konfirmasi dulu.
@@ -57,7 +78,7 @@ Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/
 ## Memasang / memperbarui
 
 1. Unggah **semua** isi folder ke repo (termasuk `js/firebase-config.js`, `js/vendor/`, `icons/`, `sw.js`, `manifest.webmanifest`). Hapus file lama yang tidak ada lagi: `js/login.js`, `js/publik.js`, `js/guru.js`, `js/penggajian.js`.
-2. **Firebase → Firestore → Rules**: salin seluruh `firestore.rules` (baris 2: *versi 3.0.0*) → **Publish**. *Wajib.*
+2. **Firebase → Firestore → Rules**: salin seluruh `firestore.rules` (baris 2: *versi 3.4.0*) → **Publish**. *Wajib.*
 3. **Super Admin → Absensi → Pengaturan sesi → Simpan** sekali, agar jam sesi tersimpan untuk pemeriksaan server.
 4. **Super Admin → Pengguna**: buka sekali (merapikan data login lama), buat akun **Pimpinan Dayah**, dan **Super Admin kedua** sebagai cadangan.
 5. Isi **Profil Dayah** (logo, alamat, nama pimpinan & bendahara — dipakai di laporan).

@@ -1,5 +1,5 @@
 rules_version = '2';
-// Aturan keamanan Firestore — Dayah Babussa'adah (versi 3.0.0)
+// Aturan keamanan Firestore — Dayah Babussa'adah (versi 3.4.0)
 // Salin seluruh isi file ini ke Firebase Console → Firestore → Rules → Publish.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -11,11 +11,27 @@ service cloud.firestore {
     function aktif()     { return request.auth != null && exists(userPath()) && me().aktif == true; }
     function peran(list) { return aktif() && me().role in list; }
     function sa()        { return peran(['superadmin']); }
+    // Pimpinan Dayah: pengawas & pemberi persetujuan (lihat semua, setujui izin & mukafaah, pengumuman)
+    function pimpinan()  { return peran(['pimpinan']); }
     function staf()      { return peran(['superadmin', 'admin', 'bendahara', 'operator']); }
     function keuangan()  { return peran(['superadmin', 'admin', 'bendahara']); }
     function teungku()   { return peran(['guru']); }
     function bootstrap() { return request.auth != null && !exists(setupPath()) && existsAfter(setupPath()); }
     function hanyaBerubah(kunci) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(kunci); }
+
+    // Jam & pengaturan sesi
+    function jamKeMs(s)    { let p = s.split(':'); return int(p[0]) * 3600000 + int(p[1]) * 60000; }
+    function jamKeMenit(s) { let p = s.split(':'); return int(p[0]) * 60 + int(p[1]); }
+    function cfgAbsensi() {
+      let p = /databases/$(database)/documents/config/absensi;
+      return exists(p) ? get(p).data : {};
+    }
+    function jamCfg(sesiId) {
+      return cfgAbsensi().get('jam', {
+        'pagi':  { 'mulai': '07:30', 'selesai': '11:30' },
+        'malam': { 'mulai': '20:00', 'selesai': '22:00' }
+      })[sesiId];
+    }
 
     // ================= Super Admin: akses penuh (kecuali log yang tidak bisa diubah) =================
     match /{koleksi}/{id} {
@@ -32,8 +48,9 @@ service cloud.firestore {
 
     // ================= Pengaturan =================
     match /config/tampilan { allow get: if true; }              // logo, foto, nama dayah
-    match /config/absensi  { allow get: if true; }              // jam sesi (dipakai halaman depan)
-    match /config/kas      { allow get, write: if keuangan(); } // kategori kas
+    match /config/absensi  { allow get: if aktif(); }           // jam sesi, GPS (internal)
+    match /config/kas      { allow get: if keuangan() || pimpinan(); allow write: if keuangan(); } // kategori kas
+    match /config/mukafaah { allow get: if aktif(); }           // wajib persetujuan Pimpinan
 
     // ================= Jam server (dipakai aplikasi agar tidak bergantung jam HP) =================
     match /jam/{uid} {
@@ -56,20 +73,34 @@ service cloud.firestore {
 
     // ================= Data teungku (berisi mukafaah: tidak publik) =================
     match /guru/{id} {
-      allow read: if staf() || (teungku() && id == me().guruId);
+      allow read: if staf() || pimpinan() || (teungku() && id == me().guruId);
       allow write: if peran(['admin']);
     }
 
     // ================= Jadwal mengajar (publik) =================
+    // Jam mengajar teungku harus di dalam rentang sesi yang ditetapkan Super Admin.
+    // menitMulai/menitSelesai dihitung dari 00:00 hari sesi; sesi lewat tengah malam bisa > 1440.
+    function jamAjarSah(d) {
+      let j = jamCfg(d.sesi);
+      let a = jamKeMenit(j.mulai);
+      let b = jamKeMenit(j.selesai) + (jamKeMenit(j.selesai) <= a ? 1440 : 0);
+      return d.menitMulai is int && d.menitSelesai is int
+        && d.menitMulai >= a && d.menitSelesai <= b
+        && d.menitSelesai - d.menitMulai >= 15
+        && d.durasi == d.menitSelesai - d.menitMulai
+        && d.mulai is string && jamKeMenit(d.mulai) == d.menitMulai % 1440
+        && d.selesai is string && jamKeMenit(d.selesai) == d.menitSelesai % 1440;
+    }
     function jadwalSah(id) {
       let d = request.resource.data;
       return d.sesi in ['pagi', 'malam']
         && d.hari is int && d.hari >= 0 && d.hari <= 6
         && d.kitab is string && d.kitab.size() > 0 && d.kitab.size() <= 120
-        && id == d.guruId + '_' + d.sesi + '_' + string(d.hari);
+        && id == d.guruId + '_' + d.sesi + '_' + string(d.hari)
+        && jamAjarSah(d);
     }
     match /mengajar/{id} {
-      allow read: if true;
+      allow read: if aktif();                                     // internal dayah (tidak publik lagi)
       allow write: if peran(['admin']);
       allow create, update: if teungku() && request.resource.data.guruId == me().guruId
                             && (resource == null || resource.data.guruId == me().guruId) && jadwalSah(id);
@@ -77,7 +108,7 @@ service cloud.firestore {
     }
     // Riwayat perubahan jadwal (publik, tidak bisa diubah kecuali Super Admin)
     match /riwayat_jadwal/{id} {
-      allow read: if true;
+      allow read: if aktif();
       allow create: if aktif() && request.resource.data.waktu == request.time
                     && request.resource.data.oleh == request.auth.uid
                     && (peran(['admin']) || (teungku() && request.resource.data.guruId == me().guruId));
@@ -86,30 +117,52 @@ service cloud.firestore {
     // ================= Pengumuman (running text & mading) =================
     match /pengumuman/{id} {
       allow read: if true;
-      allow write: if peran(['admin']);
+      allow write: if peran(['admin', 'pimpinan']);
     }
 
     // ================= Absensi =================
-    function jamKeMs(s) { let p = s.split(':'); return int(p[0]) * 3600000 + int(p[1]) * 60000; }
     function awalHariMs(tgl) {
       let p = tgl.split('-');
       return timestamp.date(int(p[0]), int(p[1]), int(p[2])).toMillis() - 25200000;
     }
-    function cfgAbsensi() {
-      let p = /databases/$(database)/documents/config/absensi;
-      return exists(p) ? get(p).data : {};
+    // ---- GPS: posisi harus di dalam radius dayah (bila diaktifkan Super Admin) ----
+    // Jarak dihitung datar (cukup akurat untuk radius < 10 km); cosLat disimpan saat lokasi diatur.
+    function jarakKuadrat(l, c) {
+      let dy = (l.lat - c.lat) * 111320.0;
+      let dx = (l.lng - c.lng) * 111320.0 * c.cosLat;
+      return dx * dx + dy * dy;
     }
-    // Sekarang (jam server) harus di dalam jendela sesi pada tanggal itu, termasuk toleransi.
-    // Sesi yang lewat tengah malam (selesai <= mulai) berakhir keesokan harinya.
-    function dalamWaktuSesi(tgl, sesiId) {
+    function lokasiSah(l) {
+      let c = cfgAbsensi().get('lokasi', {});
+      return c.get('aktif', false) != true
+        || (l is map && l.lat is number && l.lng is number
+            && jarakKuadrat(l, c) <= c.radius * c.radius);
+    }
+    function mengajarDari(a) {
+      return get(/databases/$(database)/documents/mengajar/$(a.guruId + '_' + a.sesi + '_' + string(a.hari))).data;
+    }
+    // Absen pulang: dibuka X menit sebelum jam mengajar selesai, ditutup Y menit sesudahnya
+    function dalamWaktuPulang(a, m) {
       let c = cfgAbsensi();
-      let j = c.get('jam', {
-        'pagi':  { 'mulai': '07:30', 'selesai': '11:30' },
-        'malam': { 'mulai': '20:00', 'selesai': '22:00' }
-      })[sesiId];
+      let j = jamCfg(a.sesi);
+      let punyaJam = m.get('menitSelesai', null) is int;
+      let selesai = punyaJam ? m.menitSelesai * 60000
+                  : jamKeMs(j.selesai) + (jamKeMs(j.selesai) <= jamKeMs(j.mulai) ? 86400000 : 0);
+      let akhir = awalHariMs(a.tanggal) + selesai;
+      let now = request.time.toMillis();
+      return now >= akhir - c.get('pulangSebelum', 15) * 60000
+          && now <= akhir + c.get('pulangSesudah', 60) * 60000;
+    }
+    // Sekarang (jam server) harus di dalam jam mengajar teungku pada tanggal itu, termasuk toleransi.
+    // Jadwal lama tanpa jam sendiri memakai jam sesi penuh (sesi lewat tengah malam berakhir besoknya).
+    function dalamWaktuSesi(tgl, sesiId, m) {
+      let c = cfgAbsensi();
+      let j = jamCfg(sesiId);
       let awal = awalHariMs(tgl);
-      let mulai = jamKeMs(j.mulai);
-      let selesai = jamKeMs(j.selesai) + (jamKeMs(j.selesai) <= mulai ? 86400000 : 0);
+      let punyaJam = m.get('menitMulai', null) is int && m.get('menitSelesai', null) is int;
+      let mulai = punyaJam ? m.menitMulai * 60000 : jamKeMs(j.mulai);
+      let selesai = punyaJam ? m.menitSelesai * 60000
+                  : jamKeMs(j.selesai) + (jamKeMs(j.selesai) <= jamKeMs(j.mulai) ? 86400000 : 0);
       let now = request.time.toMillis();
       return now >= awal + mulai - c.get('toleransiSebelum', 30) * 60000
           && now <= awal + selesai + c.get('toleransiSesudah', 30) * 60000;
@@ -129,11 +182,12 @@ service cloud.firestore {
         && d.bulan == d.tanggal.split('-')[0] + '-' + d.tanggal.split('-')[1]
         && id == d.tanggal + '_' + d.sesi + '_' + d.guruId
         && hariCocok(d.tanggal, d.hari)
-        && dalamWaktuSesi(d.tanggal, d.sesi)
         && exists(/databases/$(database)/documents/mengajar/$(d.guruId + '_' + d.sesi + '_' + string(d.hari)))
+        && dalamWaktuSesi(d.tanggal, d.sesi, get(/databases/$(database)/documents/mengajar/$(d.guruId + '_' + d.sesi + '_' + string(d.hari))).data)
         && d.insentif == g.get('honorHadir', 0)
         && d.waktu == request.time
         && cfgAbsensi().get('guruMandiri', true) == true
+        && lokasiSah(d.get('lokasi', null))
         // selfie wajib & harus dibuat bersamaan dengan absen ini (bukan foto lama)
         && existsAfter(/databases/$(database)/documents/selfie/$(id))
         && getAfter(/databases/$(database)/documents/selfie/$(id)).data.waktu == request.time;
@@ -142,6 +196,15 @@ service cloud.firestore {
       allow read: if staf() || peran(['pimpinan']) || (teungku() && resource.data.guruId == me().guruId);
       allow write: if peran(['admin', 'operator']);
       allow create: if teungku() && absenMandiriSah(id);
+      // Absen pulang oleh teungku sendiri: selfie baru + (GPS) + dalam jendela waktu pulang, sekali saja
+      allow update: if teungku() && resource.data.guruId == me().guruId && resource.data.status == 'H'
+                    && resource.data.get('waktuPulang', null) == null
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['waktuPulang', 'lokasiPulang', 'jarakPulang'])
+                    && request.resource.data.waktuPulang == request.time
+                    && dalamWaktuPulang(resource.data, mengajarDari(resource.data))
+                    && lokasiSah(request.resource.data.get('lokasiPulang', null))
+                    && existsAfter(/databases/$(database)/documents/selfie/$('pulang_' + id))
+                    && getAfter(/databases/$(database)/documents/selfie/$('pulang_' + id)).data.waktu == request.time;
       // Izin/sakit yang disetujui Pimpinan dicatat ke absensi
       // (catatan Hadir tidak boleh ditimpa oleh persetujuan izin)
       allow create: if peran(['pimpinan']) && request.resource.data.status in ['I', 'S']
@@ -149,9 +212,20 @@ service cloud.firestore {
       allow update: if peran(['pimpinan']) && resource.data.status != 'H' && request.resource.data.status in ['I', 'S']
                     && request.resource.data.sumber == 'izin' && request.resource.data.insentif == 0;
     }
+    // Tanda "Teungku hadir" untuk halaman web publik (tanpa data mukafaah)
+    match /hadir_publik/{id} {
+      allow read: if aktif();
+      allow write: if peran(['admin', 'operator']);
+      allow create: if teungku() && request.resource.data.guruId == me().guruId
+                    && request.resource.data.keys().hasOnly(['tanggal', 'sesi', 'guruId', 'hari', 'waktu'])
+                    && request.resource.data.waktu == request.time
+                    && existsAfter(/databases/$(database)/documents/absensi/$(id))
+                    && getAfter(/databases/$(database)/documents/absensi/$(id)).data.guruId == me().guruId
+                    && getAfter(/databases/$(database)/documents/absensi/$(id)).data.status == 'H';
+    }
     // Foto selfie saat absen (dipisah agar daftar absensi tetap ringan)
     match /selfie/{id} {
-      allow read: if staf() || (teungku() && resource.data.guruId == me().guruId);
+      allow read: if staf() || pimpinan() || (teungku() && resource.data.guruId == me().guruId);
       allow create: if teungku() && request.resource.data.guruId == me().guruId
                     && request.resource.data.foto is string && request.resource.data.foto.size() < 200000
                     && request.resource.data.waktu == request.time
@@ -173,28 +247,49 @@ service cloud.firestore {
 
     // ================= Keuangan =================
     // Mukafaah: setelah diserahkan (dibayar) hanya Super Admin yang bisa mengubah/menghapus.
+    // Alur: Bendahara menghitung → Pimpinan menyetujui → Bendahara menyerahkan.
+    function wajibSetuju() {
+      let p = /databases/$(database)/documents/config/mukafaah;
+      return !exists(p) || get(p).data.get('wajibSetuju', true) != false;
+    }
     match /gaji/{id} {
-      allow read: if keuangan();
+      allow read: if keuangan() || pimpinan();
       allow get: if teungku() && resource.data.guruId == me().guruId;
-      allow create: if keuangan();
-      allow update, delete: if keuangan() && resource.data.get('dibayar', false) != true;
+      allow create: if keuangan() && request.resource.data.get('disetujui', false) == false
+                    && request.resource.data.get('dibayar', false) == false;
+      allow delete: if keuangan() && resource.data.get('dibayar', false) != true;
+      allow update: if keuangan() && resource.data.get('dibayar', false) != true && (
+                      // menghitung ulang / bonus / potongan → persetujuan gugur
+                      (request.resource.data.get('disetujui', false) == false && request.resource.data.get('dibayar', false) == false)
+                      // menyerahkan: hanya kolom penyerahan, dan sudah disetujui Pimpinan (bila diwajibkan)
+                      || (hanyaBerubah(['dibayar', 'tglBayar', 'kasId', 'diserahkanOleh']) && request.resource.data.dibayar == true
+                          && (resource.data.get('disetujui', false) == true || !wajibSetuju())));
+      // Pimpinan menyetujui / menarik persetujuan (sebelum diserahkan)
+      allow update: if pimpinan() && resource.data.get('dibayar', false) != true
+                    && hanyaBerubah(['disetujui', 'disetujuiOleh', 'disetujuiNama', 'disetujuiPada'])
+                    && request.resource.data.disetujui is bool
+                    && request.resource.data.disetujuiOleh == request.auth.uid
+                    && request.resource.data.disetujuiPada == request.time;
     }
     // Kas: catatan dari mukafaah hanya bisa diubah/dihapus Super Admin
     match /kas/{id} {
-      allow read, create: if keuangan();
+      allow read: if keuangan() || pimpinan();
+      allow create: if keuangan();
       allow update, delete: if keuangan() && resource.data.get('sumber', '') != 'penggajian';
     }
     match /bukti/{id} {
-      allow read: if keuangan();
+      allow read: if keuangan() || pimpinan();
       allow create, update: if keuangan() && request.resource.data.foto is string && request.resource.data.foto.size() < 300000;
       allow delete: if keuangan();
     }
     match /ringkasan/{id} {
-      allow read, write: if keuangan();
+      allow read: if keuangan() || pimpinan();
+      allow write: if keuangan();
     }
 
     // ================= Log aktivitas (hanya bisa ditambah, tidak bisa diubah/dihapus) =================
     match /log/{id} {
+      allow read: if pimpinan();
       allow create: if aktif() && request.resource.data.uid == request.auth.uid
                     && request.resource.data.waktu == request.time;
       allow update, delete: if false;

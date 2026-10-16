@@ -17,15 +17,16 @@
   <header id="navbar"></header>
   <main>
     <h1>Kas Pemasukan & Pengeluaran</h1>
+    <div class="pita-lihat">ⓘ Mode lihat untuk Pimpinan Dayah: semua data dapat dilihat dan diunduh, tetapi tidak diubah.</div>
 
     <div class="grid grid-3">
       <div class="card stat in"><div class="bulat">↓</div><div><div class="label">Pemasukan <span id="lblPeriode1"></span></div><div class="value" id="sMasuk">–</div></div></div>
       <div class="card stat out"><div class="bulat">↑</div><div><div class="label">Pengeluaran <span id="lblPeriode2"></span></div><div class="value" id="sKeluar">–</div></div></div>
       <div class="card stat saldo"><div class="bulat">Rp</div><div><div class="label">Saldo kas keseluruhan</div><div class="value" id="sSaldo">–</div>
-        <button class="btn btn-sm btn-sec" id="btnHitungUlang" style="margin-top:4px">↻ Hitung ulang</button></div></div>
+        <button class="btn btn-sm btn-sec tulis" id="btnHitungUlang" style="margin-top:4px">↻ Hitung ulang</button></div></div>
     </div>
 
-    <div class="card">
+    <div class="card tulis">
       <div class="card-judul"><h2 id="judulForm">Catat transaksi</h2>
         <button type="button" class="btn btn-sm btn-sec" id="btnKategori">⚙ Kelola kategori</button></div>
       <form id="formKas">

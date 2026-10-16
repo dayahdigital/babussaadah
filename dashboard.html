@@ -22,11 +22,11 @@
     <div class="grid grid-4">
       <div class="card stat"><div class="bulat">👤</div><div><div class="label">Teungku aktif</div><div class="value" id="sGuru">–</div></div></div>
       <div class="card stat"><div class="bulat">✔</div><div><div class="label">Hadir hari ini / terjadwal</div><div class="value" id="sHadir">–</div></div></div>
-      <div class="card stat biru" data-roles="superadmin,admin,operator"><div class="bulat">✉</div><div><div class="label">Izin menunggu pimpinan</div><div class="value" id="sIzin">–</div></div></div>
-      <div class="card stat saldo" data-roles="superadmin,admin,bendahara"><div class="bulat">Rp</div><div><div class="label">Saldo kas</div><div class="value" id="sSaldo">–</div></div></div>
-      <div class="card stat in" data-roles="superadmin,admin,bendahara"><div class="bulat">↓</div><div><div class="label">Pemasukan bulan ini</div><div class="value" id="sMasuk">–</div></div></div>
-      <div class="card stat out" data-roles="superadmin,admin,bendahara"><div class="bulat">↑</div><div><div class="label">Pengeluaran bulan ini</div><div class="value" id="sKeluar">–</div></div></div>
-      <div class="card stat" data-roles="superadmin,admin,bendahara"><div class="bulat">Σ</div><div><div class="label">Mukafaah bulan ini</div><div class="value" id="sMukafaah">–</div></div></div>
+      <div class="card stat biru" data-roles="superadmin,pimpinan,admin,operator"><div class="bulat">✉</div><div><div class="label">Izin menunggu pimpinan</div><div class="value" id="sIzin">–</div></div></div>
+      <div class="card stat saldo" data-roles="superadmin,pimpinan,admin,bendahara"><div class="bulat">Rp</div><div><div class="label">Saldo kas</div><div class="value" id="sSaldo">–</div></div></div>
+      <div class="card stat in" data-roles="superadmin,pimpinan,admin,bendahara"><div class="bulat">↓</div><div><div class="label">Pemasukan bulan ini</div><div class="value" id="sMasuk">–</div></div></div>
+      <div class="card stat out" data-roles="superadmin,pimpinan,admin,bendahara"><div class="bulat">↑</div><div><div class="label">Pengeluaran bulan ini</div><div class="value" id="sKeluar">–</div></div></div>
+      <div class="card stat" data-roles="superadmin,pimpinan,admin,bendahara"><div class="bulat">Σ</div><div><div class="label">Mukafaah bulan ini</div><div class="value" id="sMukafaah">–</div></div></div>
     </div>
 
     <div class="grid grid-2">
@@ -40,7 +40,7 @@
       </div>
     </div>
 
-    <div class="card" data-roles="superadmin,admin,bendahara">
+    <div class="card" data-roles="superadmin,pimpinan,admin,bendahara">
       <h2>Kas 6 bulan terakhir</h2>
       <div id="grafikKas"><p class="empty"><span class="putar"></span>Memuat...</p></div>
     </div>
