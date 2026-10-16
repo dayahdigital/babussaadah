@@ -597,3 +597,103 @@ body.ada-marquee .beranda-kiri{height:calc(100dvh - 46px)}
 .dialog-konfirmasi.keluar-anim{opacity:0;transition:opacity .15s}
 @keyframes dkMasuk{from{opacity:0}to{opacity:1}}
 @keyframes dkNaik{from{transform:translateY(14px) scale(.97);opacity:.6}to{transform:none;opacity:1}}
+
+/* ===== v3.2: jam mengajar ===== */
+.jam-ajar{background:var(--hijau-3);border:1px solid var(--garis);border-radius:12px;padding:12px 12px 4px;margin-bottom:12px}
+.jam-ajar .field{margin-bottom:8px}
+.durasi-info{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--hijau);padding:2px 0 8px}
+.durasi-info.salah{color:var(--merah,#c0392b)}
+.slot .jam-slot{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:var(--hijau);background:var(--hijau-3);border-radius:6px;padding:1px 6px;margin-bottom:3px;width:max-content}
+.slot .jam-slot.lama{color:#8a6d1a;background:#fbf3d9}
+.entri .jam-entri{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--hijau);font-size:13.5px}
+.papan-item .jam-papan{color:var(--emas-2,#e2bf4d);font-weight:700;font-size:15px}
+.jdw-saya{display:block;padding:2px 0}
+.jdw-saya b{display:block;white-space:nowrap}
+.jdw-saya small{display:block;color:var(--abu)}
+
+/* ===== v3.3: GPS, absen pulang, status langsung ===== */
+.sub-judul{font-size:15px;margin:16px 0 8px;color:var(--hijau);border-top:1px dashed var(--garis);padding-top:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:640px){.grid-3{grid-template-columns:1fr}}
+.peta-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--garis);margin-bottom:8px}
+.peta-wrap iframe{display:block;width:100%;height:260px;border:0}
+.peta-radius{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2px solid rgba(25,135,84,.9);background:rgba(25,135,84,.15);border-radius:50%;pointer-events:none}
+.lampu{display:inline-block;width:11px;height:11px;border-radius:50%;background:#b9c3bd;flex:none;box-shadow:inset 0 -1px 2px rgba(0,0,0,.25)}
+.lampu.nyala{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.25),0 0 10px #22c55e;animation:kedip 1s ease-in-out infinite}
+.lampu.selesai{background:#64748b}
+@keyframes kedip{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.8)}}
+@media (prefers-reduced-motion:reduce){.lampu.nyala{animation-duration:2.4s}}
+.status-langsung{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--garis);font-size:13px}
+.status-langsung .ket{display:inline-flex;align-items:center;gap:7px;font-weight:700}
+.status-langsung .ket.jalan{color:#15803d}
+.status-langsung .ket.selesai{color:#475569}
+.status-langsung .ket.nanti{color:var(--abu);font-weight:600}
+.lencana-hadir{display:inline-flex;align-items:center;gap:5px;background:#dcfce7;color:#166534;border-radius:999px;padding:2px 9px;font-weight:700;font-size:12.5px}
+.papan .status-langsung{border-top-color:rgba(255,255,255,.25)}
+.papan .status-langsung .ket.jalan{color:#86efac}.papan .status-langsung .ket.selesai{color:#cbd5e1}.papan .status-langsung .ket.nanti{color:#e2e8f0}
+.berlangsung{background:linear-gradient(135deg,#052e16,#14532d);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(20,83,45,.25)}
+.berlangsung h2{color:#fff;font-size:16px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.berlangsung .item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid rgba(255,255,255,.12)}
+.berlangsung .item .lampu{margin-top:5px}
+.berlangsung .item small{display:block;opacity:.85}
+.berlangsung .lencana-hadir{background:rgba(220,252,231,.95)}
+.pulang-ket{display:block;font-size:12px;margin-top:3px}
+.pulang-ket.sudah{color:#15803d}.pulang-ket.lewat{color:var(--merah,#c0392b);font-weight:700}.pulang-ket.buka,.pulang-ket.belum{color:var(--abu)}
+.aksi-absen{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.papan-item .status-langsung{grid-column:1/-1}
+.tabel-excel .status-langsung{border-top:0;padding-top:2px;margin-top:4px;font-size:12px}
+
+/* ===== v3.4: Pimpinan = hanya lihat di halaman data ===== */
+body.hanya-lihat .tulis{display:none!important}
+body.hanya-lihat .status-group,body.hanya-lihat #tbAbsen input{pointer-events:none}
+body.hanya-lihat #tbAbsen .status-group label:not(:has(input:checked)){opacity:.35}
+.pita-lihat{display:none}
+body.hanya-lihat .pita-lihat{display:flex;gap:8px;align-items:center;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:14px}
+
+/* ===== v3.4: Jadwal sholat di halaman depan ===== */
+.sholat{position:relative;background:var(--pola),linear-gradient(150deg,var(--gelap,#0b3d22),var(--hijau,#145a32) 70%);color:#fff;border-radius:22px;padding:22px;box-shadow:0 18px 40px rgba(6,40,22,.28);margin-bottom:18px;overflow:hidden}
+.sholat-kepala{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.sholat h1{color:#fff;margin:0;font-size:26px}
+.sholat-kepala p{margin:2px 0 0;opacity:.85;font-size:14px}
+.sholat .lokasi-sholat{display:flex;align-items:center;gap:5px;color:var(--emas-2,#e2bf4d);opacity:1;font-weight:600}
+.jam-besar{text-align:right;line-height:1}
+.jam-besar b{font-size:44px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.jam-besar small{display:block;opacity:.75;font-size:12px;margin-top:4px;letter-spacing:2px}
+.sholat-sorot{margin:16px 0 14px}
+.sorot{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:14px 16px;backdrop-filter:blur(3px)}
+.sorot small{display:block;opacity:.9;font-size:13.5px}
+.sorot b{display:block;font-size:17px}
+.sorot .hitung-mundur{font-size:30px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums;color:var(--emas-2,#e2bf4d)}
+.sorot.aktif{background:rgba(34,197,94,.18);border-color:rgba(134,239,172,.6);box-shadow:0 0 0 3px rgba(34,197,94,.15) inset}
+.sorot.aktif b{font-size:19px}
+.lampu.besar{width:18px;height:18px}
+.sholat .lampu{background:rgba(255,255,255,.35)}
+.sholat .lampu.nyala{background:#4ade80}
+.sholat .lampu.selesai{background:rgba(255,255,255,.55)}
+.sholat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sholat-grid .kerangka{grid-column:1/-1;background:rgba(255,255,255,.1)}
+.waktu{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:10px 12px;min-width:0}
+.waktu .atas{display:flex;align-items:center;gap:6px;font-size:13px;opacity:.9}
+.waktu .atas .lampu{margin-left:auto}
+.waktu b{display:block;font-size:24px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+.waktu small{display:block;font-size:11.5px;min-height:15px;opacity:.85}
+.waktu.sunnah{opacity:.78}
+.waktu.lewat{opacity:.55}
+.waktu.berikut{background:rgba(226,191,77,.16);border-color:rgba(226,191,77,.7)}
+.waktu.berikut small{color:var(--emas-2,#e2bf4d);font-weight:700;opacity:1}
+.waktu.jalan{background:rgba(34,197,94,.22);border-color:#86efac;box-shadow:0 0 18px rgba(74,222,128,.35);opacity:1}
+.waktu.jalan small{color:#bbf7d0;font-weight:700;opacity:1}
+.sholat-ket{margin:12px 0 0;font-size:12px;opacity:.7}
+@media (max-width:820px){
+  .sholat{padding:16px;border-radius:18px}
+  .sholat h1{font-size:22px}
+  .jam-besar b{font-size:34px}
+  .sholat-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .waktu b{font-size:21px}
+  .sorot .hitung-mundur{font-size:26px}
+}
+.koreksi-sholat{margin:4px 0 10px}.koreksi-sholat summary{cursor:pointer;color:var(--hijau);font-weight:600;padding:6px 0}
+.koreksi-sholat .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+@media (max-width:640px){.koreksi-sholat .grid-4{grid-template-columns:repeat(2,1fr)}}
+.pratinjau-sholat{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.pratinjau-sholat span{background:var(--hijau-3);border-radius:8px;padding:4px 9px;font-size:13px}
