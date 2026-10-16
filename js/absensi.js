@@ -3,7 +3,8 @@ import { db, collection, getDocs, getDoc, doc, setDoc, query, where, writeBatch,
 import {
   requireAuth, AKSES, today, thisMonth, namaBulan, toast, esc, rupiah, aksi, tampilError, catatLog,
   ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, sesiPadaHari, ambilJadwal, ambilRiwayatJadwal, buatPeriode, jadwalPada,
-  hitungJadwalBulan, idJadwal, jamSesi, jamSiap, STATUS, tglIndo
+  hitungJadwalBulan, idJadwal, jamSesi, jamSiap, STATUS, tglIndo, teksJam, jamEntri,
+  ambilLokasi, cosLintang, teksJarak, statusPulang
 } from "./common.js";
 
 const { profil } = await requireAuth(AKSES.absensi);
@@ -59,13 +60,15 @@ async function muatHarian() {
       const luar = !jadwalPada(per, g.id, s, tgl);
       const e = entriJadwal[idJadwal(g.id, s.id, h)];
       return `<tr data-id="${g.id}">
-        <td class="utama">${esc(g.nama)}${luar ? ' <span class="badge b-belum">di luar jadwal</span>' : ""}</td>
+        <td class="utama">${esc(g.nama)}${luar ? ' <span class="badge b-belum">di luar jadwal</span>' : ""}${e ? `<br><small class="muted">${teksJam(e, s)} · ${jamEntri(e, s).durasi} menit</small>` : ""}</td>
         <td>${esc(a?.kitab || e?.kitab || "–")}${(a?.materi || e?.materi) ? `<br><small class="muted">${esc(a?.materi || e?.materi)}</small>` : ""}</td>
         <td><div class="status-group">${Object.entries(STATUS).map(([k, v]) => `
-          <label><input type="radio" name="st_${g.id}" value="${k}" ${a?.status === k ? "checked" : ""}><span class="${k}" title="${v.label}">${v.ikon} ${k}</span></label>`).join("")}</div></td>
+          <label><input type="radio" name="st_${g.id}" value="${k}" ${a?.status === k ? "checked" : ""}><span class="${k}" title="${v.label}">${v.ikon} ${k}</span></label>`).join("")}</div>
+          ${(() => { const pk = statusPulang(a, cfg); return pk.teks ? `<span class="pulang-ket ${pk.kode}">${pk.kode === "lewat" ? "⚠ " : ""}${pk.teks}</span>` : ""; })()}
+          ${a?.jarak != null ? `<span class="pulang-ket">GPS: ${teksJarak(a.jarak)} dari dayah</span>` : ""}</td>
         <td class="num ins">–</td>
         <td><input class="ket" value="${esc(a?.keterangan || "")}" placeholder="${luar ? "mis. badal Tgk. ..." : "opsional"}"></td>
-        <td>${a?.adaSelfie ? `<button class="btn btn-sm btn-sec" data-selfie="${tgl}_${s.id}_${g.id}">📷 Lihat</button>` : a?.sumber === "izin" ? '<span class="kecil muted">dari izin</span>' : "–"}</td></tr>`;
+        <td>${a?.adaSelfie ? `<button class="btn btn-sm btn-sec" data-selfie="${tgl}_${s.id}_${g.id}">Hadir</button>${a?.waktuPulang ? ` <button class="btn btn-sm btn-sec" data-selfie="pulang_${tgl}_${s.id}_${g.id}">Pulang</button>` : ""}` : a?.sumber === "izin" ? '<span class="kecil muted">dari izin</span>' : "–"}</td></tr>`;
     }).join("") + (sembunyi && !cbSemua.checked ? `<tr><td colspan="6" class="empty">${sembunyi} teungku tidak terjadwal di sesi ini disembunyikan.</td></tr>` : "")
       : `<tr><td colspan="6" class="empty">Tidak ada teungku terjadwal di sesi ini.</td></tr>`;
     hitungTotal();
@@ -116,10 +119,16 @@ function simpan() {
       tanggal: tgl, bulan: tgl.slice(0, 7), hari: hariDari(tgl), sesi: s.id, sesiNama: s.nama,
       guruId: id, nama: g.nama, status: st, insentif: (a && a.status === st) ? a.insentif : insentifUntuk(g, st),
       kitab: a?.kitab || e?.kitab || "", materi: a?.materi || e?.materi || "", kelas: a?.kelas || e?.kelas || "", tempat: a?.tempat || e?.tempat || "",
+      jamMulai: a?.jamMulai || (e ? jamEntri(e, s).mulai : ""), jamSelesai: a?.jamSelesai || (e ? jamEntri(e, s).selesai : ""),
+      durasi: a?.durasi ?? (e ? jamEntri(e, s).durasi : 0),
       terjadwal: jadwalPada(per, id, s, tgl), keterangan: ket,
       sumber: a?.sumber === "mandiri" && st === "H" ? "mandiri" : "operator",
       dicatatOleh: profil.username, waktu: serverTimestamp()
     });
+    // Tanda "hadir" di halaman web publik
+    const idP = `${tgl}_${s.id}_${id}`;
+    if (st === "H") b.set(doc(db, "hadir_publik", idP), { tanggal: tgl, sesi: s.id, guruId: id, hari: hariDari(tgl), waktu: a?.status === "H" && a.waktu ? a.waktu : serverTimestamp() });
+    else if (a?.status === "H") b.delete(doc(db, "hadir_publik", idP));
     ubah.push(`${g.nama}: ${a?.status ? a.status + "→" : ""}${st}`);
   });
   if (!ubah.length) return toast("Tidak ada perubahan untuk disimpan", "info");
@@ -174,10 +183,11 @@ const dataRinci = () => {
   const rows = [...absenBulan].sort((a, b) => (a.tanggal + a.sesi + a.nama).localeCompare(b.tanggal + b.sesi + b.nama));
   return {
     judul: "DAFTAR ABSENSI TEUNGKU", sub: `Bulan ${namaBulan(inBulan.value)}`, lanskap: true,
-    kolom: ["No", "Tanggal", "Hari", "Sesi", "Nama Teungku", "Kitab", "Materi Ajar", "Status", "Keterangan", "Mukafaah"],
-    baris: rows.map((a, i) => [i + 1, tglIndo(a.tanggal), HARI[hariDari(a.tanggal)], a.sesiNama || a.sesi, a.nama, a.kitab || "-", a.materi || "-",
-      `${a.status} - ${STATUS[a.status]?.label || ""}`, a.keterangan || "", { uang: a.insentif || 0 }]),
-    total: ["", "", "", "", "", "", "", "", "JUMLAH", { uang: rows.reduce((s, a) => s + (Number(a.insentif) || 0), 0) }],
+    kolom: ["No", "Tanggal", "Hari", "Sesi", "Jam", "Nama Teungku", "Kitab", "Materi Ajar", "Status", "Pulang", "Keterangan", "Mukafaah"],
+    baris: rows.map((a, i) => [i + 1, tglIndo(a.tanggal), HARI[hariDari(a.tanggal)], a.sesiNama || a.sesi,
+      a.jamMulai ? `${a.jamMulai.replace(":", ".")}-${(a.jamSelesai || "").replace(":", ".")}` : "-", a.nama, a.kitab || "-", a.materi || "-",
+      `${a.status} - ${STATUS[a.status]?.label || ""}`, statusPulang(a, cfg).teks || "-", a.keterangan || "", { uang: a.insentif || 0 }]),
+    total: ["", "", "", "", "", "", "", "", "", "", "JUMLAH", { uang: rows.reduce((s, a) => s + (Number(a.insentif) || 0), 0) }],
     namaFile: `absensi-${inBulan.value}`, ttd: true
   };
 };
@@ -199,7 +209,40 @@ function tampilAtur() {
   document.getElementById("tolSebelum").value = cfg.toleransiSebelum;
   document.getElementById("tolSesudah").value = cfg.toleransiSesudah;
   document.getElementById("guruMandiri").checked = cfg.guruMandiri;
+  document.getElementById("pulangSebelum").value = cfg.pulangSebelum;
+  document.getElementById("pulangSesudah").value = cfg.pulangSesudah;
+  const L = cfg.lokasi;
+  document.getElementById("gpsAktif").checked = !!L.aktif;
+  document.getElementById("gpsLat").value = Number.isFinite(L.lat) ? L.lat : "";
+  document.getElementById("gpsLng").value = Number.isFinite(L.lng) ? L.lng : "";
+  document.getElementById("gpsRadius").value = L.radius || 100;
+  tampilPeta();
 }
+// Peta pratinjau (OpenStreetMap, tanpa kunci API)
+function bacaKoordinat() {
+  const n = (id) => parseFloat(String(document.getElementById(id).value).replace(",", "."));
+  return { lat: n("gpsLat"), lng: n("gpsLng"), radius: parseInt(document.getElementById("gpsRadius").value) || 0 };
+}
+function tampilPeta() {
+  const { lat, lng, radius } = bacaKoordinat();
+  const sah = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+  document.getElementById("petaWrap").hidden = !sah;
+  document.getElementById("lnkPeta").hidden = !sah;
+  if (!sah) return;
+  const r = Math.max(radius, 50) * 3, dLat = r / 111320, dLng = r / (111320 * cosLintang(lat));
+  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - dLng},${lat - dLat},${lng + dLng},${lat + dLat}&layer=mapnik&marker=${lat},${lng}`;
+  const peta = document.getElementById("petaLokasi");
+  if (peta.src !== src) peta.src = src;
+  document.getElementById("lnkPeta").href = `https://www.google.com/maps?q=${lat},${lng}`;
+}
+["gpsLat", "gpsLng", "gpsRadius"].forEach(id => document.getElementById(id)?.addEventListener("change", tampilPeta));
+document.getElementById("btnLokasiSaya")?.addEventListener("click", (e) => aksi(e.target, async () => {
+  const p = await ambilLokasi();
+  document.getElementById("gpsLat").value = p.lat;
+  document.getElementById("gpsLng").value = p.lng;
+  document.getElementById("infoGps").textContent = `Akurasi ±${p.akurasi} m${p.akurasi > 30 ? " — kurang tepat, coba di tempat terbuka lalu ulangi" : ""}`;
+  tampilPeta();
+}, "Mencari lokasi..."));
 if (bolehAtur) {
   tampilAtur();
   document.getElementById("btnSimpanAtur").onclick = (e) => {
@@ -213,14 +256,25 @@ if (bolehAtur) {
     if (sesi.some(s => !s.hari.length)) return toast("Setiap sesi harus punya minimal satu hari", "err");
     const tolSeb = Math.min(240, Math.max(0, parseInt(document.getElementById("tolSebelum").value) || 0));
     const tolSes = Math.min(240, Math.max(0, parseInt(document.getElementById("tolSesudah").value) || 0));
+    const pulSeb = Math.min(240, Math.max(0, parseInt(document.getElementById("pulangSebelum").value) || 0));
+    const pulSes = Math.min(600, Math.max(0, parseInt(document.getElementById("pulangSesudah").value) || 0));
+    const k = bacaKoordinat();
+    const gpsAktif = document.getElementById("gpsAktif").checked;
+    const adaKoordinat = Number.isFinite(k.lat) && Number.isFinite(k.lng) && Math.abs(k.lat) <= 90 && Math.abs(k.lng) <= 180;
+    if (gpsAktif && !adaKoordinat) return toast("Isi lintang & bujur lokasi dayah (atau tekan 'Pakai lokasi saya sekarang').", "err");
+    if (gpsAktif && (k.radius < 10 || k.radius > 5000)) return toast("Radius absen 10–5000 meter.", "err");
+    const lokasi = adaKoordinat
+      ? { aktif: gpsAktif, lat: k.lat, lng: k.lng, radius: k.radius || 100, cosLat: cosLintang(k.lat) }
+      : { aktif: false, radius: k.radius || 100 };
     const data = {
       sesi, guruMandiri: document.getElementById("guruMandiri").checked, toleransiSebelum: tolSeb, toleransiSesudah: tolSes,
+      pulangSebelum: pulSeb, pulangSesudah: pulSes, lokasi,
       jam: Object.fromEntries(sesi.map(s => [s.id, { mulai: s.mulai, selesai: s.selesai }])),   // dipakai aturan server
       diubah: serverTimestamp(), oleh: profil.username
     };
     aksi(e.target, async () => {
       await setDoc(doc(db, "config", "absensi"), data);
-      catatLog("Pengaturan", "Ubah sesi", sesi.map(s => `${s.nama} ${s.mulai}-${s.selesai} [${s.hari.map(h => HARI[h].slice(0, 3)).join(",")}]`).join("; ") + ` · toleransi ${tolSeb}/${tolSes} mnt · mandiri ${data.guruMandiri ? "ya" : "tidak"}`);
+      catatLog("Pengaturan", "Ubah sesi", sesi.map(s => `${s.nama} ${s.mulai}-${s.selesai} [${s.hari.map(h => HARI[h].slice(0, 3)).join(",")}]`).join("; ") + ` · toleransi ${tolSeb}/${tolSes} mnt · pulang ${pulSeb}/${pulSes} mnt · GPS ${lokasi.aktif ? `${lokasi.lat},${lokasi.lng} r=${lokasi.radius} m` : "tidak wajib"} · mandiri ${data.guruMandiri ? "ya" : "tidak"}`);
       cfg = await ambilConfigAbsensi();
       toast("Pengaturan sesi tersimpan");
       isiSesi(); tampilAtur(); muatHarian(); muatRekap();

@@ -5,11 +5,11 @@ import {
 } from "./firebase.js";
 import {
   requireAuth, AKSES, ISTILAH, rupiah, today, thisMonth, namaBulan, tglIndo, toast, esc, aksi, tampilError, catatLog,
-  nilaiUang, setUang, gambarKecil, jamSiap
+  nilaiUang, setUang, gambarKecil, jamSiap, isSuper
 } from "./common.js";
 
 const { profil } = await requireAuth(AKSES.kas);
-const isSA = profil.role === "superadmin";
+const isSA = isSuper(profil.role);
 await jamSiap;
 
 const KATEGORI_BAWAAN = {
@@ -96,7 +96,7 @@ function tampil() {
       <td>${k.adaBukti ? `<button class="btn btn-sm btn-sec" data-bukti="${k.id}">🧾 Lihat</button>` : "–"}</td>
       <td class="aksi-sel">${terkunci
         ? (isSA ? `<div class="aksi"><span class="kunci">🔒 dari Mukafaah</span><button class="btn btn-sm btn-red" data-batal-gaji="${k.id}">Batalkan</button></div>` : `<span class="kunci">🔒 dari Mukafaah</span>`)
-        : `<div class="aksi"><button class="btn btn-sm btn-sec" data-ubah="${k.id}">Ubah</button><button class="btn btn-sm btn-red" data-hapus="${k.id}">Hapus</button></div>`}</td></tr>`;
+        : `<div class="aksi tulis"><button class="btn btn-sm btn-sec" data-ubah="${k.id}">Ubah</button><button class="btn btn-sm btn-red" data-hapus="${k.id}">Hapus</button></div>`}</td></tr>`;
   }).join("") + `<tr class="total"><td colspan="4">Selisih ${lbl}</td><td class="num">${rupiah(masuk - keluar)}</td><td colspan="2"></td></tr>`
     : `<tr><td colspan="7" class="empty">Tidak ada transaksi.</td></tr>`;
 

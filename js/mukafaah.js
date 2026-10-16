@@ -1,13 +1,28 @@
 // Mukafaah teungku: hitung dari absensi, bonus/potongan, serahkan (tercatat di kas), slip PDF & WhatsApp.
 // Setelah diserahkan terkunci; hanya Super Admin yang bisa mengubah atau membatalkan.
-import { db, collection, getDocs, doc, query, where, serverTimestamp, writeBatch, increment } from "./firebase.js";
+import { db, collection, getDocs, getDoc, setDoc, doc, query, where, serverTimestamp, writeBatch, increment } from "./firebase.js";
 import {
   requireAuth, AKSES, ISTILAH, rupiah, thisMonth, namaBulan, today, toast, esc, aksi, tampilError, catatLog, kirimNotif,
-  ambilConfigAbsensi, ambilJadwal, ambilRiwayatJadwal, buatPeriode, jadwalPada, hitungJadwalBulan, nilaiUang, setUang, nomorWA, jamSiap, tglIndo
+  ambilConfigAbsensi, ambilJadwal, ambilRiwayatJadwal, buatPeriode, jadwalPada, hitungJadwalBulan, nilaiUang, setUang, nomorWA, jamSiap, tglIndo, isSuper
 } from "./common.js";
 
 const { profil } = await requireAuth(AKSES.mukafaah);
-const isSA = profil.role === "superadmin";
+const isSA = isSuper(profil.role);
+const isPimpinan = profil.role === "pimpinan";
+// Persetujuan Pimpinan (bawaan: wajib). Super Admin bisa mematikannya bila belum ada akun Pimpinan.
+let wajibSetuju = true;
+try { const c = await getDoc(doc(db, "config", "mukafaah")); if (c.exists()) wajibSetuju = c.data().wajibSetuju !== false; } catch { /* pakai bawaan */ }
+const cbWajib = document.getElementById("wajibSetuju");
+if (cbWajib) {
+  cbWajib.checked = wajibSetuju;
+  cbWajib.onchange = () => aksi(cbWajib, async () => {
+    await setDoc(doc(db, "config", "mukafaah"), { wajibSetuju: cbWajib.checked, diubah: serverTimestamp(), oleh: profil.username });
+    wajibSetuju = cbWajib.checked;
+    catatLog("Pengaturan", "Persetujuan mukafaah", cbWajib.checked ? "wajib disetujui Pimpinan" : "tidak wajib");
+    toast(cbWajib.checked ? "Mukafaah wajib disetujui Pimpinan" : "Persetujuan Pimpinan tidak diwajibkan");
+    tampil();
+  }).catch(() => { cbWajib.checked = !cbWajib.checked; });
+}
 await jamSiap;
 const inPeriode = document.getElementById("periode");
 const tb = document.getElementById("tbGaji");
@@ -40,13 +55,16 @@ function tampil() {
       <td class="num">${g.hadir}</td><td class="num">${g.alpa}${g.alpaOtomatis ? ` <small class="muted">(${g.alpaOtomatis} tak diabsen)</small>` : ""}</td>
       <td class="num">${rupiah(g.gajiPokok)}</td><td class="num">${rupiah(g.tunjangan)}</td><td class="num">${rupiah(kehadiranDari(g))}</td>
       <td class="num">${rupiah(g.bonus)}</td><td class="num">− ${rupiah(potongan(g))}</td><td class="num"><b>${rupiah(g.total)}</b></td>
-      <td><span class="badge ${g.dibayar ? "b-lunas" : "b-belum"}">${g.dibayar ? "✔ Diserahkan " + tglIndo(g.tglBayar) : "⏳ Belum"}</span></td>
+      <td><span class="badge ${g.dibayar ? "b-lunas" : "b-belum"}">${g.dibayar ? "✔ Diserahkan " + tglIndo(g.tglBayar) : "⏳ Belum"}</span>
+        ${g.disetujui ? `<span class="pulang-ket sudah">✔ Disetujui ${esc(g.disetujuiNama || "Pimpinan")}</span>` : !g.dibayar && wajibSetuju ? `<span class="pulang-ket lewat">Menunggu persetujuan Pimpinan</span>` : ""}</td>
       <td class="aksi-sel"><div class="aksi">
         ${g.dibayar
           ? `<button class="btn btn-sm btn-sec" data-slip="${g.id}">📄 Slip</button>
-             <button class="btn btn-sm btn-wa" data-wa="${g.id}">WhatsApp</button>
+             <button class="btn btn-sm btn-wa tulis" data-wa="${g.id}">WhatsApp</button>
              ${isSA ? `<button class="btn btn-sm btn-sec" data-adj="${g.id}">Ubah</button><button class="btn btn-sm btn-red" data-batal="${g.id}">Batalkan</button>` : `<span class="kunci">🔒 terkunci</span>`}`
-          : `<button class="btn btn-sm btn-sec" data-adj="${g.id}">Bonus/Pot.</button><button class="btn btn-sm" data-bayar="${g.id}">Serahkan</button>`}
+          : isPimpinan
+            ? (g.disetujui ? `<button class="btn btn-sm btn-sec" data-tarik="${g.id}">Tarik persetujuan</button>` : `<button class="btn btn-sm btn-emas" data-setuju="${g.id}">✔ Setujui</button>`)
+            : `<button class="btn btn-sm btn-sec" data-adj="${g.id}">Bonus/Pot.</button>${!wajibSetuju || g.disetujui ? `<button class="btn btn-sm" data-bayar="${g.id}">Serahkan</button>` : `<button class="btn btn-sm" disabled title="Menunggu persetujuan Pimpinan">Serahkan</button>`}`}
       </div></td></tr>`).join("")
     : `<tr><td colspan="11" class="empty">Belum dihitung untuk ${namaBulan(inPeriode.value)}. Tekan "Hitung dari Absensi".</td></tr>`;
   const total = daftar.reduce((s, g) => s + N(g.total), 0);
@@ -54,6 +72,8 @@ function tampil() {
   document.getElementById("sTotal").textContent = rupiah(total);
   document.getElementById("sLunas").textContent = rupiah(lunas);
   document.getElementById("sBelum").textContent = rupiah(total - lunas);
+  const btnSemua = document.getElementById("btnSetujuiSemua");
+  if (btnSemua) btnSemua.hidden = !daftar.some(g => !g.dibayar && !g.disetujui);
 }
 
 // Hitung dari data teungku + absensi (yang sudah diserahkan tidak diubah)
@@ -86,7 +106,7 @@ document.getElementById("btnHitung").onclick = (e) => aksi(e.target, async () =>
       gajiPokok: N(gr.gajiPokok), tunjangan: N(gr.tunjangan), honorHadir: N(gr.honorHadir), potonganAlpa: N(gr.potonganAlpa),
       hadir: r.H, alpa: r.A + tak, alpaOtomatis: tak, insentif: r.insentif,
       bonus: N(lama[gr.id]?.bonus), potonganLain: N(lama[gr.id]?.potonganLain), catatan: lama[gr.id]?.catatan || "",
-      dibayar: false, diubah: serverTimestamp()
+      dibayar: false, disetujui: false, diubah: serverTimestamp()
     };
     g.total = hitungTotal(g);
     b.set(doc(db, "gaji", `${per}_${gr.id}`), g);
@@ -94,12 +114,14 @@ document.getElementById("btnHitung").onclick = (e) => aksi(e.target, async () =>
   }
   await b.commit();
   catatLog("Mukafaah", "Hitung", `${namaBulan(per)} · ${n} teungku${alpaOto ? " · alpa otomatis" : ""}`);
+  if (wajibSetuju && n) kirimNotif({ untukPeran: "pimpinan", judul: "Mukafaah menunggu persetujuan", isi: `${namaBulan(per)} · ${n} teungku telah dihitung Bendahara.`, tautan: "mukafaah.html" });
   toast(`Mukafaah ${n} teungku dihitung`);
   muat();
 }, "Menghitung...");
 
 // Serahkan: kas + tanda diserahkan dalam satu transaksi
 function serahkan(g, tombol) {
+  if (wajibSetuju && !g.disetujui) return toast("Mukafaah ini belum disetujui Pimpinan Dayah.", "err");
   if (!confirm(`Serahkan mukafaah ${g.nama} sebesar ${rupiah(g.total)}?\nAkan dicatat sebagai pengeluaran kas dan dikunci.`)) return;
   aksi(tombol, async () => {
     const kasRef = doc(collection(db, "kas"));
@@ -161,9 +183,17 @@ async function kirimWA(g, tombol) {
 
 tb.addEventListener("click", (e) => {
   const ds = e.target.dataset;
-  const id = ds.bayar || ds.batal || ds.adj || ds.slip || ds.wa;
+  const id = ds.bayar || ds.batal || ds.adj || ds.slip || ds.wa || ds.setuju || ds.tarik;
   const g = daftar.find(x => x.id === id);
   if (!g) return;
+  if (ds.setuju) setujui([g], e.target);
+  if (ds.tarik) aksi(e.target, async () => {
+    const b = writeBatch(db);
+    b.update(doc(db, "gaji", g.id), { disetujui: false, disetujuiOleh: profil.uid, disetujuiNama: profil.nama, disetujuiPada: serverTimestamp() });
+    await b.commit();
+    catatLog("Mukafaah", "Tarik persetujuan", `${g.nama} ${namaBulan(g.periode)}`);
+    toast("Persetujuan ditarik"); muat();
+  });
   if (ds.bayar) serahkan(g, e.target);
   if (ds.batal) batalkan(g, e.target);
   if (ds.slip) aksi(e.target, async () => (await L()).slipMukafaah(g, { unduh: true }), "Membuat PDF...");
@@ -186,7 +216,8 @@ formAdj.addEventListener("submit", (e) => {
   g.total = hitungTotal(g);
   aksi(document.getElementById("btnSimpanAdj"), async () => {
     const b = writeBatch(db);
-    b.update(doc(db, "gaji", adjId), { bonus: g.bonus, potonganLain: g.potonganLain, catatan: formAdj.catatan.value.trim(), total: g.total });
+    b.update(doc(db, "gaji", adjId), { bonus: g.bonus, potonganLain: g.potonganLain, catatan: formAdj.catatan.value.trim(), total: g.total,
+      ...(lama.dibayar ? {} : { disetujui: false }) });
     if (lama.dibayar && lama.kasId) {           // Super Admin mengubah yang sudah diserahkan
       b.update(doc(db, "kas", lama.kasId), { jumlah: g.total });
       b.set(doc(db, "ringkasan", "kas"), { keluar: increment(g.total - N(lama.total)) }, { merge: true });
@@ -200,13 +231,31 @@ formAdj.addEventListener("submit", (e) => {
   });
 });
 document.getElementById("btnBatal").onclick = () => modal.classList.remove("open");
+
+// Persetujuan Pimpinan Dayah
+function setujui(list, tombol) {
+  list = list.filter(g => !g.dibayar && !g.disetujui);
+  if (!list.length) return toast("Tidak ada yang perlu disetujui", "info");
+  const jumlah = list.reduce((s, g) => s + N(g.total), 0);
+  if (list.length > 1 && !confirm(`Setujui mukafaah ${list.length} teungku, total ${rupiah(jumlah)}?`)) return;
+  aksi(tombol, async () => {
+    const b = writeBatch(db);
+    list.forEach(g => b.update(doc(db, "gaji", g.id), { disetujui: true, disetujuiOleh: profil.uid, disetujuiNama: profil.nama, disetujuiPada: serverTimestamp() }));
+    await b.commit();
+    catatLog("Mukafaah", "Setujui", `${namaBulan(inPeriode.value)}: ${list.map(g => `${g.nama} ${rupiah(g.total)}`).join(", ")}`);
+    kirimNotif({ untukPeran: "bendahara", judul: "Mukafaah disetujui Pimpinan", isi: `${namaBulan(inPeriode.value)} · ${list.length} teungku · ${rupiah(jumlah)}. Silakan diserahkan.`, tautan: "mukafaah.html" });
+    toast(`${list.length} mukafaah disetujui`);
+    muat();
+  }, "Menyetujui...");
+}
+document.getElementById("btnSetujuiSemua")?.addEventListener("click", (e) => setujui(daftar, e.target));
 inPeriode.onchange = muat;
 
 const dataLap = () => ({
   judul: "DAFTAR MUKAFAAH TEUNGKU", sub: `Periode ${namaBulan(inPeriode.value)}`, lanskap: true,
   kolom: ["No", "Nama Teungku", "Hadir", "Alpa", "Mukafaah Pokok", "Tunjangan", "Mukafaah Kehadiran", "Bonus", "Potongan", "Jumlah Diterima", "Status", "Tanda Tangan"],
   baris: daftar.map((g, i) => [i + 1, g.nama, g.hadir, g.alpa, { uang: g.gajiPokok }, { uang: g.tunjangan }, { uang: kehadiranDari(g) },
-    { uang: N(g.bonus) }, { uang: potongan(g) }, { uang: g.total }, g.dibayar ? "Diserahkan" : "Belum", ""]),
+    { uang: N(g.bonus) }, { uang: potongan(g) }, { uang: g.total }, g.dibayar ? "Diserahkan" : g.disetujui ? "Disetujui" : "Belum", ""]),
   total: ["", "JUMLAH", daftar.reduce((s, g) => s + N(g.hadir), 0), daftar.reduce((s, g) => s + N(g.alpa), 0),
     ...[g => g.gajiPokok, g => g.tunjangan, kehadiranDari, g => g.bonus, potongan, g => g.total].map(f => ({ uang: daftar.reduce((s, g) => s + N(f(g)), 0) })), "", ""],
   namaFile: `mukafaah-${inPeriode.value}`, ttd: true

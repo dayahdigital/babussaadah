@@ -1,10 +1,10 @@
 // Data Teungku: identitas, mukafaah pokok, tunjangan, nilai per kehadiran, potongan alpa.
 // Menghapus teungku juga menutup akun loginnya dan menghapus jadwalnya.
 import { db, collection, getDocs, addDoc, updateDoc, doc, query, where, writeBatch, serverTimestamp, deleteField } from "./firebase.js";
-import { requireAuth, AKSES, rupiah, toast, esc, aksi, tampilError, catatLog, kirimNotif, ambilJadwal, SEMUA_HARI, HARI, nilaiUang, setUang } from "./common.js";
+import { requireAuth, AKSES, isSuper, rupiah, toast, esc, aksi, tampilError, catatLog, kirimNotif, ambilJadwal, SEMUA_HARI, HARI, nilaiUang, setUang } from "./common.js";
 
 const { profil } = await requireAuth(AKSES.teungku);
-const isSA = profil.role === "superadmin";
+const isSA = isSuper(profil.role);
 const tb = document.getElementById("tbGuru");
 const modal = document.getElementById("modal");
 const form = document.getElementById("formGuru");
@@ -36,7 +36,7 @@ function tampil() {
       <td>${ringkasJadwal(g)}</td>
       <td>${g.usernameAkun ? `<span class="badge b-biru">@${esc(g.usernameAkun)}</span>` : '<span class="muted kecil">belum ada</span>'}</td>
       <td><span class="badge ${g.aktif ? "b-in" : "b-out"}">${g.aktif ? "✔ Aktif" : "✖ Nonaktif"}</span></td>
-      <td class="aksi-sel"><button class="btn btn-sm btn-sec" data-edit="${g.id}">Ubah</button></td></tr>`).join("")
+      <td class="aksi-sel"><button class="btn btn-sm btn-sec tulis" data-edit="${g.id}">Ubah</button></td></tr>`).join("")
     : `<tr><td colspan="10" class="empty">Belum ada data teungku.</td></tr>`;
 }
 

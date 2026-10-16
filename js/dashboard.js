@@ -2,7 +2,7 @@
 import { db, collection, getDocs, getDoc, doc, query, where } from "./firebase.js";
 import {
   requireAuth, AKSES, rupiah, formatAngka, today, thisMonth, namaBulan, tglPanjang, esc, tampilError, jamSiap,
-  ambilConfigAbsensi, ambilJadwal, HARI, hariDari, jamSesi, badgeStatus
+  ambilConfigAbsensi, ambilJadwal, HARI, hariDari, jamSesi, badgeStatus, ikon, teksJam, statusPulang
 } from "./common.js";
 
 const { profil } = await requireAuth(AKSES.dashboard);
@@ -67,10 +67,10 @@ function grafikBatang(el, { label, seri, format = (v) => v, maks = null }) {
     document.getElementById("sGuru").textContent = aktif.size;
     document.getElementById("sHadir").textContent = `${terjadwalHariIni.filter(e => absen[`${e.sesi}_${e.guruId}`]?.status === "H").length} / ${terjadwalHariIni.length}`;
     document.getElementById("hariIni").innerHTML = cfg.sesi.filter(s => s.hari.includes(h)).map(s => {
-      const list = terjadwalHariIni.filter(e => e.sesi === s.id).sort((a, b) => a.namaGuru.localeCompare(b.namaGuru));
-      return `<b>${s.id === "pagi" ? "🌅" : "🌙"} ${esc(s.nama)} <small class="jam">${jamSesi(s)}</small></b>` + (list.length ? list.map(e => {
+      const list = terjadwalHariIni.filter(e => e.sesi === s.id).sort((a, b) => (a.menitMulai ?? 0) - (b.menitMulai ?? 0) || a.namaGuru.localeCompare(b.namaGuru));
+      return `<b>${ikon(s.id === "pagi" ? "matahari" : "bulan", 16)} ${esc(s.nama)} <small class="jam">${jamSesi(s)}</small></b>` + (list.length ? list.map(e => {
         const a = absen[`${s.id}_${e.guruId}`];
-        return `<div class="baris"><span>${esc(e.namaGuru)} <small class="muted">· ${esc(e.kitab)}</small></span>${a ? badgeStatus(a.status) : '<span class="badge b-belum">⏳ Belum</span>'}</div>`;
+        return `<div class="baris"><span>${esc(e.namaGuru)} <small class="muted">· ${teksJam(e, s)} · ${esc(e.kitab)}</small></span><span style="text-align:right">${a ? badgeStatus(a.status) : '<span class="badge b-belum">⏳ Belum</span>'}${(() => { const pk = statusPulang(a, cfg); return pk.teks ? `<span class="pulang-ket ${pk.kode}">${pk.kode === "lewat" ? "⚠ " : ""}${pk.teks}</span>` : ""; })()}</span></div>`;
       }).join("") : `<p class="muted kecil">Tidak ada jadwal.</p>`);
     }).join("") || `<p class="empty">Tidak ada pengajian hari ${HARI[h]}.</p>`;
   } catch (ex) { tampilError(ex, "Gagal memuat ringkasan"); }

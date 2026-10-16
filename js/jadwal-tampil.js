@@ -1,6 +1,7 @@
 // Tampilan jadwal mengajar publik dengan beberapa model:
 // roster (bawaan), kartu, papan pengumuman, tabel (seperti Excel), per kitab, per teungku, riwayat.
-import { HARI, SEMUA_HARI, jamSesi, esc, ikon, today, tambahHari, hariDari, waktuIndo } from "./common.js";
+import { HARI, SEMUA_HARI, jamSesi, esc, ikon, today, tambahHari, hariDari, waktuIndo, teksJam, jamEntri, teksDurasi, titikJam,
+  jendelaSesi, sekarang, WIB_MS } from "./common.js";
 
 export const MODEL = [
   { id: "roster", label: "Roster", ikon: "roster" },
@@ -19,19 +20,67 @@ const fmtTgl = (t) => t.split("-").reverse().join("-");                 // 19-10
 export const tanggalUntuk = (h) => tambahHari(today(), (h - hariDari(today()) + 7) % 7);
 const urutHari = () => [...Array(7)].map((_, i) => (hariDari(today()) + i) % 7);   // mulai hari ini
 
-export function entriHTML(e, { tanggal = null, siapa = true } = {}) {
+// ---------- Status langsung (hari ini): lampu berkedip saat pengajian berlangsung ----------
+// hadir: Map "tanggal_sesi_guruId" → waktu hadir (ms). Diisi dari koleksi publik hadir_publik.
+let HADIR = new Map();
+export const aturHadir = (m) => { HADIR = m; };
+const jamKecil = (ms) => new Date(ms + WIB_MS).toISOString().slice(11, 16).replace(":", ".");
+export function keadaan(e, sesi, tgl) {
+  const w = jendelaSesi(sesi, tgl, null, e), now = sekarang();
+  return { k: now < w.mulai ? "nanti" : now < w.selesai ? "jalan" : "selesai", w, hadir: HADIR.get(`${tgl}_${e.sesi}_${e.guruId}`) };
+}
+export function statusHTML(e, sesi, tgl) {
+  if (!sesi || tgl !== today()) return "";
+  const { k, w, hadir } = keadaan(e, sesi, tgl);
+  const ket = k === "jalan" ? `<span class="ket jalan"><span class="lampu nyala"></span>Pengajian sedang berlangsung</span>`
+    : k === "selesai" ? `<span class="ket selesai"><span class="lampu selesai"></span>Pengajian selesai</span>`
+    : `<span class="ket nanti"><span class="lampu"></span>Dimulai pukul ${jamKecil(w.mulai)}</span>`;
+  return `<div class="status-langsung">${ket}${hadir ? `<span class="lencana-hadir">✓ Teungku hadir${hadir > 1 ? " · " + jamKecil(hadir) : ""}</span>` : ""}</div>`;
+}
+// Daftar pengajian yang sedang berlangsung sekarang (termasuk sesi malam kemarin yang lewat tengah malam)
+export function berlangsungHTML(cfg, jadwal) {
+  const list = [];
+  for (const t of [today(), tambahHari(today(), -1)]) {
+    const h = hariDari(t);
+    for (const e of jadwal) {
+      const s = cfg.sesi.find(x => x.id === e.sesi);
+      if (!s || e.hari !== h || !s.hari.includes(h)) continue;
+      const st = keadaan(e, s, t);
+      if (st.k === "jalan") list.push({ e, s, t, st });
+    }
+  }
+  if (!list.length) return "";
+  list.sort((a, b) => a.st.w.mulai - b.st.w.mulai);
+  return `<div class="berlangsung" aria-live="polite"><h2><span class="lampu nyala"></span> Sedang berlangsung · ${list.length} pengajian</h2>
+    ${list.map(({ e, s, t, st }) => `<div class="item"><span class="lampu nyala"></span><div>
+      <b>${esc(e.kitab)}</b>${e.materi ? ` · ${esc(e.materi)}` : ""}
+      <small>${esc(e.namaGuru)} · ${teksJam(e, s)} WIB · ${esc(e.tempat || "-")} · ${esc(e.kelas || "-")}</small>
+      ${st.hadir ? `<span class="lencana-hadir">✓ Teungku hadir · ${jamKecil(st.hadir)}</span>` : ""}</div></div>`).join("")}</div>`;
+}
+// Tanda perubahan status (dipakai untuk menggambar ulang hanya bila ada yang berubah)
+export function tandaStatus(cfg, jadwal) {
+  const t = today(), h = hariDari(t);
+  return jadwal.filter(e => e.hari === h).map(e => { const s = cfg.sesi.find(x => x.id === e.sesi); return s ? keadaan(e, s, t).k + (HADIR.has(`${t}_${e.sesi}_${e.guruId}`) ? "H" : "") : ""; }).join("|")
+    + "#" + berlangsungHTML(cfg, jadwal).length;
+}
+
+const teksDurasiPendek = (m) => { const j = Math.floor(m / 60), r = m % 60; return [j ? `${j} jam` : "", r ? `${r} mnt` : ""].filter(Boolean).join(" "); };
+export function entriHTML(e, { tanggal = null, siapa = true, sesi = null, statusTgl = null } = {}) {
+  const j = sesi ? jamEntri(e, sesi) : null;
   return `<div class="entri">
     ${siapa ? `<div class="siapa">${ikon("orang", 16)} ${esc(e.namaGuru)}</div>` : ""}
     <dl class="rinci">
       ${tanggal ? `<dt>Tanggal</dt><dd>${HARI[hariDari(tanggal)]}, ${fmtTgl(tanggal)}</dd>` : ""}
+      ${j && j.ada ? `<dt>Jam</dt><dd><span class="jam-entri">${ikon("jam", 14)} ${teksJam(e, sesi)} WIB</span></dd>
+      <dt>Durasi</dt><dd>${teksDurasi(j.durasi)}</dd>` : j ? `<dt>Jam</dt><dd class="muted">Belum diatur teungku</dd>` : ""}
       <dt>Kitab</dt><dd class="kitab">${esc(e.kitab)}</dd>
       <dt>Materi/Bab</dt><dd>${esc(e.materi || "-")}</dd>
       <dt>Tempat</dt><dd>${esc(e.tempat || "-")}</dd>
       <dt>Kelas</dt><dd>${esc(e.kelas || "-")}</dd>
-    </dl></div>`;
+    </dl>${statusHTML(e, sesi, statusTgl || tanggal)}</div>`;
 }
 
-const urutEntri = (a, b) => (a.kelas || "").localeCompare(b.kelas || "") || (a.namaGuru || "").localeCompare(b.namaGuru || "");
+const urutEntri = (a, b) => (a.menitMulai ?? 0) - (b.menitMulai ?? 0) || (a.kelas || "").localeCompare(b.kelas || "") || (a.namaGuru || "").localeCompare(b.namaGuru || "");
 
 function pemilihHari(hariAktif) {
   return `<div class="hari-pilih">${urutHari().map(h => {
@@ -54,7 +103,7 @@ function roster(cfg, jadwal) {
           if (!s.hari.includes(h)) return `<div class="roster-sel libur"><span class="label-sesi">${ikonSesi(s.id)} ${esc(s.nama)}</span><span class="kosong-kecil">Tidak ada sesi</span></div>`;
           const list = jadwal.filter(e => e.hari === h && e.sesi === s.id).sort(urutEntri);
           return `<div class="roster-sel"><span class="label-sesi">${ikonSesi(s.id)} ${esc(s.nama)} · ${jamSesi(s)}</span>
-            ${list.length ? list.map(e => entriHTML(e)).join("") : `<span class="kosong-kecil">Belum ada jadwal</span>`}</div>`;
+            ${list.length ? list.map(e => entriHTML(e, { sesi: s, statusTgl: t })).join("") : `<span class="kosong-kecil">Belum ada jadwal</span>`}</div>`;
         }).join("")}
       </div>`;
     }).join("")}
@@ -67,7 +116,7 @@ function kartu(cfg, jadwal, h) {
   return pemilihHari(h) + (sesi.length ? sesi.map(s => {
     const list = jadwal.filter(e => e.hari === h && e.sesi === s.id).sort(urutEntri);
     return `<div class="card"><h2 class="judul-bagian">${ikonSesi(s.id)} Sesi ${esc(s.nama)} <small class="jam">${jamSesi(s)} WIB</small></h2>
-      ${list.length ? `<div class="entri-list">${list.map(e => entriHTML(e, { tanggal: t })).join("")}</div>` : `<p class="kosong-kecil">Belum ada jadwal di sesi ini.</p>`}</div>`;
+      ${list.length ? `<div class="entri-list">${list.map(e => entriHTML(e, { tanggal: t, sesi: s })).join("")}</div>` : `<p class="kosong-kecil">Belum ada jadwal di sesi ini.</p>`}</div>`;
   }).join("") : `<div class="card empty">Tidak ada pengajian pada hari ${HARI[h]}.</div>`);
 }
 
@@ -81,9 +130,9 @@ function papan(cfg, jadwal, h, namaDayah) {
         const list = jadwal.filter(e => e.hari === h && e.sesi === s.id).sort(urutEntri);
         return `<div class="papan-sesi"><h3>${ikonSesi(s.id)} Sesi ${esc(s.nama)} · ${jamSesi(s)} WIB</h3>
           ${list.length ? list.map(e => `<div class="papan-item">
-              <div class="kitab">${esc(e.kitab)}</div>
+              <div class="kitab">${esc(e.kitab)} ${jamEntri(e, s).ada ? `<span class="jam-papan">· ${teksJam(e, s)}</span>` : ""}</div>
               <span><b>Teungku</b>${esc(e.namaGuru)}</span><span><b>Materi/Bab</b>${esc(e.materi || "-")}</span>
-              <span><b>Tempat</b>${esc(e.tempat || "-")}</span><span><b>Kelas</b>${esc(e.kelas || "-")}</span></div>`).join("")
+              <span><b>Tempat</b>${esc(e.tempat || "-")}</span><span><b>Kelas</b>${esc(e.kelas || "-")}</span>${statusHTML(e, s, t)}</div>`).join("")
             : `<p style="opacity:.7">Belum ada jadwal.</p>`}</div>`;
       }).join("") : `<p style="text-align:center">Tidak ada pengajian hari ini.</p>`}
     </div>`;
@@ -100,12 +149,12 @@ function tabel(cfg, jadwal) {
       <button class="btn btn-sm btn-sec" data-aksi="pdf">${ikon("pdf", 16)} Unduh PDF</button>
       <button class="btn btn-sm btn-sec" data-aksi="excel">${ikon("excel", 16)} Unduh Excel</button></div>
     <div class="card" style="padding:0;overflow:hidden"><table class="kartu-hp tabel-excel">
-      <thead><tr><th>No</th><th>Hari</th><th>Tanggal</th><th>Sesi</th><th>Jam</th><th>Teungku</th><th>Kitab</th><th>Materi/Bab</th><th>Tempat</th><th>Kelas</th></tr></thead>
+      <thead><tr><th>No</th><th>Hari</th><th>Tanggal</th><th>Sesi</th><th>Jam</th><th>Durasi</th><th>Teungku</th><th>Kitab</th><th>Materi/Bab</th><th>Tempat</th><th>Kelas</th></tr></thead>
       <tbody>${rows.length ? rows.map(({ e, s, t }, i) => `<tr>
         <td class="num">${i + 1}</td><td class="utama">${HARI[e.hari]}, ${fmtTgl(t)}</td><td>${fmtTgl(t)}</td><td>${esc(s?.nama || e.sesi)}</td>
-        <td>${s ? jamSesi(s) : ""}</td><td>${esc(e.namaGuru)}</td><td><b>${esc(e.kitab)}</b></td><td>${esc(e.materi || "-")}</td>
+        <td><b>${s && jamEntri(e, s).ada ? teksJam(e, s) : "belum diatur"}</b>${statusHTML(e, s, t)}</td><td>${s && jamEntri(e, s).ada ? teksDurasiPendek(jamEntri(e, s).durasi) : "-"}</td><td>${esc(e.namaGuru)}</td><td><b>${esc(e.kitab)}</b></td><td>${esc(e.materi || "-")}</td>
         <td>${esc(e.tempat || "-")}</td><td>${esc(e.kelas || "-")}</td></tr>`).join("")
-        : `<tr><td colspan="10" class="empty">Belum ada jadwal.</td></tr>`}</tbody></table></div>`;
+        : `<tr><td colspan="11" class="empty">Belum ada jadwal.</td></tr>`}</tbody></table></div>`;
 }
 
 function perKitab(cfg, jadwal, cari = "") {
@@ -120,7 +169,7 @@ function perKitab(cfg, jadwal, cari = "") {
       <summary style="padding:12px 14px;display:flex;justify-content:space-between;gap:8px;cursor:pointer"><b>${ikon("buku", 16)} ${esc(k)}</b>
         <span class="badge b-in">${grup[k].length} sesi/minggu</span></summary>
       <div class="entri-list" style="padding:0 12px 12px">${grup[k].sort((a, b) => urutHari().indexOf(a.hari) - urutHari().indexOf(b.hari))
-        .map(e => entriHTML(e, { tanggal: tanggalUntuk(e.hari) })).join("")}</div></details>`).join("")
+        .map(e => entriHTML(e, { tanggal: tanggalUntuk(e.hari), sesi: cfg.sesi.find(s => s.id === e.sesi) })).join("")}</div></details>`).join("")
       : `<p class="empty">Tidak ditemukan.</p>`}`;
 }
 
@@ -132,15 +181,15 @@ function perTeungku(cfg, jadwal) {
     <h2 class="judul-bagian">${ikon("orang", 18)} ${esc(x.nama)} <small class="jam">${x.list.length} sesi/minggu</small></h2>
     <div class="entri-list">${x.list.sort((a, b) => urutHari().indexOf(a.hari) - urutHari().indexOf(b.hari)).map(e => {
       const s = cfg.sesi.find(y => y.id === e.sesi);
-      return entriHTML(e, { tanggal: tanggalUntuk(e.hari), siapa: false }).replace('<dl class="rinci">',
-        `<div class="siapa">${ikonSesi(e.sesi)} ${esc(s?.nama || e.sesi)} · ${s ? jamSesi(s) : ""}</div><dl class="rinci">`);
+      return entriHTML(e, { tanggal: tanggalUntuk(e.hari), siapa: false, sesi: s }).replace('<dl class="rinci">',
+        `<div class="siapa">${ikonSesi(e.sesi)} Sesi ${esc(s?.nama || e.sesi)}</div><dl class="rinci">`);
     }).join("")}</div></div>`).join("") : `<div class="card empty">Belum ada jadwal.</div>`;
 }
 
 export function itemRiwayat(r, cfg) {
   const s = cfg.sesi.find(x => x.id === r.sesi);
   const t = { tambah: ["+", "tambah", "menambah"], ubah: ["✎", "ubah", "mengubah"], hapus: ["−", "hapus", "menghapus"] }[r.aksi] || ["•", "ubah", "mengubah"];
-  const fmt = (x) => x ? `${esc(x.kitab)}${x.materi ? " · " + esc(x.materi) : ""}${x.tempat ? " · " + esc(x.tempat) : ""}${x.kelas ? " · " + esc(x.kelas) : ""}` : "";
+  const fmt = (x) => x ? `${x.mulai ? titikJam(x.mulai) + "–" + titikJam(x.selesai) + " · " : ""}${esc(x.kitab)}${x.materi ? " · " + esc(x.materi) : ""}${x.tempat ? " · " + esc(x.tempat) : ""}${x.kelas ? " · " + esc(x.kelas) : ""}` : "";
   return `<li><span class="tanda ${t[1]}">${t[0]}</span><div>
     <b>${esc(r.namaGuru)}</b> ${t[2]} jadwal <b>${HARI[r.hari] || ""} · ${esc(s?.nama || r.sesi)}</b><br>
     ${r.aksi === "ubah" ? `<del>${fmt(r.sebelum)}</del> → <ins>${fmt(r.sesudah)}</ins>` : r.aksi === "hapus" ? `<del>${fmt(r.sebelum)}</del>` : `<ins>${fmt(r.sesudah)}</ins>`}
@@ -166,9 +215,10 @@ export function render(model, ctx) {
 export function dataLaporanJadwal(cfg, jadwal) {
   return {
     judul: "JADWAL MENGAJAR TEUNGKU", lanskap: true,
-    sub: cfg.sesi.map(s => `Sesi ${s.nama} ${jamSesi(s)} WIB`).join(" · "),
-    kolom: ["No", "Hari", "Tanggal", "Sesi", "Nama Teungku", "Kitab", "Materi / Bab", "Tempat", "Kelas"],
-    baris: barisTabel(cfg, jadwal).map(({ e, s, t }, i) => [i + 1, HARI[e.hari], fmtTgl(t), s?.nama || e.sesi, e.namaGuru, e.kitab, e.materi || "-", e.tempat || "-", e.kelas || "-"]),
+    sub: cfg.sesi.map(s => `Rentang sesi ${s.nama} ${jamSesi(s)} WIB`).join(" · "),
+    kolom: ["No", "Hari", "Tanggal", "Sesi", "Jam", "Durasi", "Nama Teungku", "Kitab", "Materi / Bab", "Tempat", "Kelas"],
+    baris: barisTabel(cfg, jadwal).map(({ e, s, t }, i) => [i + 1, HARI[e.hari], fmtTgl(t), s?.nama || e.sesi,
+      s && jamEntri(e, s).ada ? teksJam(e, s) : "Belum diatur", s && jamEntri(e, s).ada ? `${jamEntri(e, s).durasi} menit` : "-", e.namaGuru, e.kitab, e.materi || "-", e.tempat || "-", e.kelas || "-"]),
     namaFile: "jadwal-mengajar"
   };
 }

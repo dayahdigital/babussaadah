@@ -1,13 +1,14 @@
 // Halaman depan (publik)
 // Kiri : identitas dayah, login (cukup kata sandi setelah pertama kali), tombol Install, tulisan Pengelola di kaki.
-// Kanan: mading, jadwal mengajar dengan pilihan model tampilan. Kaki: teks berjalan.
+// Kanan: jadwal sholat (lampu berkedip saat waktu sholat tiba) & mading. Kaki: teks berjalan.
+// Jadwal mengajar teungku TIDAK tampil di sini (internal: menu "Jadwal Teungku").
 import { auth, db, onAuthStateChanged, signInWithEmailAndPassword, signOut, doc, getDoc, getDocs, collection } from "./firebase.js";
 import {
   ambilProfil, ambilTampilan, tampilanCache, logoDayah, beranda, simpan, esc, PERAN, pasangFooter, pesanError,
-  ambilConfigAbsensi, ambilJadwal, ambilRiwayatJadwal, jamSesi, today, tglPanjang, normUsername, usernameValid,
+  today, tambahHari, hariDari, sekarang, WIB_MS, tglPanjang, normUsername, usernameValid,
   siapkanHalamanPublik, sinkronJamHTTP, pasangAplikasi, bisaInstallLangsung, sudahTerpasang, toast, ikon, sembunyikanPemuat, tampilError, aksi
 } from "./common.js";
-import { MODEL, render, dataLaporanJadwal } from "./jadwal-tampil.js";
+import { hitungSholat, jamDariMenit, NAMA_WAKTU, LOKASI_BAWAAN } from "./sholat.js";
 
 siapkanHalamanPublik();
 pasangFooter(document.getElementById("kakiKiri"));
@@ -197,69 +198,60 @@ getDocs(collection(db, "pengumuman")).then(snap => {
   }
 }).catch(() => pasangMarquee([]));
 
-// ===================== Jadwal (pilihan model) =====================
-const ctx = { cfg: null, jadwal: [], hari: null, cari: "", namaDayah: tampilan.nama, riwayat: null };
-// Tampilan bawaan diatur Super Admin (Profil Dayah). Pilihan pengunjung hanya berlaku selama halaman dibuka.
-const modelValid = (m) => MODEL.some(x => x.id === m) ? m : "roster";
-let model = modelValid(simpan.get("modelJadwal", true) || tampilan.modelJadwal);
-ambilTampilan().then(t => { if (!simpan.get("modelJadwal", true) && modelValid(t.modelJadwal) !== model) { model = modelValid(t.modelJadwal); gambarModel(); if (ctx.cfg) gambarJadwal(); } }).catch(() => {});
-
-function gambarModel() {
-  const m = MODEL.find(x => x.id === model);
-  $("btnTampilan").innerHTML = `${ikon(m.ikon, 16)} Tampilan: ${m.label} <span aria-hidden="true">${$("modelPilih").hidden ? "▾" : "▴"}</span>`;
-  $("modelPilih").innerHTML = MODEL.map(m => `<button class="${m.id === model ? "aktif" : ""}" data-model="${m.id}">${ikon(m.ikon, 20)}${m.label}</button>`).join("");
-}
-function gambarJadwal() {
-  ctx.namaDayah = tampilan.nama;
-  $("isiJadwal").innerHTML = render(model, ctx);
-}
-$("btnTampilan").onclick = () => {
-  const buka = $("modelPilih").hidden;
-  $("modelPilih").hidden = !buka;
-  $("btnTampilan").setAttribute("aria-expanded", String(buka));
-  gambarModel();
-};
-$("modelPilih").onclick = async (e) => {
-  const b = e.target.closest("[data-model]");
-  if (!b) return;
-  model = b.dataset.model;
-  simpan.set("modelJadwal", model, true);
-  $("modelPilih").hidden = true; $("btnTampilan").setAttribute("aria-expanded", "false");
-  gambarModel(); gambarJadwal();
-  if (model === "riwayat" && ctx.riwayat === null) {
-    try { ctx.riwayat = await ambilRiwayatJadwal(); } catch (ex) { ctx.riwayat = []; tampilError(ex, "Gagal memuat riwayat"); }
-    gambarJadwal();
+// ===================== Jadwal sholat (publik) =====================
+// Lampu hijau berkedip saat waktu sholat fardhu tiba (selama beberapa menit, diatur Super Admin).
+const sh = () => tampilan.sholat || {};
+const NAMA_JUMAT = (id, tgl) => id === "zuhur" && hariDari(tgl) === 5 ? "Jumat" : NAMA_WAKTU.find(w => w.id === id).nama;
+const ikonWaktu = { imsak: "bulan", subuh: "bulan", terbit: "matahari", dhuha: "matahari", zuhur: "matahari", asar: "matahari", maghrib: "bulan", isya: "bulan" };
+let cacheHari = { tgl: null, jadwal: null, besok: null }, tandaSholat = "";
+function jadwalHariIni() {
+  const t = today();
+  if (cacheHari.tgl !== t || cacheHari.kunci !== JSON.stringify(sh())) {
+    const L = { lat: Number.isFinite(sh().lat) ? sh().lat : LOKASI_BAWAAN.lat, lng: Number.isFinite(sh().lng) ? sh().lng : LOKASI_BAWAAN.lng, koreksi: sh().koreksi || {} };
+    cacheHari = { tgl: t, kunci: JSON.stringify(sh()), jadwal: hitungSholat(t, L), besok: hitungSholat(tambahHari(t, 1), L) };
+    $("lokasiSholat").innerHTML = `${ikon("lokasi", 14)} ${esc(sh().kota || (Number.isFinite(sh().lat) ? tampilan.nama : LOKASI_BAWAAN.kota))}`;
   }
-};
-$("isiJadwal").addEventListener("click", (e) => {
-  const h = e.target.closest("[data-hari]");
-  if (h) { ctx.hari = Number(h.dataset.hari); gambarJadwal(); return; }
-  const a = e.target.closest("[data-aksi]");
-  if (!a) return;
-  if (a.dataset.aksi === "layar-penuh") $("papanJadwal")?.requestFullscreen?.().catch(() => {});
-  if (a.dataset.aksi === "pdf") aksi(a, async () => (await import("./laporan.js")).pdfTabel(dataLaporanJadwal(ctx.cfg, ctx.jadwal)), "Membuat PDF...");
-  if (a.dataset.aksi === "excel") aksi(a, async () => (await import("./laporan.js")).excelTabel(dataLaporanJadwal(ctx.cfg, ctx.jadwal)), "Membuat Excel...");
-});
-$("isiJadwal").addEventListener("input", (e) => {
-  if (e.target.id !== "cariKitab") return;
-  ctx.cari = e.target.value;
-  gambarJadwal();
-  const i = $("cariKitab"); i.focus(); i.setSelectionRange(i.value.length, i.value.length);
-});
-
-gambarModel();
-try {
-  const [cfg, semua] = await Promise.all([ambilConfigAbsensi(), ambilJadwal()]);
-  ctx.cfg = cfg;
-  ctx.jadwal = semua.filter(e => e.aktifGuru !== false);
-  ctx.hari = new Date(Date.parse(today() + "T00:00:00Z")).getUTCDay();
-  $("pubSesi").innerHTML = cfg.sesi.map(s => `<span>${ikon(s.id === "pagi" ? "matahari" : "bulan", 16)} <b>${esc(s.nama)}</b> ${jamSesi(s)} WIB</span>`).join("");
-  gambarJadwal();
-  if (model === "riwayat") ambilRiwayatJadwal().then(r => { ctx.riwayat = r; gambarJadwal(); }).catch(() => {});
-} catch (ex) {
-  $("isiJadwal").innerHTML = `<div class="card"><p class="error-box">Jadwal gagal dimuat: ${esc(pesanError(ex))}</p>
-    <button class="btn btn-sec" onclick="location.reload()">Coba lagi</button></div>`;
-} finally {
-  sembunyikanPemuat();
+  return cacheHari;
 }
-sinkronJamHTTP();
+const duaDigit = (n) => String(Math.floor(n)).padStart(2, "0");
+function gambarSholat() {
+  const { tgl, jadwal, besok } = jadwalHariIni();
+  const kini = ((sekarang() + WIB_MS) % 86400000) / 60000;          // menit sejak 00:00 WIB (pecahan)
+  const lama = Number.isFinite(sh().lampu) ? sh().lampu : 15;
+  $("jamSekarang").textContent = `${duaDigit(kini / 60)}.${duaDigit(kini % 60)}`;
+  const fardhu = NAMA_WAKTU.filter(w => w.fardhu);
+  const aktif = fardhu.find(w => kini >= jadwal[w.id] && kini < jadwal[w.id] + lama);
+  let berikut = fardhu.find(w => jadwal[w.id] > kini);
+  const menitBerikut = berikut ? jadwal[berikut.id] : besok.subuh + 1440;
+  if (!berikut) berikut = fardhu[0];
+  const sisa = Math.max(0, (menitBerikut - kini) * 60);
+  // Sorotan
+  $("sholatSorot").innerHTML = aktif
+    ? `<div class="sorot aktif"><span class="lampu nyala besar"></span><div><b>Waktu sholat ${NAMA_JUMAT(aktif.id, tgl)} telah tiba</b>
+         <small>${jamDariMenit(jadwal[aktif.id])} WIB · Mari menunaikan sholat berjamaah</small></div></div>`
+    : `<div class="sorot"><span class="lampu"></span><div><small>Menuju ${menitBerikut >= 1440 ? "Subuh besok" : NAMA_JUMAT(berikut.id, tgl)} · ${jamDariMenit(menitBerikut)} WIB</small>
+         <b class="hitung-mundur">${duaDigit(sisa / 3600)}:${duaDigit((sisa % 3600) / 60)}:${duaDigit(sisa % 60)}</b></div></div>`;
+  // Kotak waktu (digambar ulang hanya bila keadaan berubah)
+  const keadaan = NAMA_WAKTU.map(w => {
+    const t = jadwal[w.id];
+    if (w.fardhu && aktif?.id === w.id) return "jalan";
+    if (kini >= t) return "lewat";
+    return w.id === berikut.id && menitBerikut < 1440 ? "berikut" : "nanti";
+  });
+  const tanda = tgl + keadaan.join() + JSON.stringify(jadwal);
+  if (tanda === tandaSholat) return;
+  tandaSholat = tanda;
+  $("sholatGrid").innerHTML = NAMA_WAKTU.map((w, i) => {
+    const k = keadaan[i];
+    return `<div class="waktu ${k} ${w.fardhu ? "fardhu" : "sunnah"}">
+      <div class="atas">${ikon(ikonWaktu[w.id], 16)}<span>${NAMA_JUMAT(w.id, tgl)}</span>
+        ${w.fardhu ? `<span class="lampu ${k === "jalan" ? "nyala" : k === "lewat" ? "selesai" : ""}"></span>` : ""}</div>
+      <b>${jamDariMenit(jadwal[w.id])}</b>
+      <small>${k === "jalan" ? "Sedang berlangsung" : k === "berikut" ? "Berikutnya" : k === "lewat" ? (w.fardhu ? "Sudah lewat" : "") : ""}</small></div>`;
+  }).join("");
+}
+try { gambarSholat(); } catch (ex) { $("sholatGrid").innerHTML = `<p class="error-box">Jadwal sholat gagal dihitung: ${esc(pesanError(ex))}</p>`; }
+setInterval(() => { try { gambarSholat(); } catch { /* abaikan */ } }, 1000);
+ambilTampilan().then(t => { tampilan = t; tandaSholat = ""; gambarSholat(); }).catch(() => {});
+sembunyikanPemuat();
+sinkronJamHTTP().then(() => { tandaSholat = ""; gambarSholat(); });

@@ -21,24 +21,31 @@ export const PERAN = {
   guru: "Teungku"
 };
 
+// Pimpinan Dayah = pengawas & pemberi persetujuan: melihat semua, menyetujui izin & mukafaah,
+// tetapi tidak mengubah data/pengaturan (itu tugas Super Admin, Admin, Bendahara, Operator).
 export const AKSES = {
-  dashboard: ["superadmin", "admin", "bendahara", "operator"],
-  teungku: ["superadmin", "admin"],
-  absensi: ["superadmin", "admin", "operator"],
+  dashboard: ["superadmin", "pimpinan", "admin", "bendahara", "operator"],
+  teungku: ["superadmin", "pimpinan", "admin"],
+  absensi: ["superadmin", "pimpinan", "admin", "operator"],
   absenSaya: ["guru"],
   jadwal: ["superadmin", "admin", "guru"],
-  mukafaah: ["superadmin", "admin", "bendahara"],
-  kas: ["superadmin", "admin", "bendahara"],
+  lihatJadwal: ["superadmin", "pimpinan", "guru"],
+  mukafaah: ["superadmin", "pimpinan", "admin", "bendahara"],
+  kas: ["superadmin", "pimpinan", "admin", "bendahara"],
   izin: ["pimpinan", "superadmin"],
-  pengumuman: ["superadmin", "admin"],
+  pengumuman: ["superadmin", "pimpinan", "admin"],
   pengguna: ["superadmin"],
   lembaga: ["superadmin"],
-  log: ["superadmin"],
+  log: ["superadmin", "pimpinan"],
   backup: ["superadmin"],
   aturSesi: ["superadmin"]
 };
+export const isSuper = (role) => role === "superadmin";
+export const hanyaLihat = (role) => role === "pimpinan";
+// Halaman yang bagi Pimpinan hanya untuk dilihat (tombol ubah/hapus disembunyikan; server juga menolak)
+const HALAMAN_LIHAT_PIMPINAN = ["teungku.html", "absensi.html", "kas.html", "mukafaah.html"];
 export const STAF = ["superadmin", "admin", "bendahara", "operator"];
-export const beranda = (role) => role === "guru" ? "absen-saya.html" : role === "pimpinan" ? "izin.html" : "dashboard.html";
+export const beranda = (role) => role === "guru" ? "absen-saya.html" : "dashboard.html";
 
 // ---------------------------------------------------------------------
 // Ikon (SVG garis sederhana)
@@ -99,7 +106,8 @@ const MENU = [
   { href: "absen-saya.html", label: "Absen", ikon: "cek", roles: AKSES.absenSaya },
   { href: "izin.html", label: "Izin & Sakit", ikon: "izin", roles: AKSES.izin },
   { href: "absensi.html", label: "Absensi", ikon: "absen", roles: AKSES.absensi },
-  { href: "jadwal-mengajar.html", label: "Jadwal", ikon: "kalender", roles: AKSES.jadwal },
+  { href: "jadwal-teungku.html", label: "Jadwal Teungku", ikon: "roster", roles: AKSES.lihatJadwal },
+  { href: "jadwal-mengajar.html", label: "Atur Jadwal", ikon: "kalender", roles: AKSES.jadwal },
   { href: "teungku.html", label: "Data Teungku", ikon: "orang", roles: AKSES.teungku },
   { href: "mukafaah.html", label: "Mukafaah", ikon: "dompet", roles: AKSES.mukafaah },
   { href: "kas.html", label: "Kas", ikon: "kas", roles: AKSES.kas },
@@ -150,7 +158,8 @@ export async function ambilTampilan() {
       nama: d.nama || LEMBAGA.nama, alamat: d.alamat || LEMBAGA.alamat,
       bendahara: d.bendahara || LEMBAGA.bendahara, pimpinan: d.pimpinan || LEMBAGA.pimpinan,
       tagline: d.tagline || "", logo: d.logo || "", foto: d.foto || "",
-      tema: d.tema || "hijau", modelJadwal: d.modelJadwal || "roster", namaArab: d.namaArab ?? "داية باب السعادة"
+      tema: d.tema || "hijau", modelJadwal: d.modelJadwal || "roster", namaArab: d.namaArab ?? "داية باب السعادة",
+      sholat: d.sholat || {}
     };
     simpan.set("tampilan", t);
     pasangTema(t.tema);
@@ -223,8 +232,66 @@ export async function ambilConfigAbsensi() {
     sesi,
     guruMandiri: d.guruMandiri !== false,
     toleransiSebelum: Number.isFinite(d.toleransiSebelum) ? d.toleransiSebelum : 30,
-    toleransiSesudah: Number.isFinite(d.toleransiSesudah) ? d.toleransiSesudah : 30
+    toleransiSesudah: Number.isFinite(d.toleransiSesudah) ? d.toleransiSesudah : 30,
+    pulangSebelum: Number.isFinite(d.pulangSebelum) ? d.pulangSebelum : 15,
+    pulangSesudah: Number.isFinite(d.pulangSesudah) ? d.pulangSesudah : 60,
+    lokasi: { aktif: false, lat: null, lng: null, radius: 100, ...(d.lokasi || {}) }
   };
+}
+
+// ---------------------------------------------------------------------
+// GPS: jarak ke dayah (meter). Rumus sama dengan pemeriksaan server (firestore.rules).
+// ---------------------------------------------------------------------
+export const cosLintang = (lat) => Math.cos(lat * Math.PI / 180);
+export function jarakMeter(a, b) {
+  const dy = (a.lat - b.lat) * 111320;
+  const dx = (a.lng - b.lng) * 111320 * cosLintang(b.lat);
+  return Math.round(Math.sqrt(dx * dx + dy * dy));
+}
+export const teksJarak = (m) => m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${m} m`;
+// Ambil lokasi perangkat (akurasi tinggi). Pesan galat dalam bahasa Indonesia.
+export function ambilLokasi({ batasWaktu = 20000 } = {}) {
+  return new Promise((ok, gagal) => {
+    if (!("geolocation" in navigator)) return gagal(new Error("Perangkat/browser ini tidak mendukung GPS."));
+    navigator.geolocation.getCurrentPosition(
+      (p) => ok({ lat: Number(p.coords.latitude.toFixed(6)), lng: Number(p.coords.longitude.toFixed(6)), akurasi: Math.round(p.coords.accuracy) }),
+      (e) => gagal(new Error(e.code === 1 ? "Izin lokasi ditolak. Aktifkan izin Lokasi untuk situs ini di pengaturan browser, lalu coba lagi."
+        : e.code === 3 ? "Lokasi tidak ditemukan dalam waktu yang cukup. Pastikan GPS menyala dan coba di tempat terbuka."
+        : "Lokasi tidak bisa dibaca. Pastikan GPS/Lokasi HP menyala.")),
+      { enableHighAccuracy: true, timeout: batasWaktu, maximumAge: 0 });
+  });
+}
+// Periksa lokasi untuk absen. Hasil: { lokasi, jarak } atau melempar galat yang jelas.
+export async function periksaLokasiAbsen(cfg) {
+  const L = cfg.lokasi;
+  if (!L?.aktif) return { lokasi: null, jarak: null };
+  if (!Number.isFinite(L.lat) || !Number.isFinite(L.lng)) throw new Error("Lokasi dayah belum diatur oleh Super Admin.");
+  const p = await ambilLokasi();
+  const jarak = jarakMeter(p, L);
+  if (jarak > L.radius) throw new Error(`Anda berada ${teksJarak(jarak)} dari dayah, di luar radius absen ${teksJarak(L.radius)}${p.akurasi > 50 ? ` (akurasi GPS ±${p.akurasi} m, coba di tempat terbuka)` : ""}.`);
+  return { lokasi: p, jarak };
+}
+
+// ---------------------------------------------------------------------
+// Absen pulang: jendela waktu & status (keterangan internal, tidak tampil di web publik)
+// ---------------------------------------------------------------------
+export function jendelaPulang(sesi, tgl, cfg, e = null) {
+  const w = jendelaSesi(sesi, tgl, cfg, e);
+  return { selesai: w.selesai, buka: w.selesai - cfg.pulangSebelum * 60000, tutup: w.selesai + cfg.pulangSesudah * 60000 };
+}
+// Status pulang dari catatan absensi (berisi tanggal, jamMulai, jamSelesai)
+export function statusPulang(a, cfg) {
+  if (!a || a.status !== "H") return { kode: "-", teks: "" };
+  if (a.waktuPulang) return { kode: "sudah", teks: `Pulang ${a.waktuPulang.toDate ? jamDariMs(a.waktuPulang.toMillis()) .replace(":", ".") : ""}` };
+  if (a.sumber !== "mandiri" || !a.jamSelesai) return { kode: "-", teks: "" };
+  const [y, m, d] = a.tanggal.split("-").map(Number);
+  const awal = Date.UTC(y, m - 1, d) - WIB_MS;
+  let akhir = keMenit(a.jamSelesai);
+  if (a.jamMulai && akhir <= keMenit(a.jamMulai)) akhir += 1440;
+  const selesai = awal + akhir * 60000, now = sekarang();
+  if (now > selesai + cfg.pulangSesudah * 60000) return { kode: "lewat", teks: "Tidak absen pulang" };
+  if (now >= selesai - cfg.pulangSebelum * 60000) return { kode: "buka", teks: "Absen pulang terbuka" };
+  return { kode: "belum", teks: `Absen pulang dibuka ${jamDariMs(selesai - cfg.pulangSebelum * 60000).replace(":", ".")}` };
 }
 
 const keMs = (hhmm) => { const [h, m] = String(hhmm || "0:0").split(":").map(Number); return (h * 60 + (m || 0)) * 60000; };
@@ -232,12 +299,46 @@ const jamDariMs = (ms) => new Date(ms + WIB_MS).toISOString().slice(11, 16);
 export const lewatTengahMalam = (s) => keMs(s.selesai) <= keMs(s.mulai);
 export const jamSesi = (s) => `${s.mulai}–${s.selesai}${lewatTengahMalam(s) ? " (+1 hari)" : ""}`;
 
-// Jendela waktu sebuah sesi pada tanggal tertentu (ms, UTC)
-export function jendelaSesi(sesi, tgl, cfg) {
+// ---- Jam mengajar teungku di dalam rentang sesi ----
+// Menit dihitung dari pukul 00:00 hari sesi dimulai; sesi yang lewat tengah malam bisa > 1440.
+export const LANGKAH_MENIT = 15;
+export const keMenit = (hhmm) => keMs(hhmm) / 60000;
+export const formatJam = (menit) => { const m = ((menit % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+export const titikJam = (hhmm) => String(hhmm || "").replace(":", ".");          // 09:00 → 09.00
+export function rentangSesi(s) {
+  const awal = keMenit(s.mulai);
+  let akhir = keMenit(s.selesai);
+  if (akhir <= awal) akhir += 1440;
+  return { awal, akhir };
+}
+export const adaJamSendiri = (e) => Number.isInteger(e?.menitMulai) && Number.isInteger(e?.menitSelesai);
+// Jam mengajar sebuah entri jadwal; jadwal lama tanpa jam memakai jam sesi penuh
+export function jamEntri(e, s) {
+  const r = s ? rentangSesi(s) : { awal: 0, akhir: 60 };
+  const ada = adaJamSendiri(e);
+  const a = ada ? e.menitMulai : r.awal, b = ada ? e.menitSelesai : r.akhir;
+  return { ada, menitMulai: a, menitSelesai: b, mulai: formatJam(a), selesai: formatJam(b), durasi: b - a,
+    diLuarSesi: ada && (a < r.awal || b > r.akhir), besok: b > 1440 };
+}
+export function teksDurasi(menit) {
+  const j = Math.floor(menit / 60), m = menit % 60;
+  const t = [j ? `${j} jam` : "", m ? `${m} menit` : ""].filter(Boolean).join(" ");
+  return j ? `${t} (${menit} menit)` : t;
+}
+// "09.00–11.00" (+ "(+1 hari)" bila selesai lewat tengah malam)
+export function teksJam(e, s) {
+  const j = jamEntri(e, s);
+  return `${titikJam(j.mulai)}–${titikJam(j.selesai)}${j.besok ? " (+1 hari)" : ""}`;
+}
+
+// Jendela waktu sebuah sesi pada tanggal tertentu (ms, UTC).
+// Bila entri jadwal teungku punya jam sendiri, jendela mengikuti jam itu.
+export function jendelaSesi(sesi, tgl, cfg, e = null) {
   const [y, m, d] = tgl.split("-").map(Number);
   const awal = Date.UTC(y, m - 1, d) - WIB_MS;
-  const mulai = awal + keMs(sesi.mulai);
-  const selesai = awal + keMs(sesi.selesai) + (lewatTengahMalam(sesi) ? HARI_MS : 0);
+  const jj = adaJamSendiri(e) ? { a: e.menitMulai * 60000, b: e.menitSelesai * 60000 } : null;
+  const mulai = awal + (jj ? jj.a : keMs(sesi.mulai));
+  const selesai = jj ? awal + jj.b : awal + keMs(sesi.selesai) + (lewatTengahMalam(sesi) ? HARI_MS : 0);
   return {
     mulai, selesai,
     buka: mulai - (cfg?.toleransiSebelum ?? 30) * 60000,
@@ -250,8 +351,8 @@ export const tambahHari = (tgl, n) => {
 };
 
 // Status tombol absen untuk sesi pada tanggal itu
-export function waktuAbsen(sesi, cfg, tgl = today()) {
-  const w = jendelaSesi(sesi, tgl, cfg), now = sekarang();
+export function waktuAbsen(sesi, cfg, tgl = today(), e = null) {
+  const w = jendelaSesi(sesi, tgl, cfg, e), now = sekarang();
   if (now < w.buka) return { boleh: false, pesan: `Absen dibuka pukul ${jamDariMs(w.buka)} WIB` };
   if (now > w.tutup) return { boleh: false, pesan: `Waktu absen sudah lewat (ditutup ${jamDariMs(w.tutup)} WIB)` };
   return { boleh: true, pesan: `Absen terbuka sampai pukul ${jamDariMs(w.tutup)} WIB` };
@@ -447,6 +548,7 @@ export function requireAuth(roles = null) {
       document.querySelectorAll("[data-roles]").forEach(el => {
         if (!el.dataset.roles.split(",").includes(profil.role)) el.remove();
       });
+      if (hanyaLihat(profil.role) && HALAMAN_LIHAT_PIMPINAN.includes(location.pathname.split("/").pop())) document.body.classList.add("hanya-lihat");
       jamSiap = sinkronJamServer(user.uid);
       mulaiNotifikasi(profil);
       setTimeout(sembunyikanPemuat, 150);
