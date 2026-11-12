@@ -28,7 +28,10 @@ if (!guru) {
 }
 const cfg = await ambilConfigAbsensi();
 let tgl = today();
-const bln = thisMonth();
+let bln = thisMonth();
+const bulanRiwayat = document.getElementById("bulanRiwayat");
+bulanRiwayat.value = bln;
+bulanRiwayat.max = bln;
 document.getElementById("bulanIni").textContent = namaBulan(bln);
 
 const jadwalSaya = await ambilJadwal(profil.guruId);
@@ -82,6 +85,13 @@ async function muat() {
     tampil();
   } catch (ex) { tampilError(ex, "Gagal memuat absensi"); }
 }
+
+bulanRiwayat.onchange = () => {
+  if (!bulanRiwayat.value || bulanRiwayat.value > thisMonth()) { bulanRiwayat.value = bln; return toast("Bulan belum tersedia", "err"); }
+  bln = bulanRiwayat.value;
+  document.getElementById("bulanIni").textContent = namaBulan(bln);
+  muat();
+};
 
 function tampil() {
   document.getElementById("judulHariIni").textContent = `Absen · ${tglPanjang(tgl)}`;
