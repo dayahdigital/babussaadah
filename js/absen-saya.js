@@ -39,6 +39,7 @@ const dijadwal = (s, t) => terjadwal(idx, profil.guruId, s, hariDari(t));
 // Jam server berjalan
 const jamEl = document.getElementById("jamServer");
 let riwayat = [];
+let fotoTersedia = new Set();
 const putarJam = () => {
   jamEl.innerHTML = ikon("jam", 15) + " " + new Date(sekarang() + WIB_MS).toISOString().slice(11, 16) + " WIB (jam server)";
   if (today() !== tgl) { tgl = today(); muat(); }
@@ -71,6 +72,13 @@ async function muat() {
   try {
     const snap = await getDocs(query(collection(db, "absensi"), where("guruId", "==", profil.guruId), where("bulan", "==", bln)));
     riwayat = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.tanggal + b.sesi).localeCompare(a.tanggal + a.sesi));
+    const cekFoto = await Promise.all(riwayat.flatMap(a => {
+      const ids = [];
+      if (a.status === "H" || a.adaSelfie) ids.push(a.id);
+      if (a.waktuPulang) ids.push("pulang_" + a.id);
+      return ids.map(id => getDoc(doc(db, "selfie", id)).then(s => s.exists() ? id : null).catch(() => null));
+    }));
+    fotoTersedia = new Set(cekFoto.filter(Boolean));
     tampil();
   } catch (ex) { tampilError(ex, "Gagal memuat absensi"); }
 }
@@ -110,7 +118,7 @@ function tampil() {
       <td class="utama">${tglIndo(a.tanggal)}</td><td>${esc(a.sesiNama || a.sesi)}</td>
       <td>${badgeStatus(a.status)}${(() => { const pk = statusPulang(a, cfg); return pk.teks ? `<span class="pulang-ket ${pk.kode}">${pk.teks}</span>` : ""; })()}</td>
       <td>${jam(a.waktu)}</td><td>${jam(a.waktuPulang)}</td>
-      <td>${a.adaSelfie ? `<button class="btn btn-sm btn-sec" data-foto-riwayat="${a.tanggal}_${a.sesi}_${a.guruId}">Hadir</button>` : "–"}${a.waktuPulang ? ` <button class="btn btn-sm btn-sec" data-foto-riwayat="pulang_${a.tanggal}_${a.sesi}_${a.guruId}">Pulang</button>` : ""}</td>
+      <td>${fotoTersedia.has(a.id) ? `<button class="btn btn-sm btn-sec" data-foto-riwayat="${a.id}">Hadir</button>` : "–"}${fotoTersedia.has("pulang_" + a.id) ? ` <button class="btn btn-sm btn-sec" data-foto-riwayat="pulang_${a.id}">Pulang</button>` : ""}</td>
       <td>${esc(a.materi || a.kitab || "–")}</td><td class="num">${rupiah(a.insentif)}</td></tr>`).join("")
     : `<tr><td colspan="8" class="empty">Belum ada absensi bulan ini.</td></tr>`;
 }

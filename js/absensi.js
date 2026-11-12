@@ -54,7 +54,10 @@ async function muatHarian() {
   try {
     const snap = await getDocs(query(collection(db, "absensi"), where("tanggal", "==", tgl)));
     awal = {};
-    snap.docs.forEach(d => { const a = d.data(); if (a.sesi === s.id) awal[a.guruId] = a; });
+    const dataHarian = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => a.sesi === s.id);
+    const foto = await Promise.all(dataHarian.map(a => getDoc(doc(db, "selfie", a.id)).then(x => [a.id, x.exists()]).catch(() => [a.id, false])));
+    const fotoMap = new Map(foto);
+    dataHarian.forEach(a => { a.adaSelfie = fotoMap.get(a.id) || a.adaSelfie === true; awal[a.guruId] = a; });
     const tampil = guru.filter(g => jadwalPada(per, g.id, s, tgl) || awal[g.id] || cbSemua.checked);
     const sembunyi = guru.length - tampil.length;
     tbAbsen.innerHTML = tampil.length ? tampil.map(g => {
