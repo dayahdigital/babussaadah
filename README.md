@@ -23,6 +23,7 @@
 Setiap halaman `xxx.html` punya `js/xxx.js`. Modul bersama: `js/common.js`, `js/laporan.js` (PDF/Excel), `js/kamera.js` (selfie), `js/cadangan.js` (backup). Pustaka PDF/Excel ada di `js/vendor/` (MIT). PWA: `manifest.webmanifest`, `sw.js`, `icons/`.
 
 ## Baru di 3.4.0
+- Rekap detail absensi kini menampilkan waktu aktual hadir/pulang dan status ketersediaan foto selfie. Setiap teungku dapat melihat riwayat detail dan mengunduh Excel miliknya; Super Admin dapat mengunduh rincian semua teungku atau memilih satu teungku.
 - **Halaman web umum** kini menampilkan **Jadwal Sholat** (kriteria Kemenag RI, dihitung otomatis tanpa internet) dengan jam besar, hitung mundur ke waktu berikutnya, dan **lampu hijau berkedip** saat waktu sholat fardhu tiba. Lokasi, lama lampu & koreksi menit diatur di *Profil Dayah*.
 - **Jadwal mengajar tidak lagi publik.** Pindah ke menu internal **Jadwal Teungku** (Pimpinan, Super Admin, Teungku) lengkap dengan 7 model tampilan, lampu "sedang berlangsung" & tanda "Teungku hadir". Database juga hanya mengizinkan pengguna yang masuk.
 - **Pimpinan Dayah = pengawas & pemberi persetujuan**: melihat semua data (Absensi, Data Teungku, Mukafaah, Kas, Log, Jadwal), menyetujui izin, **menyetujui mukafaah sebelum diserahkan**, dan membuat pengumuman. Tidak bisa mengubah/menghapus data atau pengaturan.

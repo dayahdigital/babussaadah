@@ -42,7 +42,10 @@
       <div class="card-judul"><h2>Rekap bulanan</h2>
         <div class="aksi"><button class="btn btn-sm btn-sec" id="btnPdfRekap">📄 PDF rekap</button><button class="btn btn-sm btn-sec" id="btnPdfRinci">📄 PDF rincian</button>
           <button class="btn btn-sm btn-sec" id="btnExcel">📊 Excel</button></div></div>
-      <div class="toolbar"><div class="field" style="max-width:220px"><label>Bulan</label><input type="month" id="bulan"></div></div>
+      <div class="toolbar"><div class="field" style="max-width:220px"><label>Bulan</label><input type="month" id="bulan"></div>
+        <div class="field" style="max-width:260px" data-roles="superadmin"><label>Rincian teungku</label><select id="filterGuruRinci"><option value="">Semua teungku</option></select></div>
+      </div>
+      <p class="kecil muted">Rincian PDF/Excel memuat jam absen aktual, jam pulang, serta keterangan ketersediaan foto selfie. Foto dapat dibuka dari daftar absensi harian.</p>
       <p class="kecil muted">Jadwal = sesi yang seharusnya diajar (sampai sekarang) menurut jadwal yang berlaku saat itu.</p>
       <table class="kartu-hp">
         <thead><tr><th>Nama Teungku</th><th class="num">Jadwal</th><th class="num">✔ Hadir</th><th class="num">✉ Izin</th><th class="num">✚ Sakit</th><th class="num">✖ Alpa</th><th class="num">Belum diabsen</th><th class="num">% Hadir</th><th class="num">Mukafaah kehadiran</th></tr></thead>

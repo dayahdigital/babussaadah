@@ -105,12 +105,42 @@ function tampil() {
   document.getElementById("sHadir").textContent = hadir.length + " sesi";
   document.getElementById("sIzin").textContent = riwayat.filter(a => a.status === "I" || a.status === "S").length + " sesi";
   document.getElementById("sInsentif").textContent = rupiah(hadir.reduce((x, a) => x + (Number(a.insentif) || 0), 0));
+  const jam = (v) => v?.toDate ? v.toDate().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "-";
   document.getElementById("tbRiwayat").innerHTML = riwayat.length ? riwayat.map(a => `<tr>
       <td class="utama">${tglIndo(a.tanggal)}</td><td>${esc(a.sesiNama || a.sesi)}</td>
-      <td>${badgeStatus(a.status)}${(() => { const pk = statusPulang(a, cfg); return pk.teks ? `<span class="pulang-ket ${pk.kode}">${pk.teks}</span>` : ""; })()}</td><td>${esc(a.materi || a.kitab || "–")}</td>
-      <td class="num">${rupiah(a.insentif)}</td></tr>`).join("")
-    : `<tr><td colspan="5" class="empty">Belum ada absensi bulan ini.</td></tr>`;
+      <td>${badgeStatus(a.status)}${(() => { const pk = statusPulang(a, cfg); return pk.teks ? `<span class="pulang-ket ${pk.kode}">${pk.teks}</span>` : ""; })()}</td>
+      <td>${jam(a.waktu)}</td><td>${jam(a.waktuPulang)}</td>
+      <td>${a.adaSelfie ? `<button class="btn btn-sm btn-sec" data-foto-riwayat="${a.tanggal}_${a.sesi}_${a.guruId}">Hadir</button>` : "–"}${a.waktuPulang ? ` <button class="btn btn-sm btn-sec" data-foto-riwayat="pulang_${a.tanggal}_${a.sesi}_${a.guruId}">Pulang</button>` : ""}</td>
+      <td>${esc(a.materi || a.kitab || "–")}</td><td class="num">${rupiah(a.insentif)}</td></tr>`).join("")
+    : `<tr><td colspan="8" class="empty">Belum ada absensi bulan ini.</td></tr>`;
 }
+
+const waktuExcel = (v) => v?.toDate ? v.toDate().toLocaleString("id-ID") : "-";
+const dataRinciSaya = () => ({
+  judul: "DAFTAR ABSENSI SAYA", sub: `Bulan ${namaBulan(bln)} · ${guru.nama}`, lanskap: true,
+  kolom: ["No", "Tanggal", "Hari", "Sesi", "Jam mengajar", "Status", "Waktu hadir", "Waktu pulang", "Foto hadir", "Foto pulang", "Kitab", "Materi", "Keterangan", "Mukafaah"],
+  baris: riwayat.map((a, i) => [i + 1, tglIndo(a.tanggal), HARI[hariDari(a.tanggal)], a.sesiNama || a.sesi,
+    a.jamMulai ? `${a.jamMulai.replace(":", ".")}-${(a.jamSelesai || "").replace(":", ".")}` : "-", `${a.status} - ${STATUS[a.status]?.label || ""}`,
+    waktuExcel(a.waktu), waktuExcel(a.waktuPulang), a.adaSelfie ? "Ada" : "Tidak ada", a.waktuPulang ? "Ada" : "-",
+    a.kitab || "-", a.materi || "-", a.keterangan || "", { uang: a.insentif || 0 }]),
+  total: ["", "", "", "", "", "", "", "", "", "", "", "", "JUMLAH", { uang: riwayat.reduce((s, a) => s + (Number(a.insentif) || 0), 0) }],
+  namaFile: `absensi-saya-${bln}`, ttd: false
+});
+
+document.getElementById("btnExcelSaya").onclick = (e) => aksi(e.target, async () => (await import("./laporan.js")).excelTabel(dataRinciSaya()), "Membuat Excel...");
+
+document.getElementById("tbRiwayat").addEventListener("click", async (e) => {
+  const id = e.target.dataset.fotoRiwayat;
+  if (!id) return;
+  try {
+    const s = await getDoc(doc(db, "selfie", id));
+    if (!s.exists()) return toast("Foto selfie tidak ditemukan", "err");
+    document.getElementById("fotoRiwayat").src = s.data().foto;
+    document.getElementById("ketFotoRiwayat").textContent = `${s.data().nama} · ${tglIndo(s.data().tanggal)} · ${s.data().waktu?.toDate?.().toLocaleTimeString("id-ID") || ""}`;
+    document.getElementById("modalFotoRiwayat").classList.add("open");
+  } catch (ex) { tampilError(ex); }
+});
+document.getElementById("modalFotoRiwayat").onclick = (e) => e.currentTarget.classList.remove("open");
 
 // ---------- Hadir: selfie + materi ----------
 const modalHadir = document.getElementById("modalHadir");

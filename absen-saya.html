@@ -47,13 +47,15 @@
     </div>
 
     <div class="card">
-      <h2>Riwayat absen <span class="jam" id="bulanIni"></span></h2>
+      <div class="card-judul"><h2>Riwayat absen <span class="jam" id="bulanIni"></span></h2><button class="btn btn-sm btn-sec" id="btnExcelSaya">📊 Unduh Excel</button></div>
       <table class="kartu-hp">
-        <thead><tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th>Materi</th><th class="num">Mukafaah</th></tr></thead>
-        <tbody id="tbRiwayat"><tr><td colspan="5" class="empty"><span class="putar"></span>Memuat...</td></tr></tbody>
+        <thead><tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th>Waktu hadir</th><th>Waktu pulang</th><th>Foto</th><th>Materi</th><th class="num">Mukafaah</th></tr></thead>
+        <tbody id="tbRiwayat"><tr><td colspan="8" class="empty"><span class="putar"></span>Memuat...</td></tr></tbody>
       </table>
     </div>
   </main>
+
+  <div class="modal" id="modalFotoRiwayat"><div class="box" style="max-width:380px;text-align:center"><img id="fotoRiwayat" alt="" style="width:100%;border-radius:12px"><p id="ketFotoRiwayat" class="kecil muted"></p></div></div>
 
   <!-- Hadir: konfirmasi materi -->
   <div class="modal" id="modalHadir">

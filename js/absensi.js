@@ -14,6 +14,7 @@ await jamSiap;
 const inTanggal = document.getElementById("tanggal");
 const selSesi = document.getElementById("sesi");
 const inBulan = document.getElementById("bulan");
+const filterGuruRinci = document.getElementById("filterGuruRinci");
 const cbSemua = document.getElementById("tampilSemua");
 const tbAbsen = document.getElementById("tbAbsen");
 const tbRekap = document.getElementById("tbRekap");
@@ -43,6 +44,7 @@ async function muatGuru() {
   try {
     const snap = await getDocs(query(collection(db, "guru"), where("aktif", "==", true)));
     guru = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nama.localeCompare(b.nama));
+    if (filterGuruRinci) filterGuruRinci.innerHTML = `<option value="">Semua teungku</option>` + guru.map(g => `<option value="${g.id}">${esc(g.nama)}</option>`).join("");
   } catch (ex) { tampilError(ex, "Gagal memuat data teungku"); }
 }
 
@@ -180,15 +182,17 @@ const dataRekap = () => ({
   namaFile: `rekap-absensi-${inBulan.value}`, ttd: true
 });
 const dataRinci = () => {
-  const rows = [...absenBulan].sort((a, b) => (a.tanggal + a.sesi + a.nama).localeCompare(b.tanggal + b.sesi + b.nama));
+  const pilih = filterGuruRinci?.value || "";
+  const rows = [...absenBulan].filter(a => !pilih || a.guruId === pilih).sort((a, b) => (a.tanggal + a.sesi + a.nama).localeCompare(b.tanggal + b.sesi + b.nama));
+  const waktuAktual = (v) => v?.toDate ? v.toDate().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "-";
   return {
-    judul: "DAFTAR ABSENSI TEUNGKU", sub: `Bulan ${namaBulan(inBulan.value)}`, lanskap: true,
-    kolom: ["No", "Tanggal", "Hari", "Sesi", "Jam", "Nama Teungku", "Kitab", "Materi Ajar", "Status", "Pulang", "Keterangan", "Mukafaah"],
+    judul: "DAFTAR ABSENSI TEUNGKU", sub: `Bulan ${namaBulan(inBulan.value)}${pilih ? " · " + (guru.find(g => g.id === pilih)?.nama || "") : " · Semua teungku"}`, lanskap: true,
+    kolom: ["No", "Tanggal", "Hari", "Sesi", "Jam mengajar", "Nama Teungku", "Kitab", "Materi Ajar", "Status", "Waktu hadir", "Waktu pulang", "Foto hadir", "Foto pulang", "Keterangan", "Mukafaah"],
     baris: rows.map((a, i) => [i + 1, tglIndo(a.tanggal), HARI[hariDari(a.tanggal)], a.sesiNama || a.sesi,
       a.jamMulai ? `${a.jamMulai.replace(":", ".")}-${(a.jamSelesai || "").replace(":", ".")}` : "-", a.nama, a.kitab || "-", a.materi || "-",
-      `${a.status} - ${STATUS[a.status]?.label || ""}`, statusPulang(a, cfg).teks || "-", a.keterangan || "", { uang: a.insentif || 0 }]),
-    total: ["", "", "", "", "", "", "", "", "", "", "JUMLAH", { uang: rows.reduce((s, a) => s + (Number(a.insentif) || 0), 0) }],
-    namaFile: `absensi-${inBulan.value}`, ttd: true
+      `${a.status} - ${STATUS[a.status]?.label || ""}`, waktuAktual(a.waktu), waktuAktual(a.waktuPulang), a.adaSelfie ? "Ada" : "Tidak ada", a.waktuPulang ? "Ada" : "-", a.keterangan || "", { uang: a.insentif || 0 }]),
+    total: ["", "", "", "", "", "", "", "", "", "", "", "", "", "JUMLAH", { uang: rows.reduce((s, a) => s + (Number(a.insentif) || 0), 0) }],
+    namaFile: `absensi-${inBulan.value}${pilih ? "-" + (guru.find(g => g.id === pilih)?.nama || "teungku").replace(/\W+/g, "-") : "-semua"}`, ttd: true
   };
 };
 document.getElementById("btnPdfRekap").onclick = (e) => aksi(e.target, async () => (await L()).pdfTabel(dataRekap()), "Membuat PDF...");
