@@ -3,7 +3,7 @@ import { db, collection, getDocs, getDoc, doc, setDoc, query, where, writeBatch,
 import {
   requireAuth, AKSES, today, thisMonth, namaBulan, toast, esc, rupiah, aksi, tampilError, catatLog,
   ambilConfigAbsensi, HARI, SEMUA_HARI, hariDari, sesiPadaHari, ambilJadwal, ambilRiwayatJadwal, buatPeriode, jadwalPada,
-  hitungJadwalBulan, idJadwal, jamSesi, jamSiap, STATUS, tglIndo, teksJam, jamEntri,
+  hitungJadwalBulan, idJadwal, jamSesi, jamSiap, STATUS, badgeStatus, tglIndo, teksJam, jamEntri,
   ambilLokasi, cosLintang, teksJarak, statusPulang
 } from "./common.js";
 
@@ -15,6 +15,11 @@ const inTanggal = document.getElementById("tanggal");
 const selSesi = document.getElementById("sesi");
 const inBulan = document.getElementById("bulan");
 const filterGuruRinci = document.getElementById("filterGuruRinci");
+const inDari = document.getElementById("tanggalDari");
+const inSampai = document.getElementById("tanggalSampai");
+const filterGuruPeriode = document.getElementById("filterGuruPeriode");
+const filterSesiPeriode = document.getElementById("filterSesiPeriode");
+const tbRinciPeriode = document.getElementById("tbRinciPeriode");
 const cbSemua = document.getElementById("tampilSemua");
 const tbAbsen = document.getElementById("tbAbsen");
 const tbRekap = document.getElementById("tbRekap");
@@ -44,7 +49,9 @@ async function muatGuru() {
   try {
     const snap = await getDocs(query(collection(db, "guru"), where("aktif", "==", true)));
     guru = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.nama.localeCompare(b.nama));
-    if (filterGuruRinci) filterGuruRinci.innerHTML = `<option value="">Semua teungku</option>` + guru.map(g => `<option value="${g.id}">${esc(g.nama)}</option>`).join("");
+    const opsiGuru = `<option value="">Semua teungku</option>` + guru.map(g => `<option value="${g.id}">${esc(g.nama)}</option>`).join("");
+    if (filterGuruRinci) filterGuruRinci.innerHTML = opsiGuru;
+    if (filterGuruPeriode) filterGuruPeriode.innerHTML = opsiGuru;
   } catch (ex) { tampilError(ex, "Gagal memuat data teungku"); }
 }
 
@@ -105,6 +112,17 @@ tbAbsen.addEventListener("click", async (e) => {
   } catch (ex) { tampilError(ex); }
 });
 document.getElementById("modalSelfie").onclick = (e) => e.currentTarget.classList.remove("open");
+tbRinciPeriode?.addEventListener("click", async (e) => {
+  const id = e.target.dataset.selfie;
+  if (!id) return;
+  try {
+    const s = await getDoc(doc(db, "selfie", id));
+    if (!s.exists()) return toast("Foto selfie tidak ditemukan", "err");
+    document.getElementById("fotoSelfie").src = s.data().foto;
+    document.getElementById("ketSelfie").textContent = `${s.data().nama} · ${tglIndo(s.data().tanggal)} · ${s.data().waktu?.toDate?.().toLocaleTimeString("id-ID") || ""}`;
+    document.getElementById("modalSelfie").classList.add("open");
+  } catch (ex) { tampilError(ex); }
+});
 
 function simpan() {
   const tgl = inTanggal.value, s = sesiTerpilih();
@@ -151,7 +169,7 @@ async function muatRekap() {
   const bln = inBulan.value;
   try {
     const snap = await getDocs(query(collection(db, "absensi"), where("bulan", "==", bln)));
-    absenBulan = snap.docs.map(d => d.data());
+    absenBulan = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     const r = {};
     const baru = (id, nama) => ({ id, nama, jadwal: hitungJadwalBulan(cfg, per, id, bln), H: 0, I: 0, S: 0, A: 0, tercatat: 0, insentif: 0 });
     absenBulan.forEach(a => {
@@ -172,6 +190,46 @@ async function muatRekap() {
     }).join("") + `<tr class="total"><td colspan="8">Total ${namaBulan(bln)}</td><td class="num">${rupiah(total)}</td></tr>`
       : `<tr><td colspan="9" class="empty">Tidak ada data.</td></tr>`;
   } catch (ex) { tampilError(ex, "Gagal memuat rekap"); }
+}
+
+function setRentangBulan() {
+  const [y, m] = inBulan.value.split("-").map(Number);
+  if (!y || !m) return;
+  inDari.value = `${inBulan.value}-01`;
+  inSampai.value = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+}
+function isiSesiPeriode() {
+  if (!filterSesiPeriode) return;
+  filterSesiPeriode.innerHTML = `<option value="">Semua sesi</option>` + cfg.sesi.map(s => `<option value="${s.id}">${esc(s.nama)}</option>`).join("");
+}
+function daftarBulan(dari, sampai) {
+  const out = [], d = new Date(`${dari}T00:00:00Z`), end = new Date(`${sampai}T00:00:00Z`);
+  while (d <= end) { out.push(d.toISOString().slice(0, 7)); d.setUTCMonth(d.getUTCMonth() + 1); }
+  return out;
+}
+async function muatRinciPeriode() {
+  const dari = inDari.value, sampai = inSampai.value;
+  if (!dari || !sampai || dari > sampai) return toast("Rentang tanggal tidak valid", "err");
+  const pilihGuru = filterGuruPeriode.value, pilihSesi = filterSesiPeriode.value;
+  try {
+    const hasil = [];
+    for (const bln of daftarBulan(dari, sampai)) {
+      const snap = await getDocs(query(collection(db, "absensi"), where("bulan", "==", bln)));
+      snap.docs.forEach(d => {
+        const a = { id: d.id, ...d.data() };
+        if (a.tanggal >= dari && a.tanggal <= sampai && (!pilihGuru || a.guruId === pilihGuru) && (!pilihSesi || a.sesi === pilihSesi)) hasil.push(a);
+      });
+    }
+    hasil.sort((a, b) => (a.tanggal + a.sesi + a.nama).localeCompare(b.tanggal + b.sesi + b.nama));
+    const foto = await Promise.all(hasil.flatMap(a => [a.id, ...(a.waktuPulang ? ["pulang_" + a.id] : [])].map(id => getDoc(doc(db, "selfie", id)).then(s => [id, s.exists()]).catch(() => [id, false]))));
+    const adaFoto = new Map(foto);
+    const jam = v => v?.toDate ? v.toDate().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "-";
+    tbRinciPeriode.innerHTML = hasil.length ? hasil.map(a => `<tr>
+      <td data-label="Tanggal">${tglIndo(a.tanggal)}</td><td data-label="Sesi">${esc(a.sesiNama || a.sesi)}</td><td data-label="Teungku" class="utama">${esc(a.nama)}</td>
+      <td data-label="Status">${badgeStatus(a.status)}</td><td data-label="Waktu hadir">${jam(a.waktu)}</td><td data-label="Waktu pulang">${jam(a.waktuPulang)}</td>
+      <td data-label="Foto">${adaFoto.get(a.id) ? `<button class="btn btn-sm btn-sec foto-btn" data-selfie="${a.id}">Hadir</button>` : "–"}${adaFoto.get("pulang_" + a.id) ? ` <button class="btn btn-sm btn-sec foto-btn" data-selfie="pulang_${a.id}">Pulang</button>` : ""}</td>
+      <td data-label="Materi">${esc(a.materi || a.kitab || "–")}</td></tr>`).join("") : `<tr><td colspan="8" class="empty">Tidak ada absensi pada rentang tanggal tersebut.</td></tr>`;
+  } catch (ex) { tampilError(ex, "Gagal memuat rincian periode"); }
 }
 
 // ---------- Laporan PDF & Excel ----------
@@ -294,9 +352,12 @@ document.getElementById("btnSimpan").onclick = simpan;
 inTanggal.onchange = () => { isiSesi(); muatHarian(); };
 selSesi.onchange = muatHarian;
 cbSemua.onchange = muatHarian;
-inBulan.onchange = muatRekap;
+inBulan.onchange = () => { setRentangBulan(); muatRekap(); };
+document.getElementById("btnTampilPeriode")?.addEventListener("click", (e) => aksi(e.target, muatRinciPeriode, "Memuat rincian..."));
 
 isiSesi();
+isiSesiPeriode();
 await muatGuru();
+setRentangBulan();
 muatHarian();
 muatRekap();

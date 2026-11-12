@@ -105,7 +105,7 @@ const MENU = [
   { href: "dashboard.html", label: "Beranda", ikon: "home", roles: AKSES.dashboard },
   { href: "absen-saya.html", label: "Absen", ikon: "cek", roles: AKSES.absenSaya },
   { href: "izin.html", label: "Izin", ikon: "izin", roles: AKSES.izin },
-  { href: "absensi.html", label: "Rekap", ikon: "absen", roles: AKSES.absensi },
+  { href: "absensi.html", label: "Absensi", ikon: "absen", roles: AKSES.absensi },
   { href: "jadwal-teungku.html", label: "Jadwal", ikon: "roster", roles: AKSES.lihatJadwal },
   { href: "jadwal-mengajar.html", label: "Jadwal Saya", ikon: "kalender", roles: AKSES.jadwal },
   { href: "teungku.html", label: "Teungku", ikon: "orang", roles: AKSES.teungku },

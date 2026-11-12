@@ -53,6 +53,19 @@
       </table>
     </div>
 
+    <div class="card">
+      <div class="card-judul"><h2>Rincian periode & foto</h2><button class="btn btn-sm" id="btnTampilPeriode">Tampilkan</button></div>
+      <div class="toolbar">
+        <div class="field"><label>Dari tanggal</label><input type="date" id="tanggalDari"></div>
+        <div class="field"><label>Sampai tanggal</label><input type="date" id="tanggalSampai"></div>
+        <div class="field"><label>Teungku</label><select id="filterGuruPeriode"><option value="">Semua teungku</option></select></div>
+        <div class="field"><label>Sesi</label><select id="filterSesiPeriode"><option value="">Semua sesi</option></select></div>
+      </div>
+      <p class="kecil muted">Pilih tanggal A sampai C dan satu teungku untuk melihat seluruh absensi serta membuka foto Hadir/Pulang dalam satu daftar.</p>
+      <table class="kartu-hp"><thead><tr><th>Tanggal</th><th>Sesi</th><th>Teungku</th><th>Status</th><th>Waktu hadir</th><th>Waktu pulang</th><th>Foto</th><th>Materi</th></tr></thead>
+        <tbody id="tbRinciPeriode"><tr><td colspan="8" class="empty">Pilih rentang tanggal lalu tekan Tampilkan.</td></tr></tbody></table>
+    </div>
+
     <div class="card" data-roles="superadmin">
       <h2>⚙ Pengaturan sesi</h2>
       <p class="kecil muted" style="margin-top:0">Nama dan <b>rentang jam sesi</b> bebas diatur. Teungku memilih jam mengajarnya sendiri di dalam rentang ini (mis. sesi Pagi 08.00–17.00, teungku mengajar 09.00–11.00). Tombol Hadir mengikuti jam mengajar teungku. Bila jam selesai lebih awal dari jam mulai, sesi dianggap berakhir keesokan hari (lewat tengah malam).
