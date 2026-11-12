@@ -71,6 +71,6 @@ export async function buatAkunAuth(email, password) {
 export {
   onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword,
   updatePassword, reauthenticateWithCredential, EmailAuthProvider,
-  collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, limit,
+  collection, doc, getDoc, getDocs, deleteDoc, where, orderBy, limit,
   serverTimestamp, writeBatch, onSnapshot, increment, deleteField, arrayUnion, Timestamp
 };
