@@ -1,4 +1,4 @@
-# Sistem Administrasi Dayah Babussa'adah — Versi 3.4.3
+# Sistem Administrasi Dayah Babussa'adah — Versi 4.0.0
 
 ©SRISP 2026 · Situs: `dayahbabussaadah.web.id` · GitHub Pages + Firebase (Authentication + Firestore)
 
@@ -109,3 +109,18 @@ Pembaruan file otomatis sampai ke HP: service worker selalu mengambil file terba
 - **Notifikasi** muncul di lonceng 🔔 dan sebagai notifikasi HP selama aplikasi terbuka/di latar. Notifikasi saat aplikasi tertutup penuh butuh server (paket Blaze).
 - **Backup otomatis** berjalan saat Super Admin membuka Beranda sesuai jadwal (default 7 hari) dan mengunduh file `.json`. Simpan di tempat aman — berisi data mukafaah & akun.
 - Aturan database belum diuji di emulator Firebase (tidak bisa diunduh di lingkungan pengembangan); uji alur penting setelah Publish.
+
+## Multi-Unit Dayah (v4.0.0)
+- Data lama dianggap berada di `unit-induk`; `unitId` immutable dan tidak diubah saat teungku ditugaskan ulang.
+- Super Admin dan Pimpinan dapat mengawasi semua unit. Admin/operator/bendahara/guru hanya boleh membaca/menulis unit yang ada di `users/{uid}.unitIds`.
+- Header menampilkan unit aktif untuk akun dengan lebih dari satu membership. Pilihan unit hanya konteks UI; Rules tetap menjadi pengaman server.
+- Koleksi operasional: `guru`, `mengajar`, `riwayat_jadwal`, `absensi`, `selfie`, `hadir_publik`, `izin`, `gaji`, `kas`, `bukti`, `ringkasan`, `pengumuman`, `notifikasi`, `log`, dan `config` membawa `unitId`.
+- Super Admin membuka **Profil → Unit Dayah** untuk menambah, mengubah status aktif, memilih unit, dan menjalankan backfill idempoten. Backfill live tidak dianggap selesai sampai dijalankan dan diverifikasi di proyek Firebase.
+- Deploy: salin `firestore.rules` ke Firebase Console lalu Publish. Pastikan seluruh query modul yang diaktifkan untuk unit tambahan memakai filter `where("unitId", "==", unitAktif)`.
+
+### Panduan role selain Super Admin
+- **Pimpinan:** memilih unit untuk operasi harian atau mengawasi semua unit; memeriksa izin dan mukafaah tanpa mengubah membership.
+- **Admin:** bekerja hanya pada unit yang diberikan, mengelola teungku, jadwal, absensi, dan pengumuman.
+- **Bendahara:** mengelola mukafaah/kas hanya pada unit membership dan memeriksa unit aktif sebelum serah.
+- **Operator:** menginput/memeriksa absensi pada unit membership.
+- **Guru/Teungku:** absen, jadwal, izin, dan slip hanya untuk unit tempat ditugaskan; riwayat lama mempertahankan `unitId` asal.

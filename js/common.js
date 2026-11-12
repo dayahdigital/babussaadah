@@ -129,6 +129,28 @@ export const simpan = {
   del(k, sesi = false) { try { (sesi ? sessionStorage : localStorage).removeItem(k); } catch { /* abaikan */ } }
 };
 
+// Multi-Unit Dayah (v4): unitId immutable, pilihan unit hanya konteks UI.
+// Dokumen lama tanpa unitId diperlakukan sebagai Unit Induk agar backfill aman.
+export const UNIT_INDUK = "unit-induk";
+export function unitIdAktif() {
+  const profil = _profil || simpan.get("profil", true) || {};
+  const pilihan = simpan.get("unitAktif", true) || simpan.get("unitAktif") || profil.activeUnitId;
+  const daftar = Array.isArray(profil.unitIds) && profil.unitIds.length ? profil.unitIds : [UNIT_INDUK];
+  return daftar.includes(pilihan) ? pilihan : (daftar.includes(UNIT_INDUK) ? UNIT_INDUK : daftar[0]);
+}
+export const unitTerpilih = () => unitIdAktif();
+export const unitField = () => ({ unitId: unitIdAktif() });
+export function setUnitAktif(id) {
+  const profil = _profil || simpan.get("profil", true) || {};
+  const daftar = Array.isArray(profil.unitIds) && profil.unitIds.length ? profil.unitIds : [UNIT_INDUK];
+  if (!daftar.includes(id)) return false;
+  simpan.set("unitAktif", id, true); simpan.set("unitAktif", id);
+  window.dispatchEvent(new CustomEvent("unit-berubah", { detail: { unitId: id } }));
+  return true;
+}
+export const unitDokumen = (d) => ({ ...d, unitId: d?.unitId || UNIT_INDUK });
+export function unitQuery(q, unit = unitIdAktif()) { return query(q, where("unitId", "==", unit)); }
+
 // ---------------------------------------------------------------------
 // Tampilan dayah (logo, foto, nama, alamat, pejabat penanda tangan)
 // ---------------------------------------------------------------------
@@ -573,6 +595,7 @@ function renderNav(profil) {
         <div><strong>${esc(t.nama)}</strong><small>${esc(PERAN[profil.role] || "")} · ${esc(profil.nama)}</small></div>
       </a>
       <div class="nav-user">
+        ${Array.isArray(profil.unitIds) && profil.unitIds.length > 1 ? `<label class="pilih-unit" title="Unit aktif"><span>Unit</span><select id="pilihUnit">${profil.unitIds.map(u => `<option value="${esc(u)}" ${u === unitIdAktif() ? "selected" : ""}>${esc(u)}</option>`).join("")}</select></label>` : `<span class="unit-aktif" title="Unit aktif">Unit: ${esc(unitIdAktif())}</span>`}
         <button class="btn-ikon" id="btnLonceng" aria-label="Notifikasi">${ikon("lonceng", 22)}<span class="titik" id="jmlNotif" hidden></span></button>
         <button class="btn btn-ghost btn-sm hanya-pc" id="btnLogout">${ikon("keluar", 16)} Keluar</button>
       </div>
@@ -583,6 +606,7 @@ function renderNav(profil) {
     <div class="panel-notif" id="panelNotif" hidden></div>`;
   document.getElementById("btnLogout").onclick = keluarDenganKonfirmasi;
   document.getElementById("btnLonceng").onclick = bukaPanelNotif;
+  document.getElementById("pilihUnit")?.addEventListener("change", (e) => { setUnitAktif(e.target.value); location.reload(); });
 
   // Navigasi bawah HP: 4 menu utama + "Menu" untuk sisanya
   document.getElementById("navBawah")?.remove();

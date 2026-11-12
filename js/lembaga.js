@@ -1,9 +1,10 @@
 // Profil Dayah (Super Admin): nama, alamat, pejabat penanda tangan, logo & foto.
 // Gambar diperkecil di browser lalu disimpan di Firestore (config/tampilan).
-import { db, doc, setDoc, getDoc, serverTimestamp } from "./firebase.js";
+import { db, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, serverTimestamp, collection } from "./firebase.js";
 import { hitungSholat, jamDariMenit, NAMA_WAKTU, LOKASI_BAWAAN } from "./sholat.js";
 import { MODEL } from "./jadwal-tampil.js";
-import { requireAuth, AKSES, ambilTampilan, simpan, toast, aksi, catatLog, gambarKecil, tampilError, logoDayah, pasangTema, ambilLokasi, today } from "./common.js";
+import { requireAuth, AKSES, ambilTampilan, simpan, toast, aksi, catatLog, gambarKecil, tampilError, logoDayah, pasangTema, ambilLokasi, today, unitIdAktif } from "./common.js";
+import { backfillUnitInduk } from "./migrasi-v4.js";
 
 await requireAuth(AKSES.lembaga);
 const form = document.getElementById("formLembaga");
@@ -85,3 +86,27 @@ form.addEventListener("submit", (e) => {
     setTimeout(() => location.reload(), 700);
   });
 });
+
+
+// UI Unit Dayah: hanya Super Admin yang dapat membuat/mengubah status unit.
+const tbodyUnit = document.getElementById("daftarUnit");
+async function muatUnit() {
+  if (!tbodyUnit) return;
+  const snap = await getDocs(collection(db, "units")).catch(() => ({ docs: [] }));
+  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (!rows.some(x => x.id === "unit-induk")) rows.unshift({ id: "unit-induk", nama: "Unit Induk (data lama)", aktif: true });
+  tbodyUnit.innerHTML = rows.map(u => `<tr><td>${u.nama || u.id}</td><td><code>${u.id}</code></td><td>${u.aktif !== false ? "Aktif" : "Nonaktif"}</td><td>${u.id === "unit-induk" ? "—" : `<button class="btn btn-sm btn-sec" data-unit="${u.id}" data-aktif="${u.aktif !== false}">${u.aktif !== false ? "Nonaktifkan" : "Aktifkan"}</button>`}</td></tr>`).join("");
+  tbodyUnit.querySelectorAll("button[data-unit]").forEach(b => b.onclick = async () => { await updateDoc(doc(db, "units", b.dataset.unit), { aktif: b.dataset.aktif !== "true", diubah: serverTimestamp() }); await muatUnit(); });
+}
+await muatUnit();
+document.getElementById("btnTambahUnit")?.addEventListener("click", () => { const f = document.getElementById("formUnit"); f.hidden = !f.hidden; });
+document.getElementById("btnSimpanUnit")?.addEventListener("click", () => aksi(document.getElementById("btnSimpanUnit"), async () => {
+  const id = document.getElementById("unitId").value.trim().toLowerCase(); const nama = document.getElementById("unitNama").value.trim();
+  if (!/^[a-z0-9-]{2,40}$/.test(id) || !nama) throw new Error("Nama dan ID unit wajib diisi; ID hanya huruf kecil, angka, dan tanda hubung.");
+  await setDoc(doc(db, "units", id), { unitId: id, nama, aktif: true, dibuat: serverTimestamp() });
+  toast("Unit ditambahkan"); document.getElementById("formUnit").hidden = true; await muatUnit();
+}));
+document.getElementById("btnMigrasiV4")?.addEventListener("click", () => aksi(document.getElementById("btnMigrasiV4"), async () => {
+  const r = await backfillUnitInduk({ onProgress: x => console.info("Backfill", x) });
+  toast(`Backfill selesai: ${r.diubah} dokumen ditandai unit-induk`);
+}, "Memigrasikan..."));
