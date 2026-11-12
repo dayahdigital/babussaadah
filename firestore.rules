@@ -8,8 +8,10 @@ service cloud.firestore {
     function aktif() { return request.auth != null && exists(userPath()) && me().get('aktif', false) == true && me().get('dihapus', false) != true; }
     function peran(r) { return aktif() && me().get('role', '') == r; }
     function salahSatu(roles) { return aktif() && me().get('role', '') in roles; }
-    function sa() { return peran('superadmin'); }
-    function pimpinan() { return peran('pimpinan'); }
+    // Akses pusat diperiksa langsung dari dokumen akun agar query collection users
+    // tetap berjalan meskipun dokumen akun belum memiliki field migrasi v4.
+    function sa() { return request.auth != null && exists(userPath()) && me().get('role', '') == 'superadmin' && me().get('aktif', true) == true && me().get('dihapus', false) != true; }
+    function pimpinan() { return request.auth != null && exists(userPath()) && me().get('role', '') == 'pimpinan' && me().get('aktif', true) == true && me().get('dihapus', false) != true; }
     function unit(d) { return d.get('unitId', 'unit-induk'); }
     function unitSaya(id) { return me().get('unitIds', ['unit-induk']).hasAny([id]); }
     function bacaUnit(d) { return sa() || pimpinan() || unitSaya(unit(d)); }
@@ -26,7 +28,7 @@ service cloud.firestore {
       allow delete: if false;
     }
     match /users/{uid} {
-      allow get: if aktif() && (request.auth.uid == uid || sa());
+      allow get: if sa() || (aktif() && request.auth.uid == uid);
       allow list: if sa();
       allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.role == 'superadmin';
       allow update: if sa() && request.resource.data.uid == uid;
