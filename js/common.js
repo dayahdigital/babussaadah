@@ -104,20 +104,20 @@ export const ikon = (n, ukuran = 20) =>
 const MENU = [
   { href: "dashboard.html", label: "Beranda", ikon: "home", roles: AKSES.dashboard },
   { href: "absen-saya.html", label: "Absen", ikon: "cek", roles: AKSES.absenSaya },
-  { href: "izin.html", label: "Izin & Sakit", ikon: "izin", roles: AKSES.izin },
-  { href: "absensi.html", label: "Absensi", ikon: "absen", roles: AKSES.absensi },
-  { href: "jadwal-teungku.html", label: "Jadwal Teungku", ikon: "roster", roles: AKSES.lihatJadwal },
-  { href: "jadwal-mengajar.html", label: "Atur Jadwal", ikon: "kalender", roles: AKSES.jadwal },
-  { href: "teungku.html", label: "Data Teungku", ikon: "orang", roles: AKSES.teungku },
+  { href: "izin.html", label: "Izin", ikon: "izin", roles: AKSES.izin },
+  { href: "absensi.html", label: "Rekap", ikon: "absen", roles: AKSES.absensi },
+  { href: "jadwal-teungku.html", label: "Jadwal", ikon: "roster", roles: AKSES.lihatJadwal },
+  { href: "jadwal-mengajar.html", label: "Jadwal Saya", ikon: "kalender", roles: AKSES.jadwal },
+  { href: "teungku.html", label: "Teungku", ikon: "orang", roles: AKSES.teungku },
   { href: "mukafaah.html", label: "Mukafaah", ikon: "dompet", roles: AKSES.mukafaah },
   { href: "kas.html", label: "Kas", ikon: "kas", roles: AKSES.kas },
   { href: "pengumuman.html", label: "Pengumuman", ikon: "toa", roles: AKSES.pengumuman },
   { href: "pengguna.html", label: "Pengguna", ikon: "pengguna", roles: AKSES.pengguna },
-  { href: "lembaga.html", label: "Profil Dayah", ikon: "gedung", roles: AKSES.lembaga },
-  { href: "log.html", label: "Log Aktivitas", ikon: "log", roles: AKSES.log },
+  { href: "lembaga.html", label: "Profil", ikon: "gedung", roles: AKSES.lembaga },
+  { href: "log.html", label: "Log", ikon: "log", roles: AKSES.log },
   { href: "backup.html", label: "Backup", ikon: "backup", roles: AKSES.backup },
   { href: "panduan.html", label: "Panduan", ikon: "bantuan" },
-  { href: "akun.html", label: "Akun Saya", ikon: "akun" }
+  { href: "akun.html", label: "Akun", ikon: "akun" }
 ];
 
 // ---------------------------------------------------------------------

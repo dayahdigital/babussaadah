@@ -73,7 +73,7 @@ async function muatHarian() {
           ${a?.jarak != null ? `<span class="pulang-ket">GPS: ${teksJarak(a.jarak)} dari dayah</span>` : ""}</td>
         <td class="num ins">–</td>
         <td><input class="ket" value="${esc(a?.keterangan || "")}" placeholder="${luar ? "mis. badal Tgk. ..." : "opsional"}"></td>
-        <td>${a?.adaSelfie ? `<button class="btn btn-sm btn-sec" data-selfie="${tgl}_${s.id}_${g.id}">Hadir</button>${a?.waktuPulang ? ` <button class="btn btn-sm btn-sec" data-selfie="pulang_${tgl}_${s.id}_${g.id}">Pulang</button>` : ""}` : a?.sumber === "izin" ? '<span class="kecil muted">dari izin</span>' : "–"}</td></tr>`;
+        <td>${a?.adaSelfie ? `<button class="btn btn-sm btn-sec foto-btn" data-selfie="${tgl}_${s.id}_${g.id}">Hadir</button>${a?.waktuPulang ? ` <button class="btn btn-sm btn-sec foto-btn" data-selfie="pulang_${tgl}_${s.id}_${g.id}">Pulang</button>` : ""}` : a?.sumber === "izin" ? '<span class="kecil muted">dari izin</span>' : "–"}</td></tr>`;
     }).join("") + (sembunyi && !cbSemua.checked ? `<tr><td colspan="6" class="empty">${sembunyi} teungku tidak terjadwal di sesi ini disembunyikan.</td></tr>` : "")
       : `<tr><td colspan="6" class="empty">Tidak ada teungku terjadwal di sesi ini.</td></tr>`;
     hitungTotal();

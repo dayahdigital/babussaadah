@@ -118,7 +118,7 @@ function tampil() {
       <td class="utama">${tglIndo(a.tanggal)}</td><td>${esc(a.sesiNama || a.sesi)}</td>
       <td>${badgeStatus(a.status)}${(() => { const pk = statusPulang(a, cfg); return pk.teks ? `<span class="pulang-ket ${pk.kode}">${pk.teks}</span>` : ""; })()}</td>
       <td>${jam(a.waktu)}</td><td>${jam(a.waktuPulang)}</td>
-      <td>${fotoTersedia.has(a.id) ? `<button class="btn btn-sm btn-sec" data-foto-riwayat="${a.id}">Hadir</button>` : "–"}${fotoTersedia.has("pulang_" + a.id) ? ` <button class="btn btn-sm btn-sec" data-foto-riwayat="pulang_${a.id}">Pulang</button>` : ""}</td>
+      <td>${fotoTersedia.has(a.id) ? `<button class="btn btn-sm btn-sec foto-btn" data-foto-riwayat="${a.id}">Hadir</button>` : "–"}${fotoTersedia.has("pulang_" + a.id) ? ` <button class="btn btn-sm btn-sec foto-btn" data-foto-riwayat="pulang_${a.id}">Pulang</button>` : ""}</td>
       <td>${esc(a.materi || a.kitab || "–")}</td><td class="num">${rupiah(a.insentif)}</td></tr>`).join("")
     : `<tr><td colspan="8" class="empty">Belum ada absensi bulan ini.</td></tr>`;
 }

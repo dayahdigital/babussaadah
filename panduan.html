@@ -46,6 +46,8 @@
         <li>Ketuk <b>Hadir</b> → bila diminta, izinkan <b>Lokasi</b> (GPS harus di dalam radius dayah) → izinkan kamera → arahkan wajah ke bingkai → <b>Ambil foto</b> → <b>Gunakan foto ini</b>.</li>
         <li>Isi <b>materi yang diajarkan hari ini</b> (bisa diubah dari isian jadwal) → <b>Kirim Hadir</b>.</li>
         <li><b>Absen pulang:</b> menjelang jam mengajar selesai muncul tombol emas <b>Pulang</b> → selfie lagi. Bila terlewat, tercatat <b>"Tidak absen pulang"</b> (hanya terlihat di aplikasi, tidak di halaman web).</li>
+        <li>Untuk melihat bukti foto, buka bagian <b>Riwayat absen</b>. Tekan tombol <b>Hadir</b> atau <b>Pulang</b> pada kolom Foto. Tombol hanya muncul jika foto benar-benar tersimpan.</li>
+        <li>Tekan <b>Unduh Excel</b> untuk mengambil rekap pribadi lengkap dengan waktu hadir, waktu pulang, status foto, materi, dan mukafaah.</li>
         <li>Bila ditolak, aplikasi menuliskan alasannya (mis. di luar jam sesi, sesi tidak ada di jadwal).</li>
       </ol>
       <p class="kecil">Status: <span class="badge st-h"><b>✔</b> H · Hadir</span> <span class="badge st-i"><b>✉</b> I · Izin</span> <span class="badge st-s"><b>✚</b> S · Sakit</span> <span class="badge st-a"><b>✖</b> A · Alpa</span></p>
@@ -53,11 +55,11 @@
 
     <details data-untuk="guru admin superadmin pimpinan"><summary>📅 Jadwal mengajar</summary><div class="isi">
       <ol>
-        <li>Menu <b>Jadwal Teungku</b> (Pimpinan, Super Admin, Teungku): melihat seluruh jadwal pengajian dengan lampu hijau berkedip saat pengajian berlangsung dan tanda "Teungku hadir". Jadwal ini <b>tidak tampil</b> di halaman web umum.</li>
+        <li>Menu <b>Jadwal</b> (Pimpinan, Super Admin, Teungku): melihat seluruh jadwal pengajian dengan lampu hijau berkedip saat pengajian berlangsung dan tanda "Teungku hadir". Jadwal ini <b>tidak tampil</b> di halaman web umum.</li>
         <li>Menu <b>Jadwal</b> → ketuk kotak <b>+ Pilih</b> pada hari & sesi yang Anda ajar.</li>
         <li>Pilih <b>jam mulai</b> dan <b>jam selesai</b> mengajar. Pilihan jam hanya di dalam rentang sesi yang ditetapkan Super Admin (mis. sesi Pagi 08.00–17.00 → Anda mengajar 09.00–11.00). Durasi dihitung otomatis, mis. <b>2 jam (120 menit)</b>.</li>
         <li>Isi <b>kitab</b>, <b>materi/bab</b>, <b>tempat</b>, dan <b>kelas</b> → Simpan. Ketuk kotak yang sudah terisi untuk mengubah atau menghapus.</li>
-        <li>Jadwal tampil di menu <b>Jadwal Teungku</b> (model roster, kartu, papan, tabel, dll.). Setiap perubahan tercatat di <b>Riwayat perubahan</b> (bisa dilihat siapa saja).</li>
+        <li>Jadwal tampil di menu <b>Jadwal</b> (model roster, kartu, papan, tabel, dll.). Setiap perubahan tercatat di <b>Riwayat perubahan</b> (bisa dilihat siapa saja).</li>
       </ol></div></details>
 
     <details data-untuk="guru"><summary>✉ Izin & sakit</summary><div class="isi">
@@ -71,15 +73,17 @@
       <ol>
         <li>Pimpinan dapat <b>melihat semua data</b>: Beranda, Absensi (termasuk foto selfie & jarak GPS), Jadwal Teungku, Data Teungku, Mukafaah, Kas, Log Aktivitas, serta mengunduh laporan PDF/Excel. Data tidak bisa diubah dari akun Pimpinan.</li>
         <li><b>Menyetujui mukafaah:</b> setelah Bendahara menekan "Hitung", buka menu <b>Mukafaah</b> → periksa → <b>✔ Setujui</b> per teungku atau <b>Setujui semua</b>. Baru setelah itu Bendahara bisa menyerahkan. Persetujuan bisa ditarik sebelum diserahkan.</li>
-        <li><b>Pengumuman:</b> Pimpinan dapat membuat teks berjalan & mading.</li><li>Menu <b>Izin & Sakit</b> menampilkan pengajuan yang menunggu.</li>
+        <li><b>Pengumuman:</b> Pimpinan dapat membuat teks berjalan & mading.</li><li>Menu <b>Izin</b> menampilkan pengajuan yang menunggu.</li>
         <li>Periksa alasan & lampiran, isi catatan bila perlu, lalu <b>Setujui</b> atau <b>Tolak</b>.</li>
         <li>Bila disetujui, absensi sesi terjadwal pada tanggal tersebut otomatis tercatat Izin/Sakit.</li></ol></div></details>
 
     <details data-untuk="operator admin superadmin"><summary>🗂 Mengisi: mengisi absensi</summary><div class="isi">
-      <ol><li>Menu <b>Absensi</b> → pilih tanggal & sesi. Yang tampil hanya teungku yang terjadwal.</li>
+      <ol><li>Menu <b>Rekap</b> → pilih tanggal & sesi. Yang tampil hanya teungku yang terjadwal.</li>
         <li>Pilih status H / I / S / A tiap teungku (atau <b>✔ Semua Hadir</b>), isi keterangan bila perlu → <b>Simpan Absensi</b>.</li>
         <li>Untuk badal, centang <b>Tampilkan teungku yang tidak terjadwal</b>.</li>
-        <li>Rekap bulanan bisa diunduh <b>PDF</b> (rekap / rincian lengkap dengan kitab & materi) atau <b>Excel</b>.</li></ol></div></details>
+        <li>Rekap bulanan bisa diunduh <b>PDF</b> atau <b>Excel</b>. Rincian memuat jam mengajar, waktu aktual hadir/pulang, status foto, kitab, materi, dan keterangan.</li>
+        <li>Super Admin dapat memilih <b>Semua teungku</b> atau satu nama teungku sebelum mengunduh rincian.</li>
+        <li>Untuk melihat foto, pilih tanggal dan sesi lalu tekan tombol <b>Hadir</b> atau <b>Pulang</b> pada kolom Selfie.</li></ol></div></details>
 
     <details data-untuk="bendahara superadmin"><summary>💰 Bendahara: mukafaah & kas</summary><div class="isi">
       <ol><li>Menu <b>Mukafaah</b> → pilih periode → <b>Hitung dari Absensi</b>. Pimpinan Dayah menerima notifikasi untuk <b>menyetujui</b>; tombol <b>Serahkan</b> aktif setelah disetujui.</li>
@@ -91,7 +95,7 @@
     <details data-untuk="superadmin"><summary>🛠 Super Admin: pengaturan</summary><div class="isi">
       <ul>
         <li><b>Pengguna</b>: buat akun (teungku ditautkan ke datanya), reset sandi, nonaktifkan, hapus. Buatlah minimal <b>2 Super Admin</b>.</li>
-        <li><b>Absensi → Pengaturan sesi</b>: nama & <b>rentang jam sesi</b> (teungku memilih jam mengajar di dalamnya), hari, <b>waktu absen pulang</b>, <b>lokasi dayah & radius GPS</b> (tekan "Pakai lokasi saya sekarang" di tengah dayah), batas buka/tutup absen, izinkan absen mandiri.</li>
+        <li><b>Rekap → Pengaturan sesi</b>: nama & <b>rentang jam sesi</b> (teungku memilih jam mengajar di dalamnya), hari, <b>waktu absen pulang</b>, <b>lokasi dayah & radius GPS</b> (tekan "Pakai lokasi saya sekarang" di tengah dayah), batas buka/tutup absen, izinkan absen mandiri.</li>
         <li><b>Pengumuman</b>: teks berjalan di kaki halaman depan & papan mading.</li>
         <li><b>Profil Dayah</b>: lokasi & koreksi <b>jadwal sholat</b> di halaman depan, model tampilan bawaan menu Jadwal Teungku, logo, nama Arab, tema warna (hijau/biru/krem), alamat, nama pimpinan & bendahara (dipakai di laporan).</li>
         <li><b>Log Aktivitas</b>: semua perubahan tercatat dan tidak bisa dihapus.</li>
